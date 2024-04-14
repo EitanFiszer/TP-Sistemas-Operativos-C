@@ -13,7 +13,7 @@ int main(int argc, char* argv[]) {
 
     int puerto = config_get_int_value(config, "PUERTO_ESCUCHA_DISPATCH");
 
-    char* stringParaLogger = string_from_format("Hola, soy un cpu! Puerto: %d", puerto);
+    char* stringParaLogger = string_from_format("[CPU] Escuchando en el puerto: %d", puerto);
     log_info(logger, stringParaLogger);
 
     return 0;
