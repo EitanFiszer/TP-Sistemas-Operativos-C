@@ -1,6 +1,6 @@
 #include "server.h"
 
-int iniciar_servidor(int puerto, t_log* logger)
+int iniciar_servidor(char* puerto, t_log* logger)
 {
 	int socket_servidor;
 
@@ -32,7 +32,7 @@ int iniciar_servidor(int puerto, t_log* logger)
 	return socket_servidor;
 }
 
-int esperar_cliente(int socket_servidor)
+Handshake esperar_cliente(int socket_servidor, t_log* logger)
 {
 	// Aceptamos un nuevo cliente
 	int socket_cliente;
@@ -41,12 +41,9 @@ int esperar_cliente(int socket_servidor)
 	uint32_t handshake;
 	uint32_t resultOk = 0;
 	uint32_t resultError = -1;
+	Handshake handshakeCliente;
 
 	recv(socket_cliente, &handshake, sizeof(uint32_t), MSG_WAITALL);
-	if (handshake == 1)
-		send(socket_cliente, &resultOk, sizeof(uint32_t), NULL);
-	else
-		send(socket_cliente, &resultError, sizeof(uint32_t), NULL);
 
 	if (socket_cliente == -1) 	{
 		log_error(logger, "Error al aceptar un nuevo cliente");
@@ -54,7 +51,10 @@ int esperar_cliente(int socket_servidor)
 		log_info(logger, "Se conecto un cliente!");
 	}
 
-	return socket_cliente;
+	handshakeCliente.modulo = handshake;
+	handshakeCliente.socket = socket_cliente;
+
+	return handshakeCliente;
 }
 
 int recibir_operacion(int socket_cliente)
