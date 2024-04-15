@@ -10,14 +10,13 @@ int main(int argc, char* argv[]) {
     t_log* logger = log_create("memoria.log", "Memoria", 1, LOG_LEVEL_INFO);
     t_config* config = config_create("memoria.config");
 
-    char* puerto_escucha = string_from_format("%d",config_get_int_value(config, "PUERTO_ESCUCHA"));
-
+    char* puerto_escucha = config_get_string_value(config, "PUERTO_ESCUCHA");
 
     int server_fd = iniciar_servidor(puerto_escucha, logger);
 
     char* stringParaLogger = string_from_format("[MEMORIA] Escuchando en el puerto: %s", puerto_escucha);
-    log_info(logger, stringParaLogger);
-
+	log_info(logger, stringParaLogger);
+	
     Handshake res = esperar_cliente(server_fd, logger);
     int modulo = res.modulo;
     int socket_cliente = res.socket;
