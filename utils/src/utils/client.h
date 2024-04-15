@@ -9,6 +9,7 @@
 #include<netdb.h>
 #include<string.h>
 #include<commons/log.h>
+#include "constants.h"
 
 typedef enum
 {
@@ -37,5 +38,7 @@ void agregar_a_paquete(t_paquete* paquete, void* valor, int tamanio);
 void enviar_paquete(t_paquete* paquete, int socket_cliente);
 void liberar_conexion(int socket_cliente);
 void eliminar_paquete(t_paquete* paquete);
+
+int connectAndHandshake(char* ip, char* puerto, ID modulo, char* dest, t_log* logger);
 
 #endif /* UTILS_H_ */

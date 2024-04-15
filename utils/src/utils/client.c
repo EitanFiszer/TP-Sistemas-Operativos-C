@@ -1,5 +1,6 @@
 #include "client.h"
-
+#include <commons/string.h>
+#include <commons/log.h>
 
 void* serializar_paquete(t_paquete* paquete, int bytes)
 {
@@ -106,4 +107,23 @@ void eliminar_paquete(t_paquete* paquete)
 void liberar_conexion(int socket_cliente)
 {
 	close(socket_cliente);
+}
+
+int connectAndHandshake(char* ip, char* puerto, ID modulo, char* dest, t_log* logger) {
+   int conexion_memoria = crear_conexion(ip, puerto);
+
+    if (conexion_memoria < 0) {
+		log_error(logger, string_from_format("No se pudo conectar a %s!", dest));
+		return -1;
+	} else {
+		char* mensaje_log = string_from_format("Conectado a %s %s:%s -- %d", dest, ip, puerto, conexion_memoria);
+		log_info(logger, mensaje_log);
+	}
+
+    uint32_t handshake = modulo;
+	uint32_t result;
+	send(conexion_memoria, &handshake, sizeof(uint32_t), NULL);
+	recv(conexion_memoria, &result, sizeof(uint32_t), MSG_WAITALL);
+
+    return result;
 }
