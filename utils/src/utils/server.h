@@ -10,19 +10,13 @@
 #include<commons/collections/list.h>
 #include<string.h>
 #include<assert.h>
+#include "constants.h"
 
 typedef enum
 {
 	MENSAJE,
 	PAQUETE
 }op_code;
-
-typedef enum {
-	CPU,
-	KERNEL,
-	IO,
-	MEMORIA
-} ID;
 
 typedef struct {
 	ID modulo;
