@@ -47,8 +47,10 @@ Handshake esperar_cliente(int socket_servidor, t_log* logger)
 
 	if (socket_cliente == -1) 	{
 		log_error(logger, "Error al aceptar un nuevo cliente");
+		send(socket_cliente, &resultError, sizeof(uint32_t), 0);
 	} else {
 		log_info(logger, "Se conecto un cliente!");
+		send(socket_cliente, &resultOk, sizeof(uint32_t), 0);
 	}
 
 	handshakeCliente.modulo = handshake;
