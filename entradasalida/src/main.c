@@ -23,8 +23,8 @@ int main(int argc, char* argv[]) {
     char* puerto_memoria = config_get_string_value(config, "PUERTO_MEMORIA");
 
     //cliente se conecta al sevidor 
-    int resultHandshake = connectAndHandshake(ip_memoria, puerto_memoria, IO, "memoria", logger);
-    int resultHandshake = connectAndHandshake(ip_kernel, puerto_kernel, IO, "kernel", logger);
+    int resultHandshakeMemoria = connectAndHandshake(ip_memoria, puerto_memoria, IO, "memoria", logger);
+    int resultHandshakeKernell = connectAndHandshake(ip_kernel, puerto_kernel, IO, "kernel", logger);
 
     return 0;
 }
