@@ -24,14 +24,25 @@ int main(int argc, char* argv[]) {
     char* puerto_cpu_dispatch = config_get_string_value(config, "PUERTO_CPU_DISPATCH");
     char* puerto_cpu_interrupt = config_get_string_value(config, "PUERTO_CPU_INTERRUPT");
 
-    // creamos el servidor
-    int server_fd = iniciar_servidor(puerto_escucha, logger);
-
     //cliente se conecta al sevidor 
    // int resultHandshake = connectAndHandshake(ip_cpu, puerto_cpu_dispatch, KERNEL, "cpu", logger);
-   // int resultHandshake = connectAndHandshake(ip_cpu, puerto_cpu_interrupt, KERNEL, "cpu", logger);
+   int resultHandshakeCPU = connectAndHandshake(ip_cpu, puerto_cpu_interrupt, KERNEL, "cpu", logger);
+    int resultHandshakeMemoria = connectAndHandshake(ip_memoria, puerto_memoria, KERNEL, "memoria", logger);
 
-    int resultHandshake = connectAndHandshake(ip_memoria, puerto_memoria, KERNEL, "memoria", logger);
+    // creamos el servidor
+    int server_fd = iniciar_servidor(puerto_escucha, logger);
+    Handshake res = esperar_cliente(server_fd, logger);
+    int modulo = res.modulo;
+    int socket_cliente = res.socket;
+    switch (modulo) {
+	    case IO:
+		    log_info(logger, "Se conecto un I/O");
+    	break;
+        default:
+		    log_error(logger, "Se conecto un cliente desconocido");
+		break;
+	}
+
 
 
     return 0;
