@@ -22,16 +22,28 @@ int main(int argc, char* argv[]) {
     int server_interrupt_fd = iniciar_servidor(puerto_escucha_interrupt, logger);
     char* stringParaLogger = string_from_format("[CPU] Escuchando en el puerto interrupt: %s", puerto_escucha_interrupt);
     log_info(logger, stringParaLogger);
-    int server_dispatch_fd = iniciar_servidor(puerto_escucha_dispatch, logger);
+
+    //VER HILOS PARA CONECTAR DOS PUERTOS
+    /*int server_dispatch_fd = iniciar_servidor(puerto_escucha_dispatch, logger);
     stringParaLogger = string_from_format("[CPU] Escuchando en el puerto dispatch: %s", puerto_escucha_dispatch);
-    log_info(logger, stringParaLogger);
+    log_info(logger, stringParaLogger);*/
 
-    // esperar_cliente(server_interrupt_fd, logger);
-    // esperar_cliente(server_dispatch_fd, logger);
-
-    //cliente se conecta al sevidor 
+    //EL cliente se conecta 
     int resultHandshake = connectAndHandshake(ip_memoria, puerto_memoria, CPU, "memoria", logger);
     printf("Handshake socket: %d\n", resultHandshake);
+
+
+    Handshake res = esperar_cliente(server_interrupt_fd, logger);
+    int modulo = res.modulo;
+    int socket_cliente = res.socket;
+    switch (modulo) {
+	    case KERNEL:
+		    log_info(logger, "Se conecto un Kernel");
+    	break;
+        default:
+		    log_error(logger, "Se conecto un cliente desconocido");
+		break;
+    }
 
 
 
