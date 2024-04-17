@@ -17,23 +17,25 @@ int main(int argc, char* argv[]) {
     char* stringParaLogger = string_from_format("[MEMORIA] Escuchando en el puerto: %s", puerto_escucha);
 	log_info(logger, stringParaLogger);
 	
-    Handshake res = esperar_cliente(server_fd, logger);
-    int modulo = res.modulo;
-    int socket_cliente = res.socket;
+	while(1){
+		Handshake res = esperar_cliente(server_fd, logger);
+		int modulo = res.modulo;
+		int socket_cliente = res.socket;
 
-    switch (modulo) {
-		case CPU:
-			log_info(logger, "Se conecto un CPU");
-			break;
-		case KERNEL:
-			log_info(logger, "Se conecto un Kernel");
-			break;
-		case IO:
-			log_info(logger, "Se conecto un IO");
-			break;
-		default:
-			log_error(logger, "Se conecto un cliente desconocido");
-			break;
+		switch (modulo) {
+			case CPU:
+				log_info(logger, "Se conecto un CPU");
+				break;
+			case KERNEL:
+				log_info(logger, "Se conecto un Kernel");
+				break;
+			case IO:
+				log_info(logger, "Se conecto un IO");
+				break;
+			default:
+				log_error(logger, "Se conecto un cliente desconocido");
+				break;
+		}
 	}
     
 
