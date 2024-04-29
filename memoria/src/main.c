@@ -18,7 +18,7 @@ int main(int argc, char* argv[]) {
 	log_info(logger, stringParaLogger);
 	
 	while(1){
-		Handshake res = esperar_cliente(server_fd, logger);
+		handshake_t res = esperar_cliente(server_fd, logger);
 		int modulo = res.modulo;
 		int socket_cliente = res.socket;
 

@@ -21,14 +21,14 @@ typedef enum
 typedef struct {
 	ID modulo;
 	int socket;
-} Handshake;
+} handshake_t;
 
 extern t_log* logger;
 
 void* recibir_buffer(int*, int);
 
 int iniciar_servidor(char*, t_log*);
-Handshake esperar_cliente(int, t_log*);
+handshake_t esperar_cliente(int, t_log*);
 t_list* recibir_paquete(int);
 void recibir_mensaje(int);
 int recibir_operacion(int);
