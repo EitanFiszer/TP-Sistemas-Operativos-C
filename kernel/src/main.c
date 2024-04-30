@@ -4,6 +4,8 @@
 #include <commons/log.h>
 #include <commons/config.h>
 #include <commons/string.h>
+#include <kernel-utils/estados.h>
+#include <kernel-utils/PCB.h>
 
 int main(int argc, char* argv[]) {
     // decir_hola("Kernel");
@@ -42,8 +44,7 @@ int main(int argc, char* argv[]) {
 		    log_error(logger, "Se conecto un cliente desconocido");
 		break;
 	}
-
-
-
     return 0;
 }
+
+
