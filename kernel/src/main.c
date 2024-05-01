@@ -69,8 +69,52 @@ void leer_configs()
 
 void consola_interactiva(void)
 {
-    
-    
+    log_info(logger, "Iniciando consola");
+    int PID = 0;
+    while (1)
+    {
+        printf("Ingrese un comando: \n");
+        char *leido = readline(">");
+
+        char **split = string_split(leido, " ");
+        int length = string_array_size(split);
+
+        if (string_equals_ignore_case(split[0], "INICIAR_PROCESO"))
+        {
+            // leo el PATH
+            char *instrucciones = leer_archivo(split[1]);
+            // creo la PCB Y SE LA ENVIO A LA CPU
+            PCB nuevo_proceso;
+            nuevo_proceso.estado = NEW;
+            nuevo_proceso.PID = PID;
+            // incremento el identificador del proceso para el proximo
+            PID++;
+            /// faltaria inicializar registro de la cpu y program counter quantum segun sea RR o FIFO
+
+            // me conecto con la cpu ----NO USE HANDSHAKE----
+            //CREO EL PROCESO LOG
+            log_info(logger,"Se crea el proceso <%d> en NEW", nuevo_proceso.PID);
+            int socket_cliente;
+            socket_cliente = crear_conexion(ip_cpu,puerto_cpu_dispatch);
+
+            // creo el paquete con las instrucciones para enviar a cpu y la pcb
+            t_paquete* nuevo_paquete = crear_paquete();
+            agregar_a_paquete(nuevo_paquete,instrucciones,(strlen(instrucciones)+1));
+            agregar_a_paquete(nuevo_paquete, &nuevo_proceso,sizeof(PCB));
+
+
+            //envio el paquete a la CPU //ENVIO EL NUEVO PROCESO
+            enviar_paquete(nuevo_paquete,socket_cliente);
+            
+
+            free(split);
+            free(leido);
+            //elimino paquete
+            eliminar_paquete(nuevo_paquete);
+            //libero conexion 
+            liberar_conexion(socket_cliente);
+        }
+    }
 }
 char *leer_archivo(char *un_path)
 {

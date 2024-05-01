@@ -1,6 +1,11 @@
 {
     "files.associations": {
         "log.h": "c",
-        "estados.h": "c"
+        "estados.h": "c",
+        "stdlib.h": "c",
+        "queue.h": "c",
+        "server.h": "c",
+        "pcb.h": "c",
+        "main.h": "c"
     }
 }
