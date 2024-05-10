@@ -11,5 +11,5 @@ typedef struct {
     proceso_t* procesos[MAX_PROCESOS];
 } memoria_t;
 
-proceso_t* crear_proceso(int id, t_log* logger);
-char* leer_instrucciones(const char* nombre_archivo);
+proceso_t* crear_proceso(int id, const char* nombre_archivo, t_log* logger);
+char** leer_archivo(const char* nombre_archivo, t_log* logger, int* num_lineas);
