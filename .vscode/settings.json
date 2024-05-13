@@ -6,6 +6,11 @@
         "queue.h": "c",
         "server.h": "c",
         "pcb.h": "c",
-        "main.h": "c"
+        "main.h": "c",
+        "client.h": "c",
+        "list.h": "c",
+        "socket.h": "c",
+        "unistd.h": "c",
+        "pthread.h": "c"
     }
 }

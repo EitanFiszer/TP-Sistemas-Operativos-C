@@ -6,9 +6,14 @@ t_queue* cola_exec;
 
 t_log *logger;
 t_config *config;
+int puerto;
+
 char* ip_memoria;
 char* ip_cpu;
 char* puerto_memoria;
 char* puerto_escucha;
 char* puerto_cpu_dispatch;
 char* puerto_cpu_interrupt;
+
+//INT ULTIMO PROCESO CREADO
+int PID = 0;
