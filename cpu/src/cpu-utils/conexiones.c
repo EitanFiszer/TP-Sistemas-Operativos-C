@@ -7,7 +7,7 @@ struct args {
     t_log* logger;
 };
 
-void conexion_dispatch(void *argumentos) {
+void conexion_interrupt(void *argumentos) {
     struct args *puertoYLogger = argumentos;
     char* puerto = puertoYLogger->puerto;
     t_log* logger = puertoYLogger->logger;
