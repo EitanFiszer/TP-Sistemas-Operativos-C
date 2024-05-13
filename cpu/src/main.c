@@ -23,32 +23,20 @@ int main(int argc, char* argv[]) {
     char* puerto_escucha_dispatch = config_get_string_value(config, "PUERTO_ESCUCHA_DISPATCH");
     char* puerto_escucha_interrupt = config_get_string_value(config, "PUERTO_ESCUCHA_INTERRUPT");
 
+    log_debug(logger, "Configuraciones leidas %s, %s, %s, %s", ip_memoria, puerto_memoria, puerto_escucha_dispatch, puerto_escucha_interrupt);
+
     // declaramos los hilos
-    pthread_t hilo_dispatch;
     pthread_t hilo_interrupt;
-
-    args argumentos_dispatch;
-    argumentos_dispatch.puerto = puerto_escucha_dispatch;
-    argumentos_dispatch.logger = logger;
-
     args argumentos_interrupt;
     argumentos_interrupt.puerto = puerto_escucha_interrupt;
     argumentos_interrupt.logger = logger;
     
-    pthread_create(&hilo_dispatch, NULL, conexion_dispatch, (void*)&argumentos_dispatch);
-    pthread_create(&hilo_interrupt, NULL, conexion_dispatch, (void*)&argumentos_interrupt);
+    pthread_create(&hilo_interrupt, NULL, conexion_interrupt, (void*)&argumentos_interrupt);
+    pthread_detach(hilo_interrupt);
 
-    //VER HILOS PARA CONECTAR DOS PUERTOS
-    /*int server_dispatch_fd = iniciar_servidor(puerto_escucha_dispatch, logger);
-    stringParaLogger = string_from_format("[CPU] Escuchando en el puerto dispatch: %s", puerto_escucha_dispatch);
-    log_info(logger, stringParaLogger);*/
-
-    //EL cliente se conecta 
+    //El cliente se conecta 
     int resultHandshake = connectAndHandshake(ip_memoria, puerto_memoria, CPU, "memoria", logger);
     printf("Handshake socket: %d\n", resultHandshake);
-
-    pthread_detach(hilo_dispatch);
-    pthread_join(hilo_interrupt, NULL);
 
     return 0;
 }

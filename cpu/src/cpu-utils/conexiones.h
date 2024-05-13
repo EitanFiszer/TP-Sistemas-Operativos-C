@@ -5,4 +5,4 @@ typedef struct {
     t_log* logger;
 } args;
 
-void conexion_dispatch(void* argumentos);
+void conexion_interrupt(void* argumentos);
