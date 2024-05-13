@@ -7,77 +7,17 @@
 #include <commons/string.h>
 #include <commons/collections/queue.h>
 #include <main.h>
-#include <kernel-utils/estados.h>
-#include <kernel-utils/PCB.h>
 #include <pthread.h>
 #include <string.h>
-
-
-
-int main(int argc, char *argv[])
-{
-    // decir_hola("Kernel");
-    logger = log_create("kernel.log", "Kernel", 1, LOG_LEVEL_INFO);
-    config = config_create("kernel.config");
-
-    puerto = config_get_int_value(config, "PUERTO_ESCUCHA");
-
-    char *stringParaLogger = string_from_format("[KERNEL] Escuchando en el puerto: %d", puerto);
-    log_info(logger, stringParaLogger);
-
-    // leemos las configs
-    leer_configs();
-
-    // cliente se conecta al sevidor
-    // int resultHandshakeDispatch = connectAndHandshake(ip_cpu, puerto_cpu_dispatch, KERNEL, "cpu", logger);
-    // int resultHandshakeInterrupt = connectAndHandshake(ip_cpu, puerto_cpu_interrupt, KERNEL, "cpu", logger);
-    // int resultHandshakeMemoria = connectAndHandshake(ip_memoria, puerto_memoria, KERNEL, "memoria", logger);
-
-    // // creamos el servidor
-    // int server_fd = iniciar_servidor(puerto_escucha, logger);
-    // handshake_t res = esperar_cliente(server_fd, logger);
-    // int modulo = res.modulo;
-    // int socket_cliente = res.socket;
-    // switch (modulo)
-    // {
-    // case IO:
-    //     log_info(logger, "Se conecto un I/O");
-    //     break;
-    // default:
-    //     log_error(logger, "Se conecto un cliente desconocido");
-    //     break;
-    // }
-    //INICIO LAS COLAS 
-    iniciar_colas();
-    // creo hilo para que reciba informacion de la consola constantement
-    pthread_t hilo_consola;
-    pthread_create(&hilo_consola, NULL, consola_interactiva, NULL);
-    // el hilo no necesita ser esperado por otro hilo que lo creo para liberar sus recursos cuando termine la ejecucion
-    pthread_detach(hilo_consola);
-
-    //CREO HILO PARA QUE REALICE LA PLANIFICACION DE LARGO PLAZO 
-    pthread_t hilo_LTS;
-    pthread_create(&hilo_LTS, NULL, LTS, NULL);
-    pthread_detach(hilo_LTS);
-
-    //CREO HILO PARA QUE REALICE LA PLANIFICACION DE CORTO PLAZO 
-    pthread_t hilo_STS;
-    pthread_create(&hilo_STS, NULL, STS, NULL);
-    pthread_detach(hilo_STS);
-
-    //SEMAFOROS PARA LAS COLAS 
-
-    return 0;
-}
 
 void leer_configs()
 {
     ip_memoria = config_get_string_value(config, "IP_MEMORIA");
     ip_cpu = config_get_string_value(config, "IP_CPU");
     puerto_memoria = config_get_string_value(config, "PUERTO_MEMORIA");
-    puerto_escucha = config_get_string_value(config, "PUERTO_ESCUCHA");
     puerto_cpu_dispatch = config_get_string_value(config, "PUERTO_CPU_DISPATCH");
     puerto_cpu_interrupt = config_get_string_value(config, "PUERTO_CPU_INTERRUPT");
+    puerto = config_get_int_value(config, "PUERTO_ESCUCHA");
 }
 
 // LEO DE LA CONSOLA
@@ -123,7 +63,7 @@ void consola_interactiva(void)
             enviar_paquete(nuevo_paquete,socket_cliente);
 
             //creo la PCB Y la guardo en cola NEW
-            PCB new_PCB=crear_PCB(PID);
+            t_PCB new_PCB=crear_PCB(PID);
             queue_push(cola_new,&new_PCB);
 
             //Incremento identificador de proceso
@@ -144,8 +84,9 @@ void LTS(void){
         //si el grado de multiprogramacion lo permite enviar procesos de new a ready
         int grado_multiprogramacion = config_get_int_value(config, "GRADO_MULTIPROGRAMACION");
         if (grado_multiprogramacion>0){
-            PCB*  retirar_new = queue_pop(cola_new);
+            t_PCB*  retirar_new = queue_pop(cola_new);
             queue_push(cola_ready,retirar_new);
+            // cambiar el grado de multiprogramacion
         }
     }
 }
@@ -155,7 +96,7 @@ void STS(void){
         char* algoritmo_planificacion = config_get_string_value(config, "ALGORITMO_PLANIFICACION");
         if(strcmp(algoritmo_planificacion, "FIFO")==0){
             //envio el primer elemento de la cola ready a EXEC
-            PCB* retirar_ready = queue_pop(cola_ready);
+            t_PCB* retirar_ready = queue_pop(cola_ready);
   
             queue_push(cola_exec, retirar_ready);
 
@@ -165,7 +106,7 @@ void STS(void){
             // creo el paquete con las instrucciones para enviar a cpu y la pcb
             t_paquete* nuevo_paquete = crear_paquete();
             //agre
-            agregar_a_paquete(nuevo_paquete,retirar_ready,sizeof(PCB));
+            agregar_a_paquete(nuevo_paquete,retirar_ready,sizeof(t_PCB));
             //envio el paquete a la memoria //ENVIO EL NUEVO PROCESO
             enviar_paquete(nuevo_paquete,socket_cliente);
 
@@ -174,7 +115,7 @@ void STS(void){
 
             handshake_t esperar_cpu = esperar_cliente(socket_servidor,logger);
 
-            PCB* bloqueado = recibir_paquete(esperar_cpu.socket);
+            t_PCB* bloqueado = recibir_paquete(esperar_cpu.socket);
 
             
 
@@ -214,8 +155,8 @@ void STS(void){
 
 //     return content;
 // }
-PCB crear_PCB(int PID) {
-    PCB newPCB;
+t_PCB crear_PCB(int PID) {
+    t_PCB newPCB;
     newPCB.PID = PID;
     newPCB.quantum=0;
     newPCB.estado=NEW;
@@ -227,4 +168,65 @@ void iniciar_colas(void){
     cola_blocked = queue_create();
     cola_exec = queue_create();
     cola_exit = queue_create();
+}
+
+
+int main(int argc, char *argv[])
+{
+    // decir_hola("Kernel");
+    logger = log_create("kernel.log", "Kernel", 1, LOG_LEVEL_INFO);
+    config = config_create("kernel.config");
+
+    // leemos las configs
+
+    // LEER TAMBIEN LA MULTIPROGRAMACIÓN
+    leer_configs();
+
+    char *stringParaLogger = string_from_format("[KERNEL] Escuchando en el puerto: %d", puerto);
+    log_info(logger, stringParaLogger);
+
+
+    // cliente se conecta al sevidor
+    // int resultHandshakeDispatch = connectAndHandshake(ip_cpu, puerto_cpu_dispatch, KERNEL, "cpu", logger);
+    // int resultHandshakeInterrupt = connectAndHandshake(ip_cpu, puerto_cpu_interrupt, KERNEL, "cpu", logger);
+
+    // ESTE ES EL SOCKET PARA CONECTARSE A LA MEMORIA
+    // int resultHandshakeMemoria = connectAndHandshake(ip_memoria, puerto_memoria, KERNEL, "memoria", logger);
+
+    // // creamos el servidor
+    // int server_fd = iniciar_servidor(puerto_escucha, logger);
+    // handshake_t res = esperar_cliente(server_fd, logger);
+    // int modulo = res.modulo;
+    // int socket_cliente = res.socket;
+    // switch (modulo)
+    // {
+    // case IO:
+    //     log_info(logger, "Se conecto un I/O");
+    //     break;
+    // default:
+    //     log_error(logger, "Se conecto un cliente desconocido");
+    //     break;
+    // }
+    
+    //INICIO LAS COLAS 
+    iniciar_colas();
+    // creo hilo para que reciba informacion de la consola constantement
+    pthread_t hilo_consola;
+    pthread_create(&hilo_consola, NULL, consola_interactiva, NULL);
+    // el hilo no necesita ser esperado por otro hilo que lo creo para liberar sus recursos cuando termine la ejecucion
+    pthread_detach(hilo_consola);
+
+    //CREO HILO PARA QUE REALICE LA PLANIFICACION DE LARGO PLAZO 
+    pthread_t hilo_LTS;
+    pthread_create(&hilo_LTS, NULL, LTS, NULL);
+    pthread_detach(hilo_LTS);
+
+    //CREO HILO PARA QUE REALICE LA PLANIFICACION DE CORTO PLAZO 
+    pthread_t hilo_STS;
+    pthread_create(&hilo_STS, NULL, STS, NULL);
+    pthread_detach(hilo_STS);
+
+    //SEMAFOROS PARA LAS COLAS 
+
+    return 0;
 }

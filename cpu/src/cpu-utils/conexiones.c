@@ -1,6 +1,5 @@
 #include <commons/log.h>
 #include <commons/string.h>
-#include <utils/server.h>
 
 struct args {
     char* puerto;
@@ -8,6 +7,7 @@ struct args {
 };
 
 void conexion_interrupt(void *argumentos) {
+    /*
     struct args *puertoYLogger = argumentos;
     char* puerto = puertoYLogger->puerto;
     t_log* logger = puertoYLogger->logger;
@@ -28,4 +28,5 @@ void conexion_interrupt(void *argumentos) {
 		    log_error(logger, "Se conecto un cliente desconocido");
 		break;
     }
+    */
 }

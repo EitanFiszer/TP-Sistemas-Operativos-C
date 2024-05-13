@@ -35,8 +35,8 @@ int main(int argc, char* argv[]) {
     pthread_detach(hilo_interrupt);
 
     //El cliente se conecta 
-    int resultHandshake = connectAndHandshake(ip_memoria, puerto_memoria, CPU, "memoria", logger);
-    printf("Handshake socket: %d\n", resultHandshake);
+    int socketMemoria = connectAndHandshake(ip_memoria, puerto_memoria, CPU, "memoria", logger);
+    printf("Handshake socket: %d\n", socketMemoria);
 
     return 0;
 }

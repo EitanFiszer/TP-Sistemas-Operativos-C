@@ -1,12 +1,13 @@
-typedef enum{
+typedef enum {
     NEW,
     READY, 
     BLOCKED,
     EXEC,
     EXIT
-}estado_proceso;
+}t_proceso_estado;
+
 typedef enum{
     INTERRUPT, //NO ESTOY SEGURA
     WAIT,
     SIGNAL,
-}motivo_desalojo;
+} t_motivo_desalojo;
