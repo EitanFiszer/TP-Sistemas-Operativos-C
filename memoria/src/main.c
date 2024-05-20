@@ -34,32 +34,55 @@ int main(int argc, char* argv[]) {
 		finalizarProceso(sig_id-1, logger);
 
 		handshake_t res = esperar_cliente(server_fd, logger);
+		int cliente = esperar_cliente(server_fd);
 		int modulo = res.modulo;
 		int socket_cliente = res.socket;
+		int paquete = recibir_paquete(cliente);
+		//convertir paquete
 
-		switch (modulo) {
-			case CPU:
-				log_info(logger, "Se conecto un CPU!");
-				//La CPU solicitará a la memoria las instrucciones cargadas en la Memoria de Instrucciones, mediante solicitudes por medio del Program Counter.
+		switch(operacion) {
+			case "PAQUETE":
+				switch (modulo) {
+					case CPU:
+						log_info(logger, "Se conecto un CPU!");
+						//La CPU solicitará a la memoria las instrucciones cargadas en la Memoria de Instrucciones, mediante solicitudes por medio del Program Counter.
 
-				sleep(retardo);
-				break;
-			case KERNEL:
-				//Evaluar si se trata de la creación o finalización de un proceso.
-				//Si se está creando un proceso, se debe recibir el nombre del archivo que contiene las instrucciones.
-				log_info(logger, "Se conecto un Kernel");
+						sleep(retardo);
+						break;
+					case KERNEL:
+						//Evaluar si se trata de la creación o finalización de un proceso.
+						//Si se está creando un proceso, se debe recibir el nombre del archivo que contiene las instrucciones.
+						log_info(logger, "Se conecto un Kernel");
+						switch(paquete->){
+							case "CREAR_PROCESO":
+								crearProceso
+							break;
+							case "FINALIZAR_PROCESO":
+							break;
+							case "AUMENTAR_PROCESO":
+							break;
+							case "REDUCIR_PROCESO":
+							break;
+						}
 
-				// int sig_id = 0;
-				// proceso_t* proceso = crear_proceso(sig_id++, logger);
-				
-				break;
-			case IO:
-				log_info(logger, "Se conecto un IO");
-				break;
-			default:
-				log_error(logger, "Se conecto un cliente desconocido");
-				break;
+						// int sig_id = 0;
+						// proceso_t* proceso = crear_proceso(sig_id++, logger);
+						
+						break;
+					case IO:
+						log_info(logger, "Se conecto un IO");
+						break;
+					default:
+						log_error(logger, "Se conecto un cliente desconocido");
+						break;
 		}
+
+			break;
+			case -1:
+				log_info(logger, "Se desconectó");
+			break;
+		}
+		
 	}
     
 
