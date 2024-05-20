@@ -23,11 +23,15 @@ int main(int argc, char* argv[]) {
 	log_info(logger, stringParaLogger);
 	const char* nombre_archivo = "test.txt";
 
+	inicializarMemoria(logger);
+
 	while(1){
 		
 		//KERNEL
 		int sig_id = 0;
-		proceso_t* proceso = crear_proceso(sig_id++, path_instrucciones, logger);
+		crearProceso(path_instrucciones, sig_id++, logger);
+		log_info(logger, obtenerInstruccion(0, 1));
+		finalizarProceso(sig_id-1, logger);
 
 		handshake_t res = esperar_cliente(server_fd, logger);
 		int modulo = res.modulo;

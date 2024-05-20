@@ -4,19 +4,30 @@
 #include <stdlib.h>
 #include <string.h>
 
-struct proceso_t {
-    int id;
-};
 
+Memoria memoria; 
 
-char** leer_archivo(const char *nombre_archivo, t_log* logger, int* num_lineas) {
+void inicializarMemoria(t_log* logger) {
+    memoria.max_procesos = 10;
+
+    memoria.memoria = malloc(65536);
+    memoria.marcos = malloc(16 * sizeof(int));
+    memoria.procesos = malloc(memoria.max_procesos * sizeof(Proceso));
+    memoria.cant_procesos = 0;
+
+    for (int i = 0; i < 16; i++) {
+        memoria.marcos[i] = -1;
+    }
+
+    log_info(logger, "Se inicializó la memoria");
+}
+
+char** leer_archivo(const char *nombre_archivo, int* num_lineas) {
     FILE *archivo = fopen(nombre_archivo, "r");
 
     if (!archivo) {
-        log_info(logger, "No se pudo abrir el archivo");
         exit(1);
     } else {
-        log_info(logger, "Archivo abierto");
         char linea[32];
         char** lineas = malloc(1000 * sizeof(char*)); //Puse 1000 lineas de tamanio
         int contador = 0;
@@ -33,20 +44,74 @@ char** leer_archivo(const char *nombre_archivo, t_log* logger, int* num_lineas) 
     }
 }
 
-//Al crear un proceso, la memoria de instrucciones debe leer el archivo de pseudocódigo y devolver sus intrucciones, de a una, según el CPU lo requiera mediante el program counter.
-proceso_t* crear_proceso(int id, const char* nombre_archivo, t_log* logger) {
-    proceso_t* proceso = (proceso_t*)malloc(sizeof(proceso_t));
-    proceso->id = id;
-    log_info(logger, "Se creó un proceso con ID: %d", id);
-
-    int num_lineas;
-    char** lineas = leer_archivo(nombre_archivo, logger, &num_lineas);
-
-    for (int i = 0; i < num_lineas; i++) {
-        log_info(logger, lineas[i]);
-        free(lineas[i]);
+void crearProceso(const char* nombre_archivo, int pid, t_log* logger) {
+    if (memoria.cant_procesos >= memoria.max_procesos) {
+        log_info(logger, "Se alcanzó la cantidad máxima de procesos");
+        return;
     }
-    free(lineas);
 
-    return proceso;
+    Proceso *proceso = &memoria.procesos[memoria.cant_procesos++];
+    proceso->pid = pid;
+    proceso->instrucciones = leer_archivo(nombre_archivo, &proceso->cant_instrucciones);
+
+    log_info(logger, "Se creó el proceso con ID: %d", pid);
+}
+
+void finalizarProceso(int pid, t_log* logger) {
+    int proceso_index = -1;
+
+    for (int i = 0; i < memoria.cant_procesos; i++) {
+        if (memoria.procesos[i].pid == pid) {
+            proceso_index = i;
+            break;
+        }
+    }
+
+    if (proceso_index == -1) {
+        log_info(logger, "No se encontró el proceso con pid %d", pid);
+        return;
+    }
+
+    Proceso* proceso = &memoria.procesos[proceso_index];
+
+    for (int i = 0; i < 16; i++) {
+        if (memoria.marcos[i] == pid) {
+            memoria.marcos[i] = -1;
+        }
+    }
+
+    for (int i = 0; i < proceso->cant_instrucciones; i++) {
+        free(proceso->instrucciones[i]);
+    }
+    free(proceso->instrucciones);
+
+    for (int i = proceso_index; i < memoria.cant_procesos - 1; i++) {
+        memoria.procesos[i] = memoria.procesos[i + 1];
+    }
+    memoria.cant_procesos--;
+
+    log_info(logger, "Se finalizó el proceso con ID: %d", pid);
+}
+
+char* obtenerInstruccion(int pid, int n) {
+    int proceso_index = -1;
+
+    for (int i = 0; i < memoria.cant_procesos; i++) {
+        if (memoria.procesos[i].pid == pid) {
+            proceso_index = i;
+            break;
+        }
+    }
+
+    if (proceso_index == -1) {
+        return NULL;
+    }
+
+    Proceso* proceso = &memoria.procesos[proceso_index];
+
+    if (n < 0 || n >= proceso->cant_instrucciones) {
+        return NULL;
+    }
+
+    return proceso->instrucciones[n];
 }
