@@ -10,6 +10,8 @@
 #include <pthread.h>
 #include <string.h>
 
+
+
 void leer_configs()
 {
     ip_memoria = config_get_string_value(config, "IP_MEMORIA");
@@ -43,32 +45,27 @@ void consola_interactiva(void)
 
         if (string_equals_ignore_case(split[0], "INICIAR_PROCESO"))
         {
-            // leo el PATH
-            char *instrucciones = split[1];
-           
-// int resultHandshakeMemoria = connectAndHandshake(ip_memoria, puerto_memoria, KERNEL, "memoria", logger);
-            // me conecto con la memoria
-
             //CREO EL PROCESO LOG
             log_info(logger,"Se crea el proceso <%d> en NEW", PID);
-            int socket_cliente;
-            socket_cliente = crear_conexion(ip_memoria,puerto_memoria);
-
             // creo el paquete con las instrucciones para enviar a memoria las instrucciones
+            
             t_paquete* nuevo_paquete = crear_paquete();
-            agregar_a_paquete(nuevo_paquete,instrucciones,(strlen(instrucciones)+1));
-            //envio el identificador de proceso
-            agregar_a_paquete(nuevo_paquete, PID,sizeof(int));
-            //envio el paquete a la memoria //ENVIO EL NUEVO PROCESO
-            enviar_paquete(nuevo_paquete,socket_cliente);
 
+            t_paquete_entre* instruccion;
+            instruccion = malloc(sizeof(t_paquete_entre));
+            instruccion->operacion = CREAR_PROCESO;
+            payload_crear_proceso* payload = malloc(sizeof(payload_crear_proceso));
+            payload->path = split[1];
+            payload->pid = PID;
+            instruccion->payload = payload;
+            agregar_a_paquete(nuevo_paquete, instruccion, sizeof(t_paquete_entre));
+            //envio el paquete a la memoria //ENVIO EL NUEVO PROCESO
+            enviar_paquete(nuevo_paquete,resultHandshakeMemoria);
             //creo la PCB Y la guardo en cola NEW
             t_PCB new_PCB=crear_PCB(PID);
-            queue_push(cola_new,&new_PCB);
-
+            queue_push(cola_new,new_PCB);
             //Incremento identificador de proceso
             PID++;
-
             free(split);
             free(leido);
             //elimino paquete
@@ -84,7 +81,7 @@ void LTS(void){
         //si el grado de multiprogramacion lo permite enviar procesos de new a ready
         int grado_multiprogramacion = config_get_int_value(config, "GRADO_MULTIPROGRAMACION");
         if (grado_multiprogramacion>0){
-            t_PCB*  retirar_new = queue_pop(cola_new);
+            t_PCB  retirar_new = queue_pop(cola_new);
             queue_push(cola_ready,retirar_new);
             // cambiar el grado de multiprogramacion
         }
@@ -96,7 +93,7 @@ void STS(void){
         char* algoritmo_planificacion = config_get_string_value(config, "ALGORITMO_PLANIFICACION");
         if(strcmp(algoritmo_planificacion, "FIFO")==0){
             //envio el primer elemento de la cola ready a EXEC
-            t_PCB* retirar_ready = queue_pop(cola_ready);
+            t_PCB retirar_ready = queue_pop(cola_ready);
   
             queue_push(cola_exec, retirar_ready);
 
@@ -116,10 +113,6 @@ void STS(void){
             handshake_t esperar_cpu = esperar_cliente(socket_servidor,logger);
 
             t_PCB* bloqueado = recibir_paquete(esperar_cpu.socket);
-
-            
-
-
 
     // // creamos el servidor
     // int server_fd = iniciar_servidor(puerto_escucha, logger);
@@ -187,26 +180,27 @@ int main(int argc, char *argv[])
 
 
     // cliente se conecta al sevidor
-    // int resultHandshakeDispatch = connectAndHandshake(ip_cpu, puerto_cpu_dispatch, KERNEL, "cpu", logger);
-    // int resultHandshakeInterrupt = connectAndHandshake(ip_cpu, puerto_cpu_interrupt, KERNEL, "cpu", logger);
+    resultHandshakeDispatch = connectAndHandshake(ip_cpu, puerto_cpu_dispatch, KERNEL, "cpu", logger);
+    resultHandshakeInterrupt = connectAndHandshake(ip_cpu, puerto_cpu_interrupt, KERNEL, "cpu", logger);
 
     // ESTE ES EL SOCKET PARA CONECTARSE A LA MEMORIA
-    // int resultHandshakeMemoria = connectAndHandshake(ip_memoria, puerto_memoria, KERNEL, "memoria", logger);
+    resultHandshakeMemoria = connectAndHandshake(ip_memoria, puerto_memoria, KERNEL, "memoria", logger);
 
-    // // creamos el servidor
-    // int server_fd = iniciar_servidor(puerto_escucha, logger);
-    // handshake_t res = esperar_cliente(server_fd, logger);
-    // int modulo = res.modulo;
-    // int socket_cliente = res.socket;
-    // switch (modulo)
-    // {
-    // case IO:
-    //     log_info(logger, "Se conecto un I/O");
-    //     break;
-    // default:
-    //     log_error(logger, "Se conecto un cliente desconocido");
-    //     break;
-    // }
+    // creamos el servidor
+    server_fd = iniciar_servidor(puerto_escucha, logger);
+
+    handshake_t res = esperar_cliente(server_fd, logger);
+    int modulo = res.modulo;
+    int socket_cliente = res.socket;
+    switch (modulo)
+    {
+    case IO:
+        log_info(logger, "Se conecto un I/O");
+        break;
+    default:
+        log_error(logger, "Se conecto un cliente desconocido");
+        break;
+    }
     
     //INICIO LAS COLAS 
     iniciar_colas();

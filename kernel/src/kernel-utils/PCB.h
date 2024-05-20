@@ -1,6 +1,6 @@
 //ESTRUCTURA PCB
 #include <stdint.h>
-#include <kernel-utils/estados.h>
+#include "./estados.h"
 #include "../../cpu/src/cpu-utils/registros.h"
 
 typedef struct {
