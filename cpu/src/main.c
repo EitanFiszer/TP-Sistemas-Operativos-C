@@ -1,15 +1,12 @@
-#include <stdlib.h>
-#include <stdio.h>
-#include <utils/hello.h>
-#include <utils/server.h>
-#include <utils/client.h>
-#include <commons/log.h>
-#include <commons/config.h>
-#include <commons/string.h>
-#include <cpu-utils/registros.h>
-#include <cpu-utils/conexiones.h>
-#include <pthread.h>
+#include "main.h"
 
+void finalizarCPU (t_log* logger, t_config* config) {
+    log_destroy(logger);
+    config_destroy(config);
+    exit(1);
+}
+
+registros_t registros;
 
 int main(int argc, char* argv[]) {
     // creamos logs y configs
@@ -36,7 +33,27 @@ int main(int argc, char* argv[]) {
 
     //El cliente se conecta 
     int socketMemoria = connectAndHandshake(ip_memoria, puerto_memoria, CPU, "memoria", logger);
+    if (socketMemoria == -1) {
+        log_error(logger, "No se pudo conectar con la memoria");
+        finalizarCPU(logger,config);
+    }
     printf("Handshake socket: %d\n", socketMemoria);
 
-    return 0;
+    while (1) {
+        // Recibo el paquete de la memoria
+        t_list* paquetePCB = recibir_paquete(socketMemoria);
+        if (paquetePCB == NULL) {
+            log_error(logger, "No se pudo recibir el paquete de la memoria");
+            finalizarCPU(logger, config);
+        } 
+        
+        t_PCB* pcb = list_get(paquetePCB, 0);
+
+        // Hago el fetch de la instruccion
+        char* instruccionRecibida;
+        int ok = fetchInstruccion(pcb, socketMemoria, &instruccionRecibida);
+        
+    }
+
+    finalizarCPU(logger, config);
 }
