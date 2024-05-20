@@ -1,5 +1,4 @@
-// #ifndef UTILS_H_
-
+#ifndef UTILS_H_
 #define UTILS_H_
 
 #include<stdio.h>
@@ -34,4 +33,4 @@ t_list* recibir_paquete(int);
 void recibir_mensaje(int);
 int recibir_operacion(int);
 
-// #endif /* UTILS_H_ */
+#endif /* UTILS_H_ */
