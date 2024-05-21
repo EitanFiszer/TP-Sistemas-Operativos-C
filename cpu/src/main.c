@@ -1,4 +1,14 @@
-#include "main.h"
+#include <utils/server.h>
+#include <utils/client.h>
+#include <cpu-utils/conexiones.h>
+#include <cpu-utils/cicloInstruccion.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <utils/hello.h>
+#include <commons/log.h>
+#include <commons/config.h>
+#include <commons/string.h>
+#include <pthread.h>
 
 void finalizarCPU (t_log* logger, t_config* config) {
     log_destroy(logger);
@@ -51,7 +61,21 @@ int main(int argc, char* argv[]) {
 
         // Hago el fetch de la instruccion
         char* instruccionRecibida;
-        int ok = fetchInstruccion(pcb, socketMemoria, &instruccionRecibida);
+        int ok = fetchInstruccion(pcb, socketMemoria, &instruccionRecibida, logger);
+
+        if (ok == -1) {
+            log_error(logger, "No se pudo recibir la instruccion de la memoria");
+            finalizarCPU(logger, config);
+        }
+
+        // Decodifico la instruccion
+        instruccionCPU_t* instruccion = dividirInstruccion(instruccionRecibida);
+
+        // Ejecuto la instruccion
+        ejecutarInstruccion(instruccion, pcb, socketMemoria, logger, &registros);
+
+        // Devolver el PCB al kernel
+        // enviar_PCB(pcb, socketKernel);
         
     }
 

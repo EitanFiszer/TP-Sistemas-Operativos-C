@@ -1,46 +1,91 @@
-#include "instrucciones.h"
+#include "./instrucciones.h"
+#include <commons/string.h>
 
-int fetchInstruccion(t_PCB* pcb, int socketMemoria, char* instruccionRecibida) {
-    // 1. Enviar PID y PC a Memoria
-    int pid = pcb->PID;
-    uint32_t pc = pcb->program_counter;
-    
-    // 1.1 Crear paquete entre CPU y Memoria
-    t_paquete* paquete = crear_paquete();
-
-    t_paquete_entre* instruccion = malloc(sizeof(t_paquete_entre));
-    t_payload_fetch_instruccion* payload = malloc(sizeof(t_payload_fetch_instruccion));
-
-    instruccion->operacion = PC_A_INSTRUCCION;
-    payload->PID = pid;
-    payload->program_counter = pc;
-    instruccion->payload = payload;
-
-    // 1.2 Agregar PID y PC al paquete
-    agregar_a_paquete(paquete, instruccion, sizeof(t_paquete_entre));
-
-    // 1.3 Enviar paquete
-    enviar_paquete(paquete, socketMemoria);
-
-    // 2. Recibir instruccion de Memoria
-    // 2.1 Recibir paquete
-    t_list* paqueteInstruccion = recibir_paquete(socketMemoria);
-    if (paqueteInstruccion == NULL) {
-        return -1;
+int valorDelRegistro(char* reg, registros_t registros) {
+    if(string_equals_ignore_case(reg, "AX")){
+        return registros.AX;
+    } else if (string_equals_ignore_case(reg, "BX")) {
+        return registros.BX;
+    } else if (string_equals_ignore_case(reg, "CX")) {
+        return registros.CX;
+    } else if (string_equals_ignore_case(reg, "DX")) {
+        return registros.DX;
+    } else if (string_equals_ignore_case(reg, "EAX")) {
+        return registros.EAX;
+    } else if (string_equals_ignore_case(reg, "EBX")) {
+        return registros.EBX;
+    } else if (string_equals_ignore_case(reg, "ECX")) {
+        return registros.ECX;
+    } else if (string_equals_ignore_case(reg, "EDX")) {
+        return registros.EDX;
+    } else if (string_equals_ignore_case(reg, "SI")) {
+        return registros.SI;
+    } else if (string_equals_ignore_case(reg, "DI")) {
+        return registros.DI;
     }
-
-    // 2.2 Extraer instruccion
-    t_paquete_entre* paqueteRecibido = list_get(paqueteInstruccion, 0);
-    if (paqueteRecibido == NULL) {
-        return -1;
-    }
-
-    instruccionRecibida = paqueteRecibido->payload;
-
-    // 5. Retornar 0 si todo salio bien, -1 si hubo un error
-    if (instruccionRecibida == NULL) {
-        return -1;
-    }
-
     return 0;
+}
+
+void instruccionSet(t_PCB* pcb, char* reg, int valor, registros_t registros) {
+    if(string_equals_ignore_case(reg, "AX")){
+        registros.AX = (uint8_t)valor;
+    } else if (string_equals_ignore_case(reg, "BX")) {
+        registros.BX = (uint8_t)valor;
+    } else if (string_equals_ignore_case(reg, "CX")) {
+        registros.CX = (uint8_t)valor;
+    } else if (string_equals_ignore_case(reg, "DX")) {
+        registros.DX = (uint8_t)valor;
+    } else if (string_equals_ignore_case(reg, "EAX")) {
+        registros.EAX = (uint32_t)valor;
+    } else if (string_equals_ignore_case(reg, "EBX")) {
+        registros.EBX = (uint32_t)valor;
+    } else if (string_equals_ignore_case(reg, "ECX")) {
+        registros.ECX = (uint32_t)valor;
+    } else if (string_equals_ignore_case(reg, "EDX")) {
+        registros.EDX = (uint32_t)valor;
+    } else if (string_equals_ignore_case(reg, "SI")) {
+        registros.SI = (uint32_t)valor;
+    } else if (string_equals_ignore_case(reg, "DI")) {
+        registros.DI = (uint32_t)valor;
+    }
+
+    pcb->program_counter = pcb->program_counter + 1;
+}
+
+void instruccionSum(t_PCB* pcb, char* regDest, char* regOrig, registros_t registros) {
+    int valor1 = 0;
+    int valor2 = 0;
+
+    valor1 = valorDelRegistro(regDest, registros);
+    valor2 = valorDelRegistro(regOrig, registros);
+
+    instruccionSet(pcb, regDest, valor1 + valor2, registros);
+    pcb->program_counter = pcb->program_counter + 1;
+}
+
+void instruccionSub(t_PCB* pcb, char* regDest, char* regOrig, registros_t registros) {
+    int valor1 = 0;
+    int valor2 = 0;
+
+    valor1 = valorDelRegistro(regDest, registros);
+    valor2 = valorDelRegistro(regOrig, registros);
+
+    instruccionSet(pcb, regDest, valor1 - valor2, registros);
+    pcb->program_counter = pcb->program_counter + 1;
+}
+
+void instruccionJNZ(t_PCB* pcb, char* reg, int instruccionASaltar, registros_t registros) {
+    int valor = valorDelRegistro(reg, registros);
+
+    if(valor != 0) {
+        pcb->program_counter = instruccionASaltar;
+    } else {
+        pcb->program_counter = pcb->program_counter + 1;
+    }
+}
+
+void instruccionIoGenSleep(t_PCB* pcb, char* interfaz, int tiempo, registros_t registros) {
+    // TODO: CONEXION A DISPOSITIVO DE I/O y esperar respuesta
+
+    pcb->program_counter = pcb->program_counter + 1;
 }

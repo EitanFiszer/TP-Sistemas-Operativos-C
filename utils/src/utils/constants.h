@@ -11,6 +11,7 @@ typedef enum {
 	AMPLIAR_PROCESO,
 	REDUCIR_PROCESO,
 	PC_A_INSTRUCCION,
+	PEDIR_VALOR
 } OP_CODES_ENTRE;
 
 
@@ -23,7 +24,6 @@ typedef struct {
     int PID;
     uint32_t program_counter;
 } t_payload_fetch_instruccion;
-
 
 
 /*
