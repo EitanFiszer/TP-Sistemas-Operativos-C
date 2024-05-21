@@ -1,5 +1,6 @@
 #include "cicloInstruccion.h"
 #include <commons/string.h>
+#include <utils/server.h>
 
 int fetchInstruccion(t_PCB* pcb, int socketMemoria, char** instruccionRecibida, t_log* logger) {
     // 1. Enviar PID y PC a Memoria
@@ -77,7 +78,7 @@ void ejecutarInstruccion(instruccionCPU_t* instruccion, t_PCB* pcb, int socketMe
     } else if (string_equals_ignore_case(instruccion->instruccion, "SUB")) {
         instruccionSub(&pcb, params[0], params[1], &registros);
     } else if(string_equals_ignore_case(instruccion->instruccion, "JNZ")) {
-        instruccionMovIn(&pcb, params[0], params[1], &registros);
+        instruccionJNZ(&pcb, params[0], params[1], &registros);
     } else if(string_equals_ignore_case(instruccion->instruccion, "IO_GEN_SLEEP")) {
         instruccionIoGenSleep(&pcb, params[0], params[1], &registros);
     }
