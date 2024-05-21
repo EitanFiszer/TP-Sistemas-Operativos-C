@@ -1,4 +1,4 @@
-#ifndef UTILS_H_
+
 #define UTILS_H_
 
 #include<stdio.h>
@@ -10,7 +10,10 @@
 #include<commons/collections/list.h>
 #include<string.h>
 #include<assert.h>
+
+#ifndef UTILS_H_
 #include "constants.h"
+#endif /* UTILS_H_ */
 
 typedef enum
 {
@@ -33,4 +36,4 @@ t_list* recibir_paquete(int);
 void recibir_mensaje(int);
 int recibir_operacion(int);
 
-#endif /* UTILS_H_ */
+

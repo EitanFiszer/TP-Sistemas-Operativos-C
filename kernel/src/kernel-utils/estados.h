@@ -7,7 +7,8 @@ typedef enum {
 }t_proceso_estado;
 
 typedef enum{
-    INTERRUPT, //NO ESTOY SEGURA
+    INTERRUPT,
     WAIT,
     SIGNAL,
+    FINISH
 } t_motivo_desalojo;

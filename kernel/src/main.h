@@ -1,4 +1,19 @@
 #include <kernel-utils/PCB.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <utils/client.h> 
+#include <utils/server.h>
+#include <commons/log.h>
+#include <commons/config.h>
+#include <commons/string.h>
+#include <commons/collections/queue.h>
+#include <pthread.h>
+#include <string.h>
+
+// typedef struct {
+// 	ID modulo;
+// 	int socket;
+// } handshake_t;
 
 t_queue* cola_new;
 t_queue* cola_ready;
@@ -21,11 +36,12 @@ int resultHandshakeDispatch;
 int resultHandshakeInterrupt;
 int server_fd;
 
-t_PCB crear_PCB(int PID);
-
 //INT ULTIMO PROCESO CREADO
 int PID = 0;
-typedef struct {
-	char* path;
-	int pid;
-} payload_crear_proceso;
+
+void iniciar_colas(void);
+void leer_configs();
+void consola_interactiva(void);
+void LTS(void);
+void STS(void);
+t_PCB* crear_PCB(int PID);

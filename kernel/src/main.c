@@ -1,16 +1,4 @@
-#include <stdlib.h>
-#include <stdio.h>
-#include <utils/client.h> 
-#include <utils/server.h>
-#include <commons/log.h>
-#include <commons/config.h>
-#include <commons/string.h>
-#include <commons/collections/queue.h>
 #include <main.h>
-#include <pthread.h>
-#include <string.h>
-
-
 
 void leer_configs()
 {
@@ -62,7 +50,29 @@ void consola_interactiva(void)
             //envio el paquete a la memoria //ENVIO EL NUEVO PROCESO
             enviar_paquete(nuevo_paquete,resultHandshakeMemoria);
             //creo la PCB Y la guardo en cola NEW
-            t_PCB new_PCB=crear_PCB(PID);
+
+//ESPERAR QUE LA MEMORIA ME AVISE QUE CARGO LAS INSTRUCCIONES PARA AGREGAR A NEW LA PCB O PARA PASARLO A LISTO
+            t_list* procesoCargado = recibir_paquete(resultHandshakeMemoria);
+            if (procesoCargado == NULL) {
+            log_error(logger, "No se pudo recibir el paquete de la memoria");
+            finalizarCPU(logger, config);
+            }        
+        
+            t_paquete_entre* procesoCargado = list_get(procesoCargado, 0);
+
+            // PREGUNTAR
+            // switch (procesoCargado->operacion)
+            // {
+            // case /* constant-expression */:
+            //     /* code */
+            //     break;
+            
+            // default:
+            //     break;
+            // }
+
+        // Hago el fetch de la instruccion
+            t_PCB* new_PCB=crear_PCB(PID);
             queue_push(cola_new,new_PCB);
             //Incremento identificador de proceso
             PID++;
@@ -71,7 +81,7 @@ void consola_interactiva(void)
             //elimino paquete
             eliminar_paquete(nuevo_paquete);
             //libero conexion 
-            liberar_conexion(socket_cliente);
+            // liberar_conexion(socket_cliente);
         }
     }
 }
@@ -81,7 +91,7 @@ void LTS(void){
         //si el grado de multiprogramacion lo permite enviar procesos de new a ready
         int grado_multiprogramacion = config_get_int_value(config, "GRADO_MULTIPROGRAMACION");
         if (grado_multiprogramacion>0){
-            t_PCB  retirar_new = queue_pop(cola_new);
+            t_PCB*  retirar_new = queue_pop(cola_new);
             queue_push(cola_ready,retirar_new);
             // cambiar el grado de multiprogramacion
         }
@@ -93,66 +103,48 @@ void STS(void){
         char* algoritmo_planificacion = config_get_string_value(config, "ALGORITMO_PLANIFICACION");
         if(strcmp(algoritmo_planificacion, "FIFO")==0){
             //envio el primer elemento de la cola ready a EXEC
-            t_PCB retirar_ready = queue_pop(cola_ready);
-  
+            t_PCB* retirar_ready = queue_pop(cola_ready);
             queue_push(cola_exec, retirar_ready);
+            //envio PCB a la CPU
+            t_paquete* paquete_pcb = crear_paquete();
+            t_paquete_entre* exec = malloc(sizeof(t_paquete_entre));
+            //operacion
+            exec->operacion=EXEC_PROCESO;
+            //envio pcb
+            exec->payload = retirar_ready;
+            agregar_a_paquete(paquete_pcb, exec, sizeof(t_paquete_entre));
+            enviar_paquete(paquete_pcb,resultHandshakeDispatch);
+            // espero recibir el pcb con motivo de desalojo 
+            //SI EL MOTIVO ES WAIT VERIFICO SI EXISTE RECURSO SOLICITADO Y LE RESTO UNO, 
+            // SI EL NUMERO DE RECURSO ES MENOR A 0 
+            //BLOQUEO EL PROCESO CORRESPONDIENTE AL RECURSO
 
-            //ENVIO PCB A CPU PARA Q LO EJECUTE Y QUEDO EN ESPERA DE SU CONTEXTO ACTUALIZADO
-            int socket_cliente = crear_conexion(ip_cpu,puerto_cpu_dispatch);
-
-            // creo el paquete con las instrucciones para enviar a cpu y la pcb
-            t_paquete* nuevo_paquete = crear_paquete();
-            //agre
-            agregar_a_paquete(nuevo_paquete,retirar_ready,sizeof(t_PCB));
-            //envio el paquete a la memoria //ENVIO EL NUEVO PROCESO
-            enviar_paquete(nuevo_paquete,socket_cliente);
-
-            //espero la respuesta del proceso;
-            int socket_servidor = iniciar_servidor(puerto, logger);
-
-            handshake_t esperar_cpu = esperar_cliente(socket_servidor,logger);
-
-            t_PCB* bloqueado = recibir_paquete(esperar_cpu.socket);
-
-    // // creamos el servidor
-    // int server_fd = iniciar_servidor(puerto_escucha, logger);
-    // handshake_t res = esperar_cliente(server_fd, logger);
-    // int modulo = res.modulo;
-    // int socket_cliente = res.socket;
-    // switch (modulo)
-    // {
-    // case IO:
-    //     log_info(logger, "Se conecto un I/O");
-    //     break;
-    // default:
-    //     log_error(logger, "Se conecto un cliente desconocido");
-    //     break;
-    // }
+            //SI EL MOTIVO ES SIGNAL VERIFICAR QUE EXISTA, SUMARLE UNO, Y SACAR UN PROCESO DE LA COLA DE 
+            //BLOQUEADOS
+            //SI EL MOTIVO ES FINISH ENVIO EL PROCESO A EXIT
+            //SI EL RECURSO NO EXISTE ENVIO A EXIT
+            //EN ESTE CASO EL MOTIVO NO PUEDE SER INTERRUMPT PORQUE ES FIFO
         }
     }
 }
 
-// char *leer_archivo(char *un_path)
-// {
-//     FILE *f = fopen(un_path, "r");
-//     if (f == NULL)
-//     {
-//         return NULL;
-//     }
-//     fseek(f, 0, SEEK_END);
-//     long int size = ftell(f);
-//     rewind(f);
-//     char *content = calloc(size + 1, 1);
-//     fread(content, 1, size, f);
-//     fclose(f);
 
-//     return content;
-// }
-t_PCB crear_PCB(int PID) {
-    t_PCB newPCB;
-    newPCB.PID = PID;
-    newPCB.quantum=0;
-    newPCB.estado=NEW;
+t_PCB* crear_PCB(int PID) {
+    t_PCB* newPCB = malloc(sizeof(t_PCB));
+    newPCB->PID = PID;
+    newPCB->program_counter = 0;
+    newPCB->cpu_registro.AX=0;
+    newPCB->cpu_registro.BX=0;
+    newPCB->cpu_registro.CX=0;
+    newPCB->cpu_registro.DX=0;
+    newPCB->cpu_registro.EAX=0;
+    newPCB->cpu_registro.EBX=0;
+    newPCB->cpu_registro.ECX=0;
+    newPCB->cpu_registro.EDX=0;
+    newPCB->cpu_registro.SI=0;
+    newPCB->cpu_registro.DI=0;
+    newPCB->quantum=0;
+    newPCB->estado=NEW;
     return newPCB;
 }
 void iniciar_colas(void){
