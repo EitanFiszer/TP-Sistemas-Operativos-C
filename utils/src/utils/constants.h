@@ -11,7 +11,9 @@ typedef enum {
 	AMPLIAR_PROCESO,
 	REDUCIR_PROCESO,
 	PC_A_INSTRUCCION,
-	PEDIR_VALOR
+	PEDIR_VALOR,
+	INSTRUCCIONES_CARGADAS,
+	EXEC_PROCESO
 } OP_CODES_ENTRE;
 
 
@@ -25,6 +27,10 @@ typedef struct {
     uint32_t program_counter;
 } t_payload_fetch_instruccion;
 
+typedef struct {
+	char* path;
+	int pid;
+} payload_crear_proceso;
 
 /*
 typedef struct {

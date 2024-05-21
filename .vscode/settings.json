@@ -11,6 +11,10 @@
         "list.h": "c",
         "socket.h": "c",
         "unistd.h": "c",
-        "pthread.h": "c"
+        "pthread.h": "c",
+        "config.h": "c",
+        "stdio.h": "c",
+        "string.h": "c",
+        "assert.h": "c"
     }
 }
