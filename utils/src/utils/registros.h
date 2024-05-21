@@ -1,3 +1,6 @@
+#ifndef REGISTROS_H_
+#define REGISTROS_H_
+
 #include <stdint.h>
 
 typedef struct {
@@ -13,3 +16,5 @@ typedef struct {
     uint32_t SI;
     uint32_t DI;
 } registros_t;
+
+#endif /* REGISTROS_H_ */
