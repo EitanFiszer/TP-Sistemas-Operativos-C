@@ -1,7 +1,7 @@
 //ESTRUCTURA PCB
 #include <stdint.h>
+#include <utils/registros.h>
 #include "./estados.h"
-#include "../../cpu/src/cpu-utils/registros.h"
 
 typedef struct {
     int PID;
