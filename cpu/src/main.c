@@ -19,10 +19,11 @@ void finalizarCPU (t_log* logger, t_config* config) {
 
 registros_t registros;
 int socketKernel;
+t_log* logger;
 
 int main(int argc, char* argv[]) {
     // creamos logs y configs
-    t_log* logger = log_create("cpu.log", "CPU", 1, LOG_LEVEL_INFO);
+    logger = log_create("cpu.log", "CPU", 1, LOG_LEVEL_INFO);
     t_config* config = config_create("cpu.config");
 
     // leemos las configs

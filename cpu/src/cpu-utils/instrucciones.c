@@ -1,5 +1,10 @@
 #include "./instrucciones.h"
 #include <commons/string.h>
+#include <commons/collections/list.h>
+#include <stdlib.h>
+#include <utils/client.h>
+#include <utils/server.h>
+#include <commons/log.h>
 #include "main.h"
 
 int valorDelRegistro(char* reg) {
@@ -90,8 +95,28 @@ void instruccionJNZ(t_PCB* pcb, char* reg, int instruccionASaltar) {
 }
 
 // Esta instrucción solicita al Kernel que se envíe a una interfaz de I/O a que realice un sleep por una cantidad de unidades de trabajo
-void instruccionIoGenSleep(t_PCB* pcb, char* interfaz, int tiempo ) {
-    socketKernel;
+void instruccionIoGenSleep(t_PCB* pcb, char* interfaz, int tiempo) {
+    t_paquete *paq = crear_paquete();
+    t_paquete_entre *paquete = malloc(sizeof(t_paquete_entre));
+    paquete->operacion = IO_GEN_SLEEP;
+
+    t_payload_io_gen_sleep* nuestroPayload = malloc(sizeof(t_payload_io_gen_sleep));
+    nuestroPayload->tiempo = tiempo;
+    paquete->payload = nuestroPayload;
+    agregar_a_paquete(paq, paquete, sizeof(t_paquete_entre));
+
+    enviar_paquete(paq, socketKernel);
+
+    t_list* res = recibir_paquete(socketKernel);
+    t_paquete_entre* paqueteRespuesta = list_get(res, 0);
+    t_payload_io_gen_sleep_respuesta* payloadRespuesta = paqueteRespuesta->payload;
+    while (payloadRespuesta->ok == -1){
+        log_error(logger, "No se pudo ejecutar IO_GEN_SLEEP, reintentando...");
+        enviar_paquete(paq, socketKernel);
+        res = recibir_paquete(socketKernel);
+        paqueteRespuesta = list_get(res, 0);
+        payloadRespuesta = paqueteRespuesta->payload;
+    }
 
     pcb->program_counter = pcb->program_counter + 1;
 }

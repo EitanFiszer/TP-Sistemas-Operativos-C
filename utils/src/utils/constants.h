@@ -16,6 +16,8 @@ typedef enum {
 	EXEC_PROCESO,
 	INTERRUMPIR_PROCESO, //DE KERNEL A CPU
 	DESALOJAR,//SIGNAL WAIT PROCESO FINALIZADO PROCESO INTERRUMPIDO DE CPU A KERNEL
+	IO_GEN_SLEEP, // DE CPU A KERNEL (io_gen_sleep)
+	IO_GEN_SLEEP_RESPUESTA // DE KERNEL A CPU (io_gen_sleep)
 } OP_CODES_ENTRE;
 
 
@@ -33,6 +35,14 @@ typedef struct {
 	char* path;
 	int pid;
 } payload_crear_proceso;
+
+typedef struct {
+	int tiempo;
+} t_payload_io_gen_sleep;
+
+typedef struct {
+	int ok;
+} t_payload_io_gen_sleep_respuesta;
 
 /*
 typedef struct {
