@@ -1,6 +1,7 @@
 #include <commons/log.h>
 #include <commons/string.h>
 
+
 struct args {
     char* puerto;
     t_log* logger;
@@ -30,3 +31,9 @@ void conexion_interrupt(void *argumentos) {
     }
     */
 }
+
+/*
+void devolver_pcb(t_PCB* pcb) {
+    
+}
+*/

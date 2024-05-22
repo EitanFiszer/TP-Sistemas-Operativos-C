@@ -60,7 +60,7 @@ instruccionCPU_t *dividirInstruccion(char *instruccion) {
     return instruccionCPU;
 }
 
-void ejecutarInstruccion(instruccionCPU_t* instruccion, t_PCB* pcb, t_log* logger, registros_t* registros) {
+void ejecutarInstruccion(instruccionCPU_t* instruccion, t_PCB* pcb, t_log* logger) {
     char** params = instruccion->parametros;
 
     char* paramsString = string_new();

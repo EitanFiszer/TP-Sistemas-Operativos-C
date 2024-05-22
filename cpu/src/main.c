@@ -93,10 +93,10 @@ int main(int argc, char* argv[]) {
         instruccionCPU_t* instruccion = dividirInstruccion(instruccionRecibida);
 
         // Ejecuto la instruccion
-        ejecutarInstruccion(instruccion, pcb, logger, &registros);
+        ejecutarInstruccion(instruccion, pcb, logger);
 
         // Devolver el PCB al kernel
-        //enviar_PCB(pcb, socketKernel);
+        // enviar_PCB(pcb);
         
     }
 
