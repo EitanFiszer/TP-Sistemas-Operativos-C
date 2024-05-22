@@ -1,5 +1,64 @@
 #include <main.h>
 
+int main(int argc, char *argv[])
+{
+    // decir_hola("Kernel");
+    logger = log_create("kernel.log", "Kernel", 1, LOG_LEVEL_INFO);
+    config = config_create("kernel.config");
+
+    // leemos las configs
+
+    // LEER TAMBIEN LA MULTIPROGRAMACIÓN
+    leer_configs();
+
+    char *stringParaLogger = string_from_format("[KERNEL] Escuchando en el puerto: %d", puerto);
+    log_info(logger, stringParaLogger);
+
+
+    // cliente se conecta al sevidor
+    resultHandshakeDispatch = connectAndHandshake(ip_cpu, puerto_cpu_dispatch, KERNEL, "cpu", logger);
+    resultHandshakeInterrupt = connectAndHandshake(ip_cpu, puerto_cpu_interrupt, KERNEL, "cpu", logger);
+
+    // ESTE ES EL SOCKET PARA CONECTARSE A LA MEMORIA
+    resultHandshakeMemoria = connectAndHandshake(ip_memoria, puerto_memoria, KERNEL, "memoria", logger);
+
+    // creamos el servidor
+    server_fd = iniciar_servidor(puerto_escucha, logger);
+
+    handshake_t res = esperar_cliente(server_fd, logger);
+    int modulo = res.modulo;
+    int socket_cliente = res.socket;
+    switch (modulo)
+    {
+    case IO:
+        log_info(logger, "Se conecto un I/O");
+        break;
+    default:
+        log_error(logger, "Se conecto un cliente desconocido");
+        break;
+    }
+    
+    //INICIO LAS COLAS 
+    iniciar_colas();
+    // creo hilo para que reciba informacion de la consola constantement
+    pthread_t hilo_consola;
+    pthread_create(&hilo_consola, NULL, consola_interactiva, NULL);
+    pthread_join(hilo_consola,NULL);
+
+    //CREO HILO PARA QUE REALICE LA PLANIFICACION DE LARGO PLAZO 
+    pthread_t hilo_LTS;
+    pthread_create(&hilo_LTS, NULL, LTS, NULL);
+    pthread_detach(hilo_LTS);
+
+    //CREO HILO PARA QUE REALICE LA PLANIFICACION DE CORTO PLAZO 
+    pthread_t hilo_STS;
+    pthread_create(&hilo_STS, NULL, STS, NULL);
+    pthread_detach(hilo_STS);
+
+    //SEMAFOROS PARA LAS COLAS 
+
+    return 0;
+}
 void leer_configs()
 {
     ip_memoria = config_get_string_value(config, "IP_MEMORIA");
@@ -8,6 +67,7 @@ void leer_configs()
     puerto_cpu_dispatch = config_get_string_value(config, "PUERTO_CPU_DISPATCH");
     puerto_cpu_interrupt = config_get_string_value(config, "PUERTO_CPU_INTERRUPT");
     puerto = config_get_int_value(config, "PUERTO_ESCUCHA");
+    quantum = config_get_int_value(config,"QUANTUM");
 }
 
 // LEO DE LA CONSOLA
@@ -90,8 +150,9 @@ void LTS(void){
     while(1){
         //si el grado de multiprogramacion lo permite enviar procesos de new a ready
         int grado_multiprogramacion = config_get_int_value(config, "GRADO_MULTIPROGRAMACION");
-        if (grado_multiprogramacion>0){
+        if (grado_multiprogramacion>g_multiprogracion_actual()){
             t_PCB*  retirar_new = queue_pop(cola_new);
+            retirar_new->estado = READY;
             queue_push(cola_ready,retirar_new);
             // cambiar el grado de multiprogramacion
         }
@@ -104,6 +165,7 @@ void STS(void){
         if(strcmp(algoritmo_planificacion, "FIFO")==0){
             //envio el primer elemento de la cola ready a EXEC
             t_PCB* retirar_ready = queue_pop(cola_ready);
+            retirar_ready ->estado = EXEC;
             queue_push(cola_exec, retirar_ready);
             //envio PCB a la CPU
             t_paquete* paquete_pcb = crear_paquete();
@@ -124,6 +186,41 @@ void STS(void){
             //SI EL MOTIVO ES FINISH ENVIO EL PROCESO A EXIT
             //SI EL RECURSO NO EXISTE ENVIO A EXIT
             //EN ESTE CASO EL MOTIVO NO PUEDE SER INTERRUMPT PORQUE ES FIFO
+        }
+        if(strcmp(algoritmo_planificacion, "RR")==0){
+            //envio el primer elemento de la cola ready a EXEC
+            t_PCB* retirar_ready = queue_pop(cola_ready);
+            retirar_ready->quantum = quantum;
+            queue_push(cola_exec, retirar_ready);
+            //envio PCB a la CPU
+            t_paquete* paquete_pcb = crear_paquete();
+            t_paquete_entre* exec = malloc(sizeof(t_paquete_entre));
+            //operacion
+            exec->operacion=EXEC_PROCESO;
+            //envio pcb
+            exec->payload = retirar_ready;
+            agregar_a_paquete(paquete_pcb, exec, sizeof(t_paquete_entre));
+            enviar_paquete(paquete_pcb,resultHandshakeDispatch);
+            eliminar_paquete(paquete_pcb);
+
+            usleep(quantum);
+            //interrumpo el proceso por fin de quantum
+            t_paquete* paquete_fin_de_q = crear_paquete;
+            t_paquete_entre* fin_q = malloc(sizeof(t_paquete_entre));
+            fin_q->operacion = INTERRUMPIR_PROCESO;
+            agregar_a_paquete(paquete_fin_de_q, fin_q, sizeof(t_paquete_entre));
+            enviar_paquete(paquete_fin_de_q,resultHandshakeInterrupt);
+            eliminar_paquete(paquete_fin_de_q);
+            // espero recibir el pcb con motivo de desalojo 
+            //SI EL MOTIVO ES WAIT VERIFICO SI EXISTE RECURSO SOLICITADO Y LE RESTO UNO, 
+            // SI EL NUMERO DE RECURSO ES MENOR A 0 
+            //BLOQUEO EL PROCESO CORRESPONDIENTE AL RECURSO
+
+            //SI EL MOTIVO ES SIGNAL VERIFICAR QUE EXISTA, SUMARLE UNO, Y SACAR UN PROCESO DE LA COLA DE 
+            //BLOQUEADOS
+            //SI EL MOTIVO ES FINISH ENVIO EL PROCESO A EXIT
+            //SI EL RECURSO NO EXISTE ENVIO A EXIT
+            //SI ES INTERRUMPT VUELVO A ENCOLAR EL PROCESO EN READY
         }
     }
 }
@@ -155,64 +252,6 @@ void iniciar_colas(void){
     cola_exit = queue_create();
 }
 
-
-int main(int argc, char *argv[])
-{
-    // decir_hola("Kernel");
-    logger = log_create("kernel.log", "Kernel", 1, LOG_LEVEL_INFO);
-    config = config_create("kernel.config");
-
-    // leemos las configs
-
-    // LEER TAMBIEN LA MULTIPROGRAMACIÓN
-    leer_configs();
-
-    char *stringParaLogger = string_from_format("[KERNEL] Escuchando en el puerto: %d", puerto);
-    log_info(logger, stringParaLogger);
-
-
-    // cliente se conecta al sevidor
-    resultHandshakeDispatch = connectAndHandshake(ip_cpu, puerto_cpu_dispatch, KERNEL, "cpu", logger);
-    resultHandshakeInterrupt = connectAndHandshake(ip_cpu, puerto_cpu_interrupt, KERNEL, "cpu", logger);
-
-    // ESTE ES EL SOCKET PARA CONECTARSE A LA MEMORIA
-    resultHandshakeMemoria = connectAndHandshake(ip_memoria, puerto_memoria, KERNEL, "memoria", logger);
-
-    // creamos el servidor
-    server_fd = iniciar_servidor(puerto_escucha, logger);
-
-    handshake_t res = esperar_cliente(server_fd, logger);
-    int modulo = res.modulo;
-    int socket_cliente = res.socket;
-    switch (modulo)
-    {
-    case IO:
-        log_info(logger, "Se conecto un I/O");
-        break;
-    default:
-        log_error(logger, "Se conecto un cliente desconocido");
-        break;
-    }
-    
-    //INICIO LAS COLAS 
-    iniciar_colas();
-    // creo hilo para que reciba informacion de la consola constantement
-    pthread_t hilo_consola;
-    pthread_create(&hilo_consola, NULL, consola_interactiva, NULL);
-    // el hilo no necesita ser esperado por otro hilo que lo creo para liberar sus recursos cuando termine la ejecucion
-    pthread_detach(hilo_consola);
-
-    //CREO HILO PARA QUE REALICE LA PLANIFICACION DE LARGO PLAZO 
-    pthread_t hilo_LTS;
-    pthread_create(&hilo_LTS, NULL, LTS, NULL);
-    pthread_detach(hilo_LTS);
-
-    //CREO HILO PARA QUE REALICE LA PLANIFICACION DE CORTO PLAZO 
-    pthread_t hilo_STS;
-    pthread_create(&hilo_STS, NULL, STS, NULL);
-    pthread_detach(hilo_STS);
-
-    //SEMAFOROS PARA LAS COLAS 
-
-    return 0;
+int g_multiprogracion_actual (void){
+    return queue_size(cola_ready) + queue_size(cola_blocked) + queue_size(cola_exec);
 }

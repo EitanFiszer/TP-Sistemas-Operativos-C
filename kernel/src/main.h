@@ -9,7 +9,7 @@
 #include <commons/collections/queue.h>
 #include <pthread.h>
 #include <string.h>
-
+#include <unistd.h>
 // typedef struct {
 // 	ID modulo;
 // 	int socket;
@@ -35,6 +35,7 @@ int resultHandshakeMemoria;
 int resultHandshakeDispatch;
 int resultHandshakeInterrupt;
 int server_fd;
+int quantum;
 
 //INT ULTIMO PROCESO CREADO
 int PID = 0;
@@ -45,3 +46,4 @@ void consola_interactiva(void);
 void LTS(void);
 void STS(void);
 t_PCB* crear_PCB(int PID);
+int g_multiprogracion_actual (void);
