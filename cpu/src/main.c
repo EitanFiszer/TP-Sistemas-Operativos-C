@@ -1,3 +1,4 @@
+#include <utils/server.h>
 #include <utils/client.h>
 #include <cpu-utils/conexiones.h>
 #include <cpu-utils/cicloInstruccion.h>
@@ -8,6 +9,7 @@
 #include <commons/config.h>
 #include <commons/string.h>
 #include <pthread.h>
+#include "main.h"
 
 void finalizarCPU (t_log* logger, t_config* config) {
     log_destroy(logger);
@@ -16,6 +18,7 @@ void finalizarCPU (t_log* logger, t_config* config) {
 }
 
 registros_t registros;
+int socketKernel;
 
 int main(int argc, char* argv[]) {
     // creamos logs y configs
@@ -31,6 +34,7 @@ int main(int argc, char* argv[]) {
 
     log_debug(logger, "Configuraciones leidas %s, %s, %s, %s", ip_memoria, puerto_memoria, puerto_escucha_dispatch, puerto_escucha_interrupt);
 
+    /* HILO INTERRUPT
     // declaramos los hilos
     pthread_t hilo_interrupt;
     args argumentos_interrupt;
@@ -39,6 +43,7 @@ int main(int argc, char* argv[]) {
     
     pthread_create(&hilo_interrupt, NULL, conexion_interrupt, (void*)&argumentos_interrupt);
     pthread_detach(hilo_interrupt);
+    */
 
     //El cliente se conecta 
     int socketMemoria = connectAndHandshake(ip_memoria, puerto_memoria, CPU, "memoria", logger);
@@ -48,9 +53,25 @@ int main(int argc, char* argv[]) {
     }
     printf("Handshake socket: %d\n", socketMemoria);
 
+    // El kernel se conecta a nosotros (CPU) y recibimos su handshake para poder recibir el pcb de parte del kernel
+    int server_dispatch_fd = iniciar_servidor(puerto_escucha_dispatch, logger);
+    log_info(logger, "CPU listo para recibir al cliente");
+    socketKernel = -1;
+    while (socketKernel == -1){
+        handshake_t handshake_res = esperar_cliente(server_dispatch_fd, logger);
+        if (handshake_res.modulo == KERNEL){
+            socketKernel = handshake_res.socket;
+            log_info(logger, "Se conecto un Kernel");
+            break;
+        } else {
+            log_error(logger, "Se conecto un socket desconocido");
+        }
+    }
+
+
     while (1) {
-        // Recibo el paquete de la memoria
-        t_list* paquetePCB = recibir_paquete(socketMemoria);
+        // Recibo el paquete del kernel
+        t_list* paquetePCB = recibir_paquete(socketKernel);
         if (paquetePCB == NULL) {
             log_error(logger, "No se pudo recibir el paquete de la memoria");
             finalizarCPU(logger, config);
@@ -64,17 +85,17 @@ int main(int argc, char* argv[]) {
 
         if (ok == -1) {
             log_error(logger, "No se pudo recibir la instruccion de la memoria");
-            finalizarCPU(logger, config);
+            break;
         }
 
-        // Decodifico la instruccion
+        // Decodifico la instruccion en opcode y parametros
         instruccionCPU_t* instruccion = dividirInstruccion(instruccionRecibida);
 
         // Ejecuto la instruccion
-        ejecutarInstruccion(instruccion, pcb, socketMemoria, logger, &registros);
+        ejecutarInstruccion(instruccion, pcb, logger, &registros);
 
         // Devolver el PCB al kernel
-        // enviar_PCB(pcb, socketKernel);
+        //enviar_PCB(pcb, socketKernel);
         
     }
 

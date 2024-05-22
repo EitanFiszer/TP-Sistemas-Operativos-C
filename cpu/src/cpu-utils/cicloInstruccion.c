@@ -60,7 +60,7 @@ instruccionCPU_t *dividirInstruccion(char *instruccion) {
     return instruccionCPU;
 }
 
-void ejecutarInstruccion(instruccionCPU_t* instruccion, t_PCB* pcb, int socketMemoria, t_log* logger, registros_t* registros) {
+void ejecutarInstruccion(instruccionCPU_t* instruccion, t_PCB* pcb, t_log* logger, registros_t* registros) {
     char** params = instruccion->parametros;
 
     char* paramsString = string_new();
@@ -72,14 +72,14 @@ void ejecutarInstruccion(instruccionCPU_t* instruccion, t_PCB* pcb, int socketMe
     log_info(logger, "PID: %d - Ejecutando: %s - %s", pcb->PID, instruccion->instruccion, paramsString);
 
     if(string_equals_ignore_case(instruccion->instruccion, "SET")) {
-        instruccionSet(&pcb, params[0], params[1], &registros);
+        instruccionSet(&pcb, params[0], params[1]);
     } else if(string_equals_ignore_case(instruccion->instruccion, "SUM")){
-        instruccionSum(&pcb, params[0], params[1], &registros);
+        instruccionSum(&pcb, params[0], params[1]);
     } else if (string_equals_ignore_case(instruccion->instruccion, "SUB")) {
-        instruccionSub(&pcb, params[0], params[1], &registros);
+        instruccionSub(&pcb, params[0], params[1]);
     } else if(string_equals_ignore_case(instruccion->instruccion, "JNZ")) {
-        instruccionJNZ(&pcb, params[0], params[1], &registros);
+        instruccionJNZ(&pcb, params[0], params[1]);
     } else if(string_equals_ignore_case(instruccion->instruccion, "IO_GEN_SLEEP")) {
-        instruccionIoGenSleep(&pcb, params[0], params[1], &registros);
+        instruccionIoGenSleep(&pcb, params[0], params[1]);
     }
 }

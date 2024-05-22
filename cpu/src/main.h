@@ -1,10 +1,2 @@
-#include <utils/client.h>
-#include <cpu-utils/conexiones.h>
-#include <cpu-utils/instrucciones.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <utils/hello.h>
-#include <commons/log.h>
-#include <commons/config.h>
-#include <commons/string.h>
-#include <pthread.h>
+int socketKernel;
+registros_t registros;
