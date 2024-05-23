@@ -1,14 +1,3 @@
-#include <utils/server.h>
-#include <utils/client.h>
-#include <cpu-utils/conexiones.h>
-#include <cpu-utils/cicloInstruccion.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <utils/hello.h>
-#include <commons/log.h>
-#include <commons/config.h>
-#include <commons/string.h>
-#include <pthread.h>
 #include "main.h"
 
 void finalizarCPU (t_log* logger, t_config* config) {
@@ -19,7 +8,63 @@ void finalizarCPU (t_log* logger, t_config* config) {
 
 registros_t registros;
 int socketKernel;
+int socketMemoria;
 t_log* logger;
+int interrupcion;
+
+pthread_mutex_t mutex_interrupcion;
+
+struct args {
+    char* puerto;
+    t_log* logger;
+};
+
+void conexion_interrupt(void *argumentos) {
+    struct args *puertoYLogger = argumentos;
+    char* puerto = puertoYLogger->puerto;
+    t_log* logger = puertoYLogger->logger;
+    // creamos el servidor
+    int server_interrupt_fd = iniciar_servidor(puerto, logger);
+    char* stringParaLogger = string_from_format("[CPU] Escuchando en el puerto interrupt: %s", puerto);
+    log_info(logger, stringParaLogger);
+
+
+    handshake_t res = esperar_cliente(server_interrupt_fd, logger);
+    int modulo = res.modulo;
+    int socket_cliente = res.socket;
+    switch (modulo) {
+	    case KERNEL:
+		    log_info(logger, "Se conecto un Kernel");
+    	break;
+        default:
+		    log_error(logger, "Se conecto un cliente desconocido");
+		break;
+    }
+
+    while(1) {
+        t_list* paq = recibir_paquete(socket_cliente);
+        t_paquete_entre* paquete = list_get(paq, 0);
+        
+        switch (paquete->operacion) {
+            case INTERRUMPIR_PROCESO:
+                pthread_mutex_lock(&mutex_interrupcion);
+                interrupcion = true;
+                pthread_mutex_unlock(&mutex_interrupcion);
+                break;
+            default:
+                log_error(logger, "Operacion desconocida");
+                break;
+        }
+    }
+}
+
+int getHayInterrupcion() {
+    pthread_mutex_lock(&mutex_interrupcion);
+    int hayInterrupcion = interrupcion;
+    pthread_mutex_unlock(&mutex_interrupcion);
+    return hayInterrupcion;
+}
+
 
 int main(int argc, char* argv[]) {
     // creamos logs y configs
@@ -35,7 +80,9 @@ int main(int argc, char* argv[]) {
 
     log_debug(logger, "Configuraciones leidas %s, %s, %s, %s", ip_memoria, puerto_memoria, puerto_escucha_dispatch, puerto_escucha_interrupt);
 
-    /* HILO INTERRUPT
+
+    pthread_mutex_init(&mutex_interrupcion,NULL);
+
     // declaramos los hilos
     pthread_t hilo_interrupt;
     args argumentos_interrupt;
@@ -44,7 +91,6 @@ int main(int argc, char* argv[]) {
     
     pthread_create(&hilo_interrupt, NULL, conexion_interrupt, (void*)&argumentos_interrupt);
     pthread_detach(hilo_interrupt);
-    */
 
     //El cliente se conecta 
     int socketMemoria = connectAndHandshake(ip_memoria, puerto_memoria, CPU, "memoria", logger);
@@ -75,30 +121,48 @@ int main(int argc, char* argv[]) {
         t_list* paquetePCB = recibir_paquete(socketKernel);
         if (paquetePCB == NULL) {
             log_error(logger, "No se pudo recibir el paquete de la memoria");
-            finalizarCPU(logger, config);
-        } 
-        
-        t_PCB* pcb = list_get(paquetePCB, 0);
-
-        // Hago el fetch de la instruccion
-        char* instruccionRecibida;
-        int ok = fetchInstruccion(pcb, socketMemoria, &instruccionRecibida, logger);
-
-        if (ok == -1) {
-            log_error(logger, "No se pudo recibir la instruccion de la memoria");
-            break;
         }
 
-        // Decodifico la instruccion en opcode y parametros
-        instruccionCPU_t* instruccion = dividirInstruccion(instruccionRecibida);
+        t_paquete_entre* paq = list_get(paquetePCB, 0);
+        t_PCB* pcb = paq->payload;
 
-        // Ejecuto la instruccion
-        ejecutarInstruccion(instruccion, pcb, logger);
 
-        // Devolver el PCB al kernel
-        // enviar_PCB(pcb);
-        
+        switch (paq->operacion) {
+            case EXEC_PROCESO:
+                while(getHayInterrupcion() == false) {
+                    char* instruccionRecibida;
+                    int ok = fetchInstruccion(pcb, socketMemoria, &instruccionRecibida, logger);
+
+                    if (ok == -1) {
+                        log_error(logger, "PROCESO TERMINÓ EJECUCIÓN: PID %d", pcb->PID);
+                        // Devolver el PCB al kernel
+                        enviar_pcb_kernel(pcb, socketKernel, TERMINO_EJECUCION);
+                        break;
+                    }
+
+                    // Decodifico la instruccion en opcode y parametros
+                    instruccionCPU_t* instruccion = dividirInstruccion(instruccionRecibida);
+
+                    // Ejecuto la instruccion
+                    ejecutarInstruccion(instruccion, pcb, logger, registros, socketKernel);
+                }
+                if (interrupcion) {
+                    log_info(logger, "Interrupcion recibida");
+
+                    pthread_mutex_lock(&mutex_interrupcion);
+                    interrupcion = false;
+                    pthread_mutex_unlock(&mutex_interrupcion);
+                    // Interrumpir el proceso
+                    enviar_pcb_kernel(pcb, socketKernel, INTERRUMPIO_PROCESO);
+                }
+                break;
+            default:
+                log_error(logger, "Operacion desconocida");
+                break; 
+        }
+
     }
 
     finalizarCPU(logger, config);
+    
 }

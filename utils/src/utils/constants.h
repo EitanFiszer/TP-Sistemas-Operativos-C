@@ -1,3 +1,8 @@
+#pragma once
+
+#include "./PCB.h"
+
+
 typedef enum {
 	CPU,
 	KERNEL,
@@ -5,7 +10,21 @@ typedef enum {
 	MEMORIA
 }ID;
 
+typedef enum{
+    IO_GEN,
+    IO_STDIN,
+    IO_STDOUT,
+    IO_FS
+}op_codes_io;
+typedef struct{
+    op_codes_io op_code;
+	char* interfaz;
+    void* tiempo;
+}op_io;
+
+
 typedef enum {
+	//kernel memoria
 	CREAR_PROCESO,
 	FINALIZAR_PROCESO,
 	AMPLIAR_PROCESO,
@@ -13,13 +32,23 @@ typedef enum {
 	PC_A_INSTRUCCION,
 	PEDIR_VALOR,
 	INSTRUCCIONES_CARGADAS,
-	EXEC_PROCESO,
+	//cpu kernel
+	EXEC_PROCESO, //ejecuta esta pcb
 	INTERRUMPIR_PROCESO, //DE KERNEL A CPU
-	DESALOJAR,//SIGNAL WAIT PROCESO FINALIZADO PROCESO INTERRUMPIDO DE CPU A KERNEL
-	IO_GEN_SLEEP, // DE CPU A KERNEL (io_gen_sleep)
-	IO_GEN_SLEEP_RESPUESTA // DE KERNEL A CPU (io_gen_sleep)
+	
+	SYSCALL,
+	INTERRUMPIO_PROCESO, // DE CPU A KERNEL, replanificar por interrupcion
+	TERMINO_EJECUCION,
+	//entrada salida kernel
+	CONEXION_IO,
+
+	INSTRUCCION_IO
+
 } OP_CODES_ENTRE;
 
+typedef enum {
+	IO_GEN_SLEEP
+} SYSCALL_INSTRUCCIONES;
 
 typedef struct {
 	OP_CODES_ENTRE operacion;
@@ -32,17 +61,23 @@ typedef struct {
 } t_payload_fetch_instruccion;
 
 typedef struct {
+	op_codes_io interfaz;
+	char* op;
+	int tiempo;
+	//si es con tiempo aca 
+} payload_intruccion_io;
+
+typedef struct {
 	char* path;
 	int pid;
 } payload_crear_proceso;
 
 typedef struct {
+	SYSCALL_INSTRUCCIONES instruccion;
+	char* interfaz;
 	int tiempo;
+	t_PCB* pcb;
 } t_payload_io_gen_sleep;
-
-typedef struct {
-	int ok;
-} t_payload_io_gen_sleep_respuesta;
 
 /*
 typedef struct {

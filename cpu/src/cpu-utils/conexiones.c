@@ -1,39 +1,12 @@
-#include <commons/log.h>
-#include <commons/string.h>
+#include "conexiones.h"
 
+void enviar_pcb_kernel(t_PCB *pcb, int socketKernel, OP_CODES_ENTRE operacion) {
+    t_paquete *paq = crear_paquete();
+    t_paquete_entre *paquete=malloc(sizeof(t_paquete_entre));  
 
-struct args {
-    char* puerto;
-    t_log* logger;
-};
-
-void conexion_interrupt(void *argumentos) {
-    /*
-    struct args *puertoYLogger = argumentos;
-    char* puerto = puertoYLogger->puerto;
-    t_log* logger = puertoYLogger->logger;
-    // creamos el servidor
-    int server_interrupt_fd = iniciar_servidor(puerto, logger);
-    char* stringParaLogger = string_from_format("[CPU] Escuchando en el puerto interrupt: %s", puerto);
-    log_info(logger, stringParaLogger);
-
-
-    handshake_t res = esperar_cliente(server_interrupt_fd, logger);
-    int modulo = res.modulo;
-    int socket_cliente = res.socket;
-    switch (modulo) {
-	    case KERNEL:
-		    log_info(logger, "Se conecto un Kernel");
-    	break;
-        default:
-		    log_error(logger, "Se conecto un cliente desconocido");
-		break;
-    }
-    */
-}
-
-/*
-void devolver_pcb(t_PCB* pcb) {
+    paquete->operacion = operacion;
+    paquete->payload = pcb;
     
+    agregar_a_paquete(paq, paquete, sizeof(t_paquete_entre));
+    enviar_paquete(paq, socketKernel);
 }
-*/
