@@ -23,26 +23,49 @@ void consola_interactiva(void)
 
         if (string_equals_ignore_case(split[0], "INICIAR_PROCESO"))
         {
-            // CREO EL PROCESO LOG
-            log_info(logger, "Se crea el proceso <%d> en NEW", PID);
-            // creo el paquete con las instrucciones para enviar a memoria las instrucciones
-            enviar_instrucciones_memoria(split[1]);
-            // creo la PCB Y la guardo en cola NEW
-            t_PCB *new_PCB = crear_PCB(PID);
-            
-            // semaforo cola new
-
-            pthread_mutex_lock(&sem_q_new);
-            queue_push(cola_new, new_PCB);
-            pthread_mutex_unlock(&sem_q_new);
-
-            // Incremento identificador de proceso
-            PID++;
+            iniciar_proceso(split[1]);
             free(split);
             free(leido);
-            // elimino paquete
+        }
+        else if (string_equals_ignore_case(split[0], "EJECUTAR_SCRIPT"))
+        {
+        }
+        else if (string_equals_ignore_case(split[0], "FINALIZAR_PROCESO"))
+        {
+        }
+        else if (string_equals_ignore_case(split[0], "DETENER_PLANIFICACION"))
+        {
+        }
+        else if (string_equals_ignore_case(split[0], "INICIAR_PLANIFICACION"))
+        {
+        }
+        else if (string_equals_ignore_case(split[0], "MULTIPROGRAMACION"))
+        {
+        }
+        else if (string_equals_ignore_case(split[0], "PROCESO_ESTADO"))
+        {
+        }
+        else
+        {
+            printf("Escribio un comando incorrecto, los comandos existentes son: \n EJECUTAR_SCRIPT \n INICIAR_PROCESO \n FINALIZAR_PROCESO \n DETENER_PLANIFICACION \n INICIAR_PLANIFICACION \nMULTIPROGRAMACION  \n PROCESO_ESTADO \n ");
         }
     }
+}
+
+void iniciar_proceso(char *path)
+{
+    // CREO EL PROCESO LOG
+    log_info(logger, "Se crea el proceso <%d> en NEW", PID);
+    // creo el paquete con las instrucciones para enviar a memoria las instrucciones
+    enviar_instrucciones_memoria(path);
+    // creo la PCB Y la guardo en cola NEW
+    t_PCB *new_PCB = crear_PCB(PID);
+    // semaforo cola new
+    pthread_mutex_lock(&sem_q_new);
+    queue_push(cola_new, new_PCB);
+    pthread_mutex_unlock(&sem_q_new);
+    // Incremento identificador de proceso
+    PID++;
 }
 
 void LTS_N_R(void)
@@ -59,15 +82,15 @@ void LTS_N_R(void)
             pthread_mutex_lock(&sem_q_new);
             t_PCB *retirar_new = queue_pop(cola_new);
             pthread_mutex_unlock(&sem_q_new);
-            
+
             retirar_new->estado = READY;
             pthread_mutex_lock(&sem_q_ready);
 
             queue_push(cola_ready, retirar_new);
-
             pthread_mutex_lock(&sem_q_new);
-            sem_post(&sem_cont_ready);
 
+            log_info(logger, "PID:%d - Estado Anterior: NEW - Estado Actual: READY", retirar_new->PID);
+            sem_post(&sem_cont_ready);
         }
     }
 }
@@ -92,13 +115,14 @@ void STS(void)
 
             pthread_mutex_lock(&sem_q_ready);
             t_PCB *retirar_ready = queue_pop(cola_ready);
-            pthread_mutex_unlock(&sem_q_ready);            
+            pthread_mutex_unlock(&sem_q_ready);
 
             retirar_ready->estado = EXEC;
 
             pthread_mutex_lock(&sem_q_exec);
             queue_push(cola_exec, retirar_ready);
             pthread_mutex_unlock(&sem_q_exec);
+            log_info(logger, "PID:%d - Estado Anterior: READY - Estado Actual: EXEC", retirar_ready->PID);
             // envio proceso a cpu
             // POR AHORA NO SE SI AGREFAR SEMAFORO ACA
             enviar_paquete_cpu_dispatch(EXEC_PROCESO, retirar_ready);
@@ -108,10 +132,10 @@ void STS(void)
         {
             // envio el primer elemento de la cola ready a EXEC
             // SEMAFORO CONTADOR DE ELEMENTOS EN COLA READY, SI NO HAY ELEMENTOS EN READY NO SE EJECUTA ESTE CODIGO SEM WAIT(SEM CONTADOR)
-            
+
             pthread_mutex_lock(&sem_q_ready);
             t_PCB *retirar_ready = queue_pop(cola_ready);
-            pthread_mutex_unlock(&sem_q_ready);   
+            pthread_mutex_unlock(&sem_q_ready);
 
             retirar_ready->estado = EXEC;
             retirar_ready->quantum = quantum;
@@ -119,7 +143,7 @@ void STS(void)
             pthread_mutex_lock(&sem_q_exec);
             queue_push(cola_exec, retirar_ready);
             pthread_mutex_unlock(&sem_q_exec);
-
+            log_info(logger, "PID:%d - Estado Anterior: READY - Estado Actual: EXEC", retirar_ready->PID);
             // envio proceso a cpu
             enviar_paquete_cpu_dispatch(EXEC_PROCESO, retirar_ready);
 
@@ -186,17 +210,17 @@ void iniciar_colas(void)
     cola_exec = queue_create();
     cola_exit = queue_create();
 }
-void iniciar_semaforos(void){
-    pthread_mutex_init(&sem_q_new,NULL);
-    pthread_mutex_init(&sem_q_ready ,NULL);
-    pthread_mutex_init(&sem_q_blocked,NULL);
-    pthread_mutex_init(&sem_q_exit ,NULL);
-    pthread_mutex_init(&sem_q_exec,NULL);
+void iniciar_semaforos(void)
+{
+    pthread_mutex_init(&sem_q_new, NULL);
+    pthread_mutex_init(&sem_q_ready, NULL);
+    pthread_mutex_init(&sem_q_blocked, NULL);
+    pthread_mutex_init(&sem_q_exit, NULL);
+    pthread_mutex_init(&sem_q_exec, NULL);
 
-    sem_init(&sem_sts_cpu_libre,1,0);
-    sem_init(&sem_lts_proceso_cargado,0,0);
-    sem_init(&sem_cont_ready,0,0);
-
+    sem_init(&sem_sts_cpu_libre, 1, 0);
+    sem_init(&sem_lts_proceso_cargado, 0, 0);
+    sem_init(&sem_cont_ready, 0, 0);
 }
 int g_multiprogracion_actual(void)
 {
@@ -318,7 +342,7 @@ int main(int argc, char *argv[])
 
     // INICIO LAS COLAS
     iniciar_colas();
-    //INICIO LOS SEMAFOROS
+    // INICIO LOS SEMAFOROS
     iniciar_semaforos();
     // creo hilo para que reciba informacion de la consola constantement
     pthread_t hilo_consola;

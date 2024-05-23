@@ -75,7 +75,8 @@ void enviar_instrucciones_memoria(char*);
 void enviar_paquete_cpu_dispatch (OP_CODES_ENTRE,void*);
 void interrumpir(void);
 
-t_PCB* crear_PCB(int PID);
+t_PCB* crear_PCB(int);
 int g_multiprogracion_actual (void);
+void iniciar_proceso(char*){
 
 
