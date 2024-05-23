@@ -1,4 +1,4 @@
-#include <kernel-utils/PCB.h>
+#include <utils/PCB.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <utils/client.h> 
@@ -12,6 +12,8 @@
 #include <unistd.h>
 #include <kernel-utils/conexiones.h>
 #include <semaphore.h>
+#include <readline/readline.h>
+
 
 // typedef struct {
 // 	ID modulo;
@@ -63,10 +65,10 @@ void leer_configs();
 void iniciar_colas(void);
 void iniciar_semaforos(void);
 
-void consola_interactiva(void);
+void consola_interactiva(void*);
 void LTS_N_R(void);
 void STS(void);
-void desalojar(t_PCB*);
+// void desalojar(t_PCB*);
 
 //FUNCIONES DE CONEXION
 void esperar_paquetes_cpu_dispatch(void);

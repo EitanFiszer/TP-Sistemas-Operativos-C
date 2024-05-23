@@ -60,7 +60,7 @@ int main(int argc, char* argv[]) {
                 int tiempo = operacionRecibida.tiempo;
                 
                 log_info(logger,"Operacion: <IO_GEN_SLEEP>");
-                sleep(tiempo_unidad_trabajo / 1000 * paquete_dispatch->t_payload_io_gen_sleep.tiempo);
+                sleep(tiempo_unidad_trabajo / 1000 * tiempo);
                 enviar_mensaje("1",resultHandshakeKernell);
             case IO_STDIN:
             case IO_STDOUT:

@@ -9,7 +9,7 @@ void leer_configs()
     puerto = config_get_int_value(config, "PUERTO_ESCUCHA");
     quantum = config_get_int_value(config, "QUANTUM");
 }
-void consola_interactiva(void)
+void consola_interactiva(void*)
 {
     log_info(logger, "Iniciando consola");
     int PID = 0;
@@ -19,7 +19,7 @@ void consola_interactiva(void)
         char *leido = readline(">");
 
         char **split = string_split(leido, " ");
-        int length = string_array_size(split);
+        // int length = string_array_size(split);
 
         if (string_equals_ignore_case(split[0], "INICIAR_PROCESO"))
         {
@@ -83,12 +83,12 @@ void STS(void)
 {
     while (1)
     {
-        wait(&sem_sts_cpu_libre);
+        sem_wait(&sem_sts_cpu_libre);
         char *algoritmo_planificacion = config_get_string_value(config, "ALGORITMO_PLANIFICACION");
         if (strcmp(algoritmo_planificacion, "FIFO") == 0)
         {
             // envio el primer elemento de la cola ready a EXEC
-            wait(&sem_cont_ready);
+            sem_wait(&sem_cont_ready);
 
             pthread_mutex_lock(&sem_q_ready);
             t_PCB *retirar_ready = queue_pop(cola_ready);
@@ -131,33 +131,33 @@ void STS(void)
     }
 }
 
-void desalojar(t_PCB *pcb_desalojada)
-{
-    switch (pcb_desalojada->motivo)
-    {
-    case INTERRUPT:
-        // vuelvo a planificar corto plazo y agrego esta pcb a la cola de ready
-        sem_post(&sem_sts_cpu_libre);
-        break;
-    case SIGNAL:
-        /*SI EL MOTIVO ES SIGNAL VERIFICAR QUE EXISTA, SUMARLE UNO, Y SACAR UN PROCESO DE LA COLA DE
-         BLOQUEADOS*/
-        sem_post(&sem_sts_cpu_libre);
-        break;
-    case WAIT:
-        /* SI EL MOTIVO ES WAIT VERIFICO SI EXISTE RECURSO SOLICITADO Y LE RESTO UNO,
-        SI EL NUMERO DE RECURSO ES MENOR A 0
-        BLOQUEO EL PROCESO CORRESPONDIENTE AL RECURSO */
-        sem_post(&sem_sts_cpu_libre);
-        break;
-    case FINISH:
-        // SI EL MOTIVO ES FINISH ENVIO EL PROCESO A EXIT
-        sem_post(&sem_sts_cpu_libre);
-        break;
-    default:
-        break;
-    }
-}
+// void desalojar(t_PCB *pcb_desalojada)
+// {
+//     switch (pcb_desalojada->motivo)
+//     {
+//     case INTERRUPT:
+//         // vuelvo a planificar corto plazo y agrego esta pcb a la cola de ready
+//         sem_post(&sem_sts_cpu_libre);
+//         break;
+//     case lL:
+//         /*SI EL MOTIVO ES SIGNAL VERIFICAR QUE EXISTA, SUMARLE UNO, Y SACAR UN PROCESO DE LA COLA DE
+//          BLOQUEADOS*/
+//         sem_post(&sem_sts_cpu_libre);
+//         break;
+//     case WAIT:
+//         /* SI EL MOTIVO ES WAIT VERIFICO SI EXISTE RECURSO SOLICITADO Y LE RESTO UNO,
+//         SI EL NUMERO DE RECURSO ES MENOR A 0
+//         BLOQUEO EL PROCESO CORRESPONDIENTE AL RECURSO */
+//         sem_post(&sem_sts_cpu_libre);
+//         break;
+//     case FINISH:
+//         // SI EL MOTIVO ES FINISH ENVIO EL PROCESO A EXIT
+//         sem_post(&sem_sts_cpu_libre);
+//         break;
+//     default:
+//         break;
+//     }
+// }
 
 t_PCB *crear_PCB(int PID)
 {
@@ -224,14 +224,20 @@ void esperar_paquetes_cpu_dispatch(void)
 {
     while (1)
     {
+        
+
         t_list *paquete = recibir_paquete(resultHandshakeDispatch);
         t_paquete_entre *paquete_dispatch = list_get(paquete, 0);
         switch (paquete_dispatch->operacion)
         {
-        case DESALOJAR:
-            desalojar(paquete_dispatch->payload);
+        case INTERRUMPIO_PROCESO:
+            // desalojar(paquete_dispatch->payload);
             break;
-
+        case SYSCALL:
+            break;
+        case TERMINO_EJECUCION:
+            ///ENVIAR A
+            break;
         default:
             log_error(logger, "no se recibio paquete de la CPU, error");
             break;
@@ -262,14 +268,14 @@ void enviar_paquete_cpu_dispatch(OP_CODES_ENTRE operacion, void *payload)
     paquete->operacion = operacion;
     paquete->payload = payload;
     agregar_a_paquete(paq, paquete, sizeof(t_paquete_entre));
-    enviar_paquete(paq, puerto_cpu_dispatch);
+    enviar_paquete(paq,resultHandshakeDispatch);
     log_info(logger, "PAQUETE CREADO Y ENVIADO A CPU DISPATCH");
     eliminar_paquete(paq);
     free(paquete);
 }
 void interrumpir(void)
 {
-    t_paquete *paquete_fin_de_q = crear_paquete;
+    t_paquete *paquete_fin_de_q = crear_paquete();
     t_paquete_entre *fin_q = malloc(sizeof(t_paquete_entre));
     fin_q->operacion = INTERRUMPIR_PROCESO;
     agregar_a_paquete(paquete_fin_de_q, fin_q, sizeof(t_paquete_entre));
@@ -295,6 +301,7 @@ int main(int argc, char *argv[])
 
     // cliente se conecta al sevidor
     resultHandshakeDispatch = connectAndHandshake(ip_cpu, puerto_cpu_dispatch, KERNEL, "cpu", logger);
+    resultHandshakeDispatch = connectAndHandshake(ip_cpu, puerto_cpu_dispatch, KERNEL, "cpu", logger);
     resultHandshakeInterrupt = connectAndHandshake(ip_cpu, puerto_cpu_interrupt, KERNEL, "cpu", logger);
 
     // ESTE ES EL SOCKET PARA CONECTARSE A LA MEMORIA
@@ -305,7 +312,7 @@ int main(int argc, char *argv[])
 
     handshake_t res = esperar_cliente(server_fd, logger);
     int modulo = res.modulo;
-    int socket_cliente = res.socket;
+    //int socket_cliente = res.socket;
     switch (modulo)
     {
     case IO:
