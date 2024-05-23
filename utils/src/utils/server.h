@@ -14,12 +14,6 @@
 #include<assert.h>
 #include "constants.h"
 
-typedef enum
-{
-	MENSAJE,
-	PAQUETE
-} op_code;
-
 typedef struct {
 	ID modulo;
 	int socket;

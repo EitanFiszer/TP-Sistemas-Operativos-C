@@ -1,8 +1,6 @@
 #include <commons/log.h>
+#include <commons/collections/list.h>
+#include <commons/string.h>
+#include "./cicloInstruccion.h"
 
-typedef struct {
-    char* puerto;
-    t_log* logger;
-} args;
-
-void conexion_interrupt(void* argumentos);
+void enviar_pcb_kernel(t_PCB* pcb, int socketKernel, OP_CODES_ENTRE operacion);

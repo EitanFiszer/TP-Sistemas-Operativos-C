@@ -2,6 +2,7 @@
 #include <commons/string.h>
 #include <utils/server.h>
 
+
 int fetchInstruccion(t_PCB* pcb, int socketMemoria, char** instruccionRecibida, t_log* logger) {
     // 1. Enviar PID y PC a Memoria
     int pid = pcb->PID;
@@ -60,7 +61,7 @@ instruccionCPU_t *dividirInstruccion(char *instruccion) {
     return instruccionCPU;
 }
 
-void ejecutarInstruccion(instruccionCPU_t* instruccion, t_PCB* pcb, t_log* logger) {
+void ejecutarInstruccion(instruccionCPU_t* instruccion, t_PCB* pcb, t_log* logger, registros_t registros, int socketKernel) {
     char** params = instruccion->parametros;
 
     char* paramsString = string_new();
@@ -72,14 +73,19 @@ void ejecutarInstruccion(instruccionCPU_t* instruccion, t_PCB* pcb, t_log* logge
     log_info(logger, "PID: %d - Ejecutando: %s - %s", pcb->PID, instruccion->instruccion, paramsString);
 
     if(string_equals_ignore_case(instruccion->instruccion, "SET")) {
-        instruccionSet(&pcb, params[0], params[1]);
+        instruccionSet(&pcb, params[0], params[1], &registros);
     } else if(string_equals_ignore_case(instruccion->instruccion, "SUM")){
-        instruccionSum(&pcb, params[0], params[1]);
+        instruccionSum(&pcb, params[0], params[1], registros);
     } else if (string_equals_ignore_case(instruccion->instruccion, "SUB")) {
-        instruccionSub(&pcb, params[0], params[1]);
+        instruccionSub(&pcb, params[0], params[1], registros);
     } else if(string_equals_ignore_case(instruccion->instruccion, "JNZ")) {
-        instruccionJNZ(&pcb, params[0], params[1]);
+        instruccionJNZ(&pcb, params[0], params[1], registros);
     } else if(string_equals_ignore_case(instruccion->instruccion, "IO_GEN_SLEEP")) {
-        instruccionIoGenSleep(&pcb, params[0], params[1]);
+        instruccionIoGenSleep(&pcb, params[0], params[1], socketKernel);
+        return;
     }
+
+}
+
+void ejecutarCicloCompleto(t_PCB* pcb) {
 }
