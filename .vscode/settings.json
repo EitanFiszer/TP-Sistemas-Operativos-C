@@ -15,6 +15,7 @@
         "config.h": "c",
         "stdio.h": "c",
         "string.h": "c",
-        "assert.h": "c"
+        "assert.h": "c",
+        "conexiones.h": "c"
     }
 }

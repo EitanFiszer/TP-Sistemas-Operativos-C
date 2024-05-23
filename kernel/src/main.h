@@ -1,3 +1,6 @@
+#ifndef KERNELMAIN_H
+#define KERNELMAIN_H
+
 #include <utils/PCB.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -71,14 +74,15 @@ void STS(void);
 // void desalojar(t_PCB*);
 
 //FUNCIONES DE CONEXION
-void esperar_paquetes_cpu_dispatch(void);
-void esperar_paquetes_memoria(void);
-void enviar_instrucciones_memoria(char*);
-void enviar_paquete_cpu_dispatch (OP_CODES_ENTRE,void*);
-void interrumpir(void);
+// void esperar_paquetes_cpu_dispatch(void);
+// void esperar_paquetes_memoria(void);
+// void enviar_instrucciones_memoria(char*);
+// void enviar_paquete_cpu_dispatch (OP_CODES_ENTRE,void*);
+// void interrumpir(void);
 
 t_PCB* crear_PCB(int);
 int g_multiprogracion_actual (void);
 void iniciar_proceso(char*){
 
 
+#endif /* KERNELMAIN_H */

@@ -51,13 +51,12 @@ void consola_interactiva(void*)
         }
     }
 }
-
 void iniciar_proceso(char *path)
 {
     // CREO EL PROCESO LOG
     log_info(logger, "Se crea el proceso <%d> en NEW", PID);
     // creo el paquete con las instrucciones para enviar a memoria las instrucciones
-    enviar_instrucciones_memoria(path);
+    enviar_instrucciones_memoria(path, PID, resultHandshakeMemoria);
     // creo la PCB Y la guardo en cola NEW
     t_PCB *new_PCB = crear_PCB(PID);
     // semaforo cola new
@@ -67,7 +66,6 @@ void iniciar_proceso(char *path)
     // Incremento identificador de proceso
     PID++;
 }
-
 void LTS_N_R(void)
 {
     while (1)
@@ -125,7 +123,7 @@ void STS(void)
             log_info(logger, "PID:%d - Estado Anterior: READY - Estado Actual: EXEC", retirar_ready->PID);
             // envio proceso a cpu
             // POR AHORA NO SE SI AGREFAR SEMAFORO ACA
-            enviar_paquete_cpu_dispatch(EXEC_PROCESO, retirar_ready);
+            enviar_paquete_cpu_dispatch(EXEC_PROCESO, retirar_ready, resultHandshakeDispatch);
             // semaforo de planificacion a corto plazo para replanificar
         }
         if (strcmp(algoritmo_planificacion, "RR") == 0)
@@ -145,44 +143,15 @@ void STS(void)
             pthread_mutex_unlock(&sem_q_exec);
             log_info(logger, "PID:%d - Estado Anterior: READY - Estado Actual: EXEC", retirar_ready->PID);
             // envio proceso a cpu
-            enviar_paquete_cpu_dispatch(EXEC_PROCESO, retirar_ready);
+            enviar_paquete_cpu_dispatch(EXEC_PROCESO, retirar_ready,resultHandshakeDispatch);
 
             usleep(quantum);
             // interrumpo el proceso por fin de quantum
-            interrumpir();
+            interrumpir(resultHandshakeInterrupt);
             // espero recibir el pcb con motivo de desalojo
         }
     }
 }
-
-// void desalojar(t_PCB *pcb_desalojada)
-// {
-//     switch (pcb_desalojada->motivo)
-//     {
-//     case INTERRUPT:
-//         // vuelvo a planificar corto plazo y agrego esta pcb a la cola de ready
-//         sem_post(&sem_sts_cpu_libre);
-//         break;
-//     case lL:
-//         /*SI EL MOTIVO ES SIGNAL VERIFICAR QUE EXISTA, SUMARLE UNO, Y SACAR UN PROCESO DE LA COLA DE
-//          BLOQUEADOS*/
-//         sem_post(&sem_sts_cpu_libre);
-//         break;
-//     case WAIT:
-//         /* SI EL MOTIVO ES WAIT VERIFICO SI EXISTE RECURSO SOLICITADO Y LE RESTO UNO,
-//         SI EL NUMERO DE RECURSO ES MENOR A 0
-//         BLOQUEO EL PROCESO CORRESPONDIENTE AL RECURSO */
-//         sem_post(&sem_sts_cpu_libre);
-//         break;
-//     case FINISH:
-//         // SI EL MOTIVO ES FINISH ENVIO EL PROCESO A EXIT
-//         sem_post(&sem_sts_cpu_libre);
-//         break;
-//     default:
-//         break;
-//     }
-// }
-
 t_PCB *crear_PCB(int PID)
 {
     t_PCB *newPCB = malloc(sizeof(t_PCB));
@@ -225,87 +194,6 @@ void iniciar_semaforos(void)
 int g_multiprogracion_actual(void)
 {
     return queue_size(cola_ready) + queue_size(cola_blocked) + queue_size(cola_exec);
-}
-
-// //funciones de conexion
-void enviar_instrucciones_memoria(char *path)
-{
-    t_paquete *nuevo_paquete = crear_paquete();
-    t_paquete_entre *instruccion;
-    instruccion = malloc(sizeof(t_paquete_entre));
-    instruccion->operacion = CREAR_PROCESO;
-    payload_crear_proceso *payload = malloc(sizeof(payload_crear_proceso));
-    payload->path = path;
-    payload->pid = PID;
-    instruccion->payload = payload;
-    agregar_a_paquete(nuevo_paquete, instruccion, sizeof(t_paquete_entre));
-    // envio el paquete a la memoria //ENVIO EL NUEVO PROCESO
-    enviar_paquete(nuevo_paquete, resultHandshakeMemoria);
-
-    eliminar_paquete(nuevo_paquete);
-}
-void esperar_paquetes_cpu_dispatch(void)
-{
-    while (1)
-    {
-        
-
-        t_list *paquete = recibir_paquete(resultHandshakeDispatch);
-        t_paquete_entre *paquete_dispatch = list_get(paquete, 0);
-        switch (paquete_dispatch->operacion)
-        {
-        case INTERRUMPIO_PROCESO:
-            // desalojar(paquete_dispatch->payload);
-            break;
-        case SYSCALL:
-            break;
-        case TERMINO_EJECUCION:
-            ///ENVIAR A
-            break;
-        default:
-            log_error(logger, "no se recibio paquete de la CPU, error");
-            break;
-        }
-    }
-}
-void esperar_paquetes_memoria(void)
-{
-    while (1)
-    {
-        t_list *paquete = recibir_paquete(resultHandshakeDispatch);
-        t_paquete_entre *paquete_dispatch = list_get(paquete, 0);
-        switch (paquete_dispatch->operacion)
-        {
-        case INSTRUCCIONES_CARGADAS:
-            // permite continuar con la planificacion a largo plazo
-            break;
-        default:
-            log_error(logger, "no se recibio paquete de la memoria, error");
-            break;
-        }
-    }
-}
-void enviar_paquete_cpu_dispatch(OP_CODES_ENTRE operacion, void *payload)
-{
-    t_paquete *paq = crear_paquete();
-    t_paquete_entre *paquete = malloc(sizeof(t_paquete_entre));
-    paquete->operacion = operacion;
-    paquete->payload = payload;
-    agregar_a_paquete(paq, paquete, sizeof(t_paquete_entre));
-    enviar_paquete(paq,resultHandshakeDispatch);
-    log_info(logger, "PAQUETE CREADO Y ENVIADO A CPU DISPATCH");
-    eliminar_paquete(paq);
-    free(paquete);
-}
-void interrumpir(void)
-{
-    t_paquete *paquete_fin_de_q = crear_paquete();
-    t_paquete_entre *fin_q = malloc(sizeof(t_paquete_entre));
-    fin_q->operacion = INTERRUMPIR_PROCESO;
-    agregar_a_paquete(paquete_fin_de_q, fin_q, sizeof(t_paquete_entre));
-    enviar_paquete(paquete_fin_de_q, resultHandshakeInterrupt);
-    eliminar_paquete(paquete_fin_de_q);
-    free(fin_q);
 }
 
 // MAIN
@@ -368,11 +256,11 @@ int main(int argc, char *argv[])
 
     // HILO PARA QUE ESPERA PAQUETES DE LA CPU
     pthread_t hilo_espera_cpu;
-    pthread_create(&hilo_espera_cpu, NULL, esperar_paquetes_cpu_dispatch, NULL);
+    pthread_create(&hilo_espera_cpu, NULL, esperar_paquetes_cpu_dispatch, &resultHandshakeDispatch);
     pthread_detach(hilo_espera_cpu);
     // HILO PARA QUE ESPERE PAQUETES DE LA MEMORIA
     pthread_t hilo_espera_memoria;
-    pthread_create(&hilo_espera_memoria, NULL, esperar_paquetes_memoria, NULL);
+    pthread_create(&hilo_espera_memoria, NULL, esperar_paquetes_memoria, &resultHandshakeMemoria);
     pthread_detach(hilo_espera_memoria);
     // SEMAFOROS PARA LAS COLAS
     return 0;
