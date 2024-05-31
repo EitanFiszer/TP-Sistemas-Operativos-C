@@ -1,8 +1,4 @@
-#define PROCESOS_H
 #include <commons/log.h>
-
-#define MAX_PROCESOS 100
-
 typedef struct proceso{
     int pid;
     char **instrucciones;

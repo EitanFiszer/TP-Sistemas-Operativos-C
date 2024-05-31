@@ -4,18 +4,20 @@
 #include <stdlib.h>
 #include <string.h>
 
+// *Falta importar del config el TAM_MEMORIA y TAM_PAGINA e implementarlos
+// También el RETARDO en la/s respuesta/s y concatenar PATH con el recibido de la cpu
 
-Memoria memoria; 
+Memoria memoria;
 
 void inicializarMemoria(t_log* logger) {
     memoria.max_procesos = 10;
 
     memoria.memoria = malloc(65536);
-    memoria.marcos = malloc(16 * sizeof(int));
+    memoria.marcos = malloc(32 * sizeof(int));
     memoria.procesos = malloc(memoria.max_procesos * sizeof(Proceso));
     memoria.cant_procesos = 0;
 
-    for (int i = 0; i < 16; i++) {
+    for (int i = 0; i < 32; i++) {
         memoria.marcos[i] = -1;
     }
 
@@ -58,23 +60,23 @@ void crearProceso(const char* nombre_archivo, int pid, t_log* logger) {
 }
 
 void finalizarProceso(int pid, t_log* logger) {
-    int proceso_index = -1;
+    int indice = -1;
 
     for (int i = 0; i < memoria.cant_procesos; i++) {
         if (memoria.procesos[i].pid == pid) {
-            proceso_index = i;
+            indice = i;
             break;
         }
     }
 
-    if (proceso_index == -1) {
+    if (indice == -1) {
         log_info(logger, "No se encontró el proceso con pid %d", pid);
         return;
     }
 
-    Proceso* proceso = &memoria.procesos[proceso_index];
+    Proceso* proceso = &memoria.procesos[indice];
 
-    for (int i = 0; i < 16; i++) {
+    for (int i = 0; i < 32; i++) {
         if (memoria.marcos[i] == pid) {
             memoria.marcos[i] = -1;
         }
@@ -85,7 +87,7 @@ void finalizarProceso(int pid, t_log* logger) {
     }
     free(proceso->instrucciones);
 
-    for (int i = proceso_index; i < memoria.cant_procesos - 1; i++) {
+    for (int i = indice; i < memoria.cant_procesos - 1; i++) {
         memoria.procesos[i] = memoria.procesos[i + 1];
     }
     memoria.cant_procesos--;
@@ -94,20 +96,20 @@ void finalizarProceso(int pid, t_log* logger) {
 }
 
 char* obtenerInstruccion(int pid, int n) {
-    int proceso_index = -1;
+    int indice = -1;
 
     for (int i = 0; i < memoria.cant_procesos; i++) {
         if (memoria.procesos[i].pid == pid) {
-            proceso_index = i;
+            indice = i;
             break;
         }
     }
 
-    if (proceso_index == -1) {
+    if (indice == -1) {
         return NULL;
     }
 
-    Proceso* proceso = &memoria.procesos[proceso_index];
+    Proceso* proceso = &memoria.procesos[indice];
 
     if (n < 0 || n >= proceso->cant_instrucciones) {
         return NULL;

@@ -7,84 +7,43 @@
 #include <commons/config.h>
 #include <commons/string.h>
 #include <memoria-utils/procesos.h>
-
+#include "./memoria-utils/conexiones.h"
 
 int main(int argc, char* argv[]) {
     t_log* logger = log_create("memoria.log", "Memoria", 1, LOG_LEVEL_INFO);
     t_config* config = config_create("memoria.config");
 
     char* puerto_escucha = config_get_string_value(config, "PUERTO_ESCUCHA");
-	int retardo = config_get_int_value(config, "RETARDO_RESPUESTA");
-	char* path_instrucciones = config_get_string_value(config, "PATH_INSTRUCCIONES");
+    int retardo = config_get_int_value(config, "RETARDO_RESPUESTA");
+    char* path_instrucciones = config_get_string_value(config, "PATH_INSTRUCCIONES");
 
     int server_fd = iniciar_servidor(puerto_escucha, logger);
 
     char* stringParaLogger = string_from_format("[MEMORIA] Escuchando en el puerto: %s", puerto_escucha);
-	log_info(logger, stringParaLogger);
-	const char* nombre_archivo = "test.txt";
+    log_info(logger, stringParaLogger);
 
-	inicializarMemoria(logger);
+    inicializarMemoria(logger);
 
-	while(1){
-		
-		//KERNEL
-		int sig_id = 0;
-		crearProceso(path_instrucciones, sig_id++, logger);
-		log_info(logger, obtenerInstruccion(0, 1));
-		finalizarProceso(sig_id-1, logger);
+    while(1) {
+        handshake_t res = esperar_cliente(server_fd, logger);
+        int cliente = res.socket;
+        int modulo = res.modulo;
+        
+        if (modulo == KERNEL) {
+            log_info(logger, "Se conectó un Kernel");
+            esperar_paquetes_kernel(cliente, logger, path_instrucciones);
+        } else if (modulo == CPU) {
+            log_info(logger, "Se conectó un CPU");
+            // Acá pide instrucciones en base a PID y n de instrucción
+			esperar_paquetes_cpu(cliente, logger);
+        } else if (modulo == IO) {
+            log_info(logger, "Se conectó un IO");
+        } else {
+            log_error(logger, "Se conectó un cliente desconocido");
+        }
 
-		handshake_t res = esperar_cliente(server_fd, logger);
-		int cliente = esperar_cliente(server_fd);
-		int modulo = res.modulo;
-		int socket_cliente = res.socket;
-		int paquete = recibir_paquete(cliente);
-		//convertir paquete
-
-		switch(operacion) {
-			case "PAQUETE":
-				switch (modulo) {
-					case CPU:
-						log_info(logger, "Se conecto un CPU!");
-						//La CPU solicitará a la memoria las instrucciones cargadas en la Memoria de Instrucciones, mediante solicitudes por medio del Program Counter.
-
-						sleep(retardo);
-						break;
-					case KERNEL:
-						//Evaluar si se trata de la creación o finalización de un proceso.
-						//Si se está creando un proceso, se debe recibir el nombre del archivo que contiene las instrucciones.
-						log_info(logger, "Se conecto un Kernel");
-						switch(paquete->){
-							case "CREAR_PROCESO":
-								crearProceso
-							break;
-							case "FINALIZAR_PROCESO":
-							break;
-							case "AUMENTAR_PROCESO":
-							break;
-							case "REDUCIR_PROCESO":
-							break;
-						}
-
-						// int sig_id = 0;
-						// proceso_t* proceso = crear_proceso(sig_id++, logger);
-						
-						break;
-					case IO:
-						log_info(logger, "Se conecto un IO");
-						break;
-					default:
-						log_error(logger, "Se conecto un cliente desconocido");
-						break;
-		}
-
-			break;
-			case -1:
-				log_info(logger, "Se desconectó");
-			break;
-		}
-		
-	}
-    
+        close(cliente);
+    }
 
     return 0;
 }
