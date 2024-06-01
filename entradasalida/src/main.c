@@ -9,7 +9,7 @@
 #include <commons/string.h>
 #include <utils/constants.h>
 #include <string.h>
-
+#include <IO-utils/Definitions.h>
 
 
 int main(int argc, char* argv[]) {
@@ -33,9 +33,10 @@ int main(int argc, char* argv[]) {
     t_paquete* paq = crear_paquete();
     t_paquete_entre* paquete=malloc(sizeof(t_paquete_entre));  
     t_payload_io_gen_sleep* payload = malloc(sizeof(t_payload_io_gen_sleep));
-    
+
     payload->interfaz = x->op;
     paquete->payload = payload;
+    //paquete->operacion = ;
 
     agregar_a_paquete(paq, paquete, sizeof(t_paquete_entre));
     enviar_paquete(paquete,resultHandshakeKernell);
@@ -47,7 +48,7 @@ int main(int argc, char* argv[]) {
 
     //espera a recibir una instrucción y la ejecuta
     while(1){
-        t_list* paq = rebicir_paquete(resultHandshakeKernell);
+        t_list* paq = recibir_paquete(resultHandshakeKernell);
         t_paquete_entre* paquete_dispatch = list_get(paquete, 0);
         OP_CODES_ENTRE* op = paquete_dispatch->operacion;
 
