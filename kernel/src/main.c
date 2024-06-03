@@ -1,4 +1,14 @@
 #include <main.h>
+//COSAS PARA HACER 
+/*
+PLANIFICAR POR VRR //EMPEZAR EN HILO PLANIFICADORES
+MANEJAR RECURSOS E I/O REVISAR CONEXIONES.C FUNCION ESPERAR PAQUETAS CPU DISPATCH
+PLANIFICADOR A LARGO PLAZO ENVIAR PROCESOS A EXIT :)
+
+
+
+*/
+
 void leer_configs()
 {
     ip_memoria = config_get_string_value(config, "IP_MEMORIA");
@@ -126,7 +136,7 @@ void STS(void)
             enviar_paquete_cpu_dispatch(EXEC_PROCESO, retirar_ready, resultHandshakeDispatch);
             // semaforo de planificacion a corto plazo para replanificar
         }
-        if (strcmp(algoritmo_planificacion, "RR") == 0)
+        else if (strcmp(algoritmo_planificacion, "RR") == 0)
         {
             // envio el primer elemento de la cola ready a EXEC
             // SEMAFORO CONTADOR DE ELEMENTOS EN COLA READY, SI NO HAY ELEMENTOS EN READY NO SE EJECUTA ESTE CODIGO SEM WAIT(SEM CONTADOR)
@@ -149,7 +159,14 @@ void STS(void)
             // interrumpo el proceso por fin de quantum
             interrumpir(resultHandshakeInterrupt);
             // espero recibir el pcb con motivo de desalojo
+        }else if (strcmp(algoritmo_planificacion, "VRR") == 0){
+//necesito dos colas, una para mayor prioridad y otra que es la de listos que ya tenia
+//todo elemento de new a ready va a la cola de listo
+// y todo elemento que salga de bloqueo pero sin fin de quantum va a la cola de prioridad 
+        }else {
+            log_error(logger, "Error con el algoritmo de planificacion enviado");
         }
+
     }
 }
 t_PCB *crear_PCB(int PID)

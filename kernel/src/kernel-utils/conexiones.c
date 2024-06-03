@@ -27,11 +27,14 @@ void esperar_paquetes_cpu_dispatch(int socketDispatch)
         {
         case INTERRUMPIO_PROCESO:
             // desalojar(paquete_dispatch->payload);
+            //ESTO ES PORQUE KERNEL PIDIO QUE SE INTERRUMPA POR FIN DE QUANTUM PROBABLEMENTE
+            //ENTONCES VUELVO A CARGAR EL PROCESO EN COLA DE READY AL FINAL
             break;
         case SYSCALL:
+        //puede ser instruccion de IO o asignar RECURSOS
             break;
         case TERMINO_EJECUCION:
-            ///ENVIAR A
+            ///PROCESO TERMINADO SE DESALOJA Y SE ENVIA A EXIT
             break;
         default:
             log_error(logger, "no se recibio paquete de la CPU, error");
