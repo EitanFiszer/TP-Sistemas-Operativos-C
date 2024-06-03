@@ -73,15 +73,15 @@ void ejecutarInstruccion(instruccionCPU_t* instruccion, t_PCB* pcb, t_log* logge
     log_info(logger, "PID: %d - Ejecutando: %s - %s", pcb->PID, instruccion->instruccion, paramsString);
 
     if(string_equals_ignore_case(instruccion->instruccion, "SET")) {
-        instruccionSet(&pcb, params[0], params[1], &registros);
+        instruccionSet(pcb, params[0], params[1], &registros);
     } else if(string_equals_ignore_case(instruccion->instruccion, "SUM")){
-        instruccionSum(&pcb, params[0], params[1], registros);
+        instruccionSum(pcb, params[0], params[1], registros);
     } else if (string_equals_ignore_case(instruccion->instruccion, "SUB")) {
-        instruccionSub(&pcb, params[0], params[1], registros);
+        instruccionSub(pcb, params[0], params[1], registros);
     } else if(string_equals_ignore_case(instruccion->instruccion, "JNZ")) {
-        instruccionJNZ(&pcb, params[0], params[1], registros);
+        instruccionJNZ(pcb, params[0], params[1], registros);
     } else if(string_equals_ignore_case(instruccion->instruccion, "IO_GEN_SLEEP")) {
-        instruccionIoGenSleep(&pcb, params[0], params[1], socketKernel);
+        instruccionIoGenSleep(pcb, params[0], params[1], socketKernel);
         return;
     }
 

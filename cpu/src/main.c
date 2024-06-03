@@ -12,6 +12,10 @@ int socketMemoria;
 t_log* logger;
 int interrupcion;
 
+t_list* tlb;
+int TLB_MAX_SIZE;
+tlb_reemplazo TLB_ALGORITMO_REEMPLAZO;
+
 pthread_mutex_t mutex_interrupcion;
 
 struct args {
@@ -65,7 +69,6 @@ int getHayInterrupcion() {
     return hayInterrupcion;
 }
 
-
 int main(int argc, char* argv[]) {
     // creamos logs y configs
     logger = log_create("cpu.log", "CPU", 1, LOG_LEVEL_INFO);
@@ -77,6 +80,9 @@ int main(int argc, char* argv[]) {
 
     char* puerto_escucha_dispatch = config_get_string_value(config, "PUERTO_ESCUCHA_DISPATCH");
     char* puerto_escucha_interrupt = config_get_string_value(config, "PUERTO_ESCUCHA_INTERRUPT");
+
+    TLB_MAX_SIZE = config_get_int_value(config, "CANTIDAD_ENTRADAS_TLB");
+    TLB_ALGORITMO_REEMPLAZO = (tlb_reemplazo)config_get_string_value(config, "ALGORITMO_TLB");
 
     log_debug(logger, "Configuraciones leidas %s, %s, %s, %s", ip_memoria, puerto_memoria, puerto_escucha_dispatch, puerto_escucha_interrupt);
 
@@ -91,6 +97,9 @@ int main(int argc, char* argv[]) {
     
     pthread_create(&hilo_interrupt, NULL, conexion_interrupt, (void*)&argumentos_interrupt);
     pthread_detach(hilo_interrupt);
+
+    // inicializamos la TLB
+    tlb = list_create();
 
     //El cliente se conecta 
     int socketMemoria = connectAndHandshake(ip_memoria, puerto_memoria, CPU, "memoria", logger);
@@ -125,7 +134,6 @@ int main(int argc, char* argv[]) {
 
         t_paquete_entre* paq = list_get(paquetePCB, 0);
         t_PCB* pcb = paq->payload;
-
 
         switch (paq->operacion) {
             case EXEC_PROCESO:
