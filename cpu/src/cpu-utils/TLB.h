@@ -8,8 +8,13 @@ typedef struct {
     int pid;     // identificador de proceso
     int pagina; // número de página
     int marco; // dirección física, -1 si no está en memoria
-    time_t timestamp; // timestamp de creación
 } tlb_entry;
+
+typedef struct {
+    int pid;
+    int pagina;
+    time_t timestamp;
+} tlb_entry_lru;
 
 typedef enum {
     FIFO,
@@ -17,7 +22,7 @@ typedef enum {
 } tlb_reemplazo;
 
 int marcoSegunPIDyPagina(int pid, int pagina);
-bool tlbLlena(int TLB_SIZE);
+bool tlbLlena();
 void TLBagregarFIFO(int pid, int pagina, int marco);
 void TLBagregarLRU(int pid, int pagina, int marco);
 
