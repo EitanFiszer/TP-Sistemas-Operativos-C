@@ -12,7 +12,7 @@ int socketMemoria;
 t_log* logger;
 int interrupcion;
 
-t_list* tlb;
+t_list* TLB;
 int TLB_MAX_SIZE;
 tlb_reemplazo TLB_ALGORITMO_REEMPLAZO;
 
@@ -99,7 +99,7 @@ int main(int argc, char* argv[]) {
     pthread_detach(hilo_interrupt);
 
     // inicializamos la TLB
-    tlb = list_create();
+    TLB = list_create();
 
     //El cliente se conecta 
     int socketMemoria = connectAndHandshake(ip_memoria, puerto_memoria, CPU, "memoria", logger);

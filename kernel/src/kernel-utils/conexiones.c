@@ -1,4 +1,4 @@
-#include <conexiones.h>
+#include "conexiones.h"
 
 //funciones de conexion
 void enviar_instrucciones_memoria(char* path, int PID,int socketMemoria)

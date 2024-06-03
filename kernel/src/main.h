@@ -82,7 +82,7 @@ void STS(void);
 
 t_PCB* crear_PCB(int);
 int g_multiprogracion_actual (void);
-void iniciar_proceso(char*){
+void iniciar_proceso(char*);
 
 
 #endif /* KERNELMAIN_H */

@@ -101,7 +101,7 @@ int main(int argc, char* argv[]) {
             case IO_GEN:
                 tiempo_gen=(int)operacionRecibida->tiempo;
                 sem_post(&semGen);
-                sem_wait(&sem_Log);
+                sem_wait(&semGenLog);
                 log_info(logger,"Operacion: <IO_GEN_SLEEP>");
             break;
             case IO_STDIN:
