@@ -9,7 +9,7 @@ extern t_list* TLB;
 extern t_log* logger;
 
 int punteroFifo = 0;
-t_list* lru_peticiones;
+t_list* lru_peticiones = NULL;
 
 int marcoSegunPIDyPagina(int pid, int pagina) {
     int marco = -1;
@@ -40,13 +40,21 @@ void agregarEntradaTLB(int pid, int pagina, int marco) {
             log_error(logger, "Algoritmo de reemplazo de TLB no válido");
             return;
         }
+    } else {
+        tlb_entry* entrada = malloc(sizeof(tlb_entry));
+        entrada->pid = pid;
+        entrada->pagina = pagina;
+        entrada->marco = marco;
+        list_add(TLB, entrada);
     }
 
-    tlb_entry* entrada = malloc(sizeof(tlb_entry));
-    entrada->pid = pid;
-    entrada->pagina = pagina;
-    entrada->marco = marco;
-    list_add(TLB, entrada);
+    // crear lista de peticiones y actualizarla
+    if (string_equals_ignore_case((char*)TLB_ALGORITMO_REEMPLAZO, "LRU")){
+        if(lru_peticiones == NULL) {
+            lru_peticiones = list_create();
+        }
+        actualizarTimestampOAgregarAPeticiones(pid, pagina);
+    }
 }
 
 bool compareTimestamp(void* a, void* b) {
@@ -65,8 +73,6 @@ void TLBagregarFIFO(int pid, int pagina, int marco) {
 
     punteroFifo = (punteroFifo + 1) % TLB_MAX_SIZE;
 }
-
-
 
 bool LRUYaPedido(int pid, int pagina) {
     bool encontrado = false;
@@ -97,6 +103,25 @@ void actualizarTimestamp(int pid, int pagina) {
     }
 }
 
+void actualizarTimestampOAgregarAPeticiones(int pid, int pagina) {
+    if (LRUYaPedido(pid, pagina)) {
+        actualizarTimestamp(pid, pagina);
+    } else {
+        agregarTimestamp(pid, pagina);
+    }
+}
+
+bool estaEnTLB(int pid, int pagina) {
+    bool encontrado = false;
+    for (int i = 0; i < list_size(TLB) && !encontrado; i++) {
+        tlb_entry* entrada = list_get(TLB, i);
+        if (entrada->pid == pid && entrada->pagina == pagina) {
+            encontrado = true;
+        }
+    }
+    return encontrado;
+}
+
 // lru: Reemplaza la página cuya última referencia es la más lejana
 void TLBagregarLRU(int pid, int pagina, int marco) {
     tlb_entry* entrada = malloc(sizeof(tlb_entry));
@@ -104,27 +129,25 @@ void TLBagregarLRU(int pid, int pagina, int marco) {
     entrada->pagina = pagina;
     entrada->marco = marco;
 
-
-    if(lru_peticiones == NULL) {
-        lru_peticiones = list_create();
-    }
-
-    if(LRUYaPedido(pid, pagina)) {
-        actualizarTimestamp(pid, pagina);
-    } else {
-        agregarTimestamp(pid, pagina);
-    }
-
     list_sort(lru_peticiones, compareTimestamp);
 
-    tlb_entry* entrada_a_reemplazar = list_get(lru_peticiones, 0);
+    tlb_entry* entrada_a_reemplazar = NULL;
+    for (int i = 0; i < list_size(lru_peticiones); i++) {
+        tlb_entry_lru* entradaBusqueda = list_get(lru_peticiones, i);
+        if (estaEnTLB(entradaBusqueda->pid, entradaBusqueda->pagina)) {
+            entrada_a_reemplazar = entradaBusqueda;
+            break;
+        }
+    }
+    
     for (int i = 0; i < list_size(TLB); i++) {
-        tlb_entry* entrada = list_get(TLB, i);
-        if (entrada->pid == entrada_a_reemplazar->pid && entrada->pagina == entrada_a_reemplazar->pagina) {
+        tlb_entry* entradaTLB = list_get(TLB, i);
+        if (entradaTLB->pid == entrada_a_reemplazar->pid && entradaTLB->pagina == entrada_a_reemplazar->pagina) {
             list_remove(TLB, i);
             list_add(TLB, entrada);
             break;
         }
     }
+
     list_remove(lru_peticiones, 0);
 }
