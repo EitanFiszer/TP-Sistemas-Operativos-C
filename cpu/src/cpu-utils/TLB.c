@@ -131,7 +131,7 @@ void TLBagregarLRU(int pid, int pagina, int marco) {
 
     list_sort(lru_peticiones, compareTimestamp);
 
-    tlb_entry* entrada_a_reemplazar = NULL;
+    tlb_entry_lru* entrada_a_reemplazar = NULL;
     for (int i = 0; i < list_size(lru_peticiones); i++) {
         tlb_entry_lru* entradaBusqueda = list_get(lru_peticiones, i);
         if (estaEnTLB(entradaBusqueda->pid, entradaBusqueda->pagina)) {

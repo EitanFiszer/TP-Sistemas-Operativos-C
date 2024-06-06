@@ -25,5 +25,6 @@ int marcoSegunPIDyPagina(int pid, int pagina);
 bool tlbLlena();
 void TLBagregarFIFO(int pid, int pagina, int marco);
 void TLBagregarLRU(int pid, int pagina, int marco);
+void actualizarTimestampOAgregarAPeticiones(int pid, int pagina);
 
 #endif // TLB_H
