@@ -1,8 +1,12 @@
+#ifndef HILOS_H
+#define HILOS_H
+
 #include <semaphore.h>
 
-int tiempo_gen;
-sem_t semGen;
-sem_t semGenLog;
-
+extern int tiempo_gen;
+extern sem_t semGen;
+extern sem_t semGenLog;
 
 void hilo_generica(char* path_config);
+
+#endif // HILOS_H
