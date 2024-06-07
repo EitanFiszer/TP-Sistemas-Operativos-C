@@ -22,6 +22,11 @@ typedef struct{
     void* tiempo;
 }op_io;
 
+typedef struct {
+	int socket;
+	int tam_pagina;
+} handshake_cpu_memoria;
+
 
 typedef enum {
 	//kernel memoria
@@ -35,6 +40,10 @@ typedef enum {
 	//cpu kernel
 	EXEC_PROCESO, //ejecuta esta pcb
 	INTERRUMPIR_PROCESO, //DE KERNEL A CPU
+
+	//cpu memoria
+	HANDSHAKE_CPU_MEMORIA,
+	SOLICITAR_DIRECCION_FISICA,
 	
 	SYSCALL,
 	INTERRUMPIO_PROCESO, // DE CPU A KERNEL, replanificar por interrupcion
@@ -59,6 +68,15 @@ typedef struct {
     int PID;
     uint32_t program_counter;
 } t_payload_fetch_instruccion;
+
+typedef struct {
+	int PID;
+	int pagina;
+} t_payload_solicitar_direccion_fisica;
+
+typedef struct {
+	int marco;
+} t_payload_direccion_fisica;
 
 typedef struct {
 	op_codes_io interfaz;

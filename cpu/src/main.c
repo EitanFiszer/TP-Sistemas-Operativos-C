@@ -9,6 +9,7 @@ void finalizarCPU (t_log* logger, t_config* config) {
 registros_t registros;
 int socketKernel;
 int socketMemoria;
+int TAM_PAGINA;
 t_log* logger;
 int interrupcion;
 
@@ -102,7 +103,9 @@ int main(int argc, char* argv[]) {
     TLB = list_create();
 
     //El cliente se conecta 
-    int socketMemoria = connectAndHandshake(ip_memoria, puerto_memoria, CPU, "memoria", logger);
+    handshake_cpu_memoria handshakeMemoria = handshake_memoria(ip_memoria, puerto_memoria);
+    socketMemoria = handshakeMemoria.socket;
+    TAM_PAGINA = handshakeMemoria.tam_pagina;
     if (socketMemoria == -1) {
         log_error(logger, "No se pudo conectar con la memoria");
         finalizarCPU(logger,config);

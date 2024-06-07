@@ -24,6 +24,8 @@ int main(int argc, char* argv[]) {
 
     inicializarMemoria(logger);
 
+    // CUANDO CPU HACE EL HANDSHAKE HACER 2 SEND: EL PRIMERO CON EL SOCKET Y EL SEGUNDO CON EL TAM_PAGINA
+
     while(1) {
         handshake_t res = esperar_cliente(server_fd, logger);
         int cliente = res.socket;
