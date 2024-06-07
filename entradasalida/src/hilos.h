@@ -1,12 +1,18 @@
 #ifndef HILOS_H
 #define HILOS_H
 
-#include <semaphore.h>
+typedef struct {
+    char* nombre;
+    char* path_config;
+} args;
 
-extern int tiempo_gen;
-extern sem_t semGen;
-extern sem_t semGenLog;
 
-void hilo_generica(char* path_config);
+void hilo_generica(void* args);
+
+void hilo_stdin(void* args);
+
+void hilo_stdout(void* args);
+
+
 
 #endif // HILOS_H

@@ -1,7 +1,7 @@
 typedef enum{
-    GENERICA, 
-    STDIN,
-    STDOUT, 
+    IO_GEN, 
+    IO_STDIN,
+    IO_STDOUT, 
     DIALFS
 }tipo_interfaz;
 typedef struct{
