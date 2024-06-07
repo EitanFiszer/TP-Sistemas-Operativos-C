@@ -42,7 +42,8 @@ typedef enum {
 	//entrada salida kernel
 	CONEXION_IO,
 
-	INSTRUCCION_IO
+	INSTRUCCION_IO,
+	IO_INTERFAZ_CREADA
 
 } OP_CODES_ENTRE;
 
@@ -78,6 +79,13 @@ typedef struct {
 	int tiempo;
 	t_PCB* pcb;
 } t_payload_io_gen_sleep;
+
+typedef struct {
+	char* nombre;
+	char* tipo_interfaz;
+} t_payload_interfaz_creada;
+
+
 
 /*
 typedef struct {
