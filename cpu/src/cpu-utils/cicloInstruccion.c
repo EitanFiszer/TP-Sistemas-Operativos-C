@@ -75,7 +75,7 @@ void ejecutarInstruccion(instruccionCPU_t* instruccion, t_PCB* pcb, t_log* logge
     log_info(logger, "PID: %d - Ejecutando: %s - %s", pcb->PID, inst, paramsString);
 
     if(string_equals_ignore_case(inst, "SET")) {
-        instruccionSet(pcb, params[0], (intptr_t)params[1], &registros);
+        instruccionSet(params[0], (intptr_t)params[1], &registros);
     } else if(string_equals_ignore_case(inst, "SUM")){
         instruccionSum(pcb, params[0], params[1], registros);
     } else if(string_equals_ignore_case(inst, "SUB")) {
@@ -86,25 +86,25 @@ void ejecutarInstruccion(instruccionCPU_t* instruccion, t_PCB* pcb, t_log* logge
         instruccionIoGenSleep(pcb, params[0], (intptr_t)params[1]);
         return;
     } else if(string_equals_ignore_case(inst, "MOV_IN")) { // MOV_IN EDX ECX
-        instruccionMovIn(params[0], params[1], &registros, pcb->PID);
+        instruccionMovIn(params[0], params[1], &registros, pcb);
         return;
     } else if(string_equals_ignore_case(inst, "MOV_OUT")) { // MOV_OUT
-        instruccionMovOut(params[0], params[1], &registros);
+        instruccionMovOut(params[0], params[1], &registros, pcb);
         return;
     } else if(string_equals_ignore_case(inst, "RESIZE")) { // RESIZE 128
         instruccionResize((intptr_t)params[0], pcb);
         return;
     } else if(string_equals_ignore_case(inst, "COPY_STRING")) { // COPY_STRING 8
-        instruccionCopyString((intptr_t)params[0], registros);
+        instruccionCopyString((intptr_t)params[0], registros, pcb);
         return;
     } else if(string_equals_ignore_case(inst, "WAIT")) { // WAIT RECURSO_1
-        instruccionWait(params[0]);
+        instruccionWait(params[0], pcb);
         return;
     } else if(string_equals_ignore_case(inst, "SIGNAL")) { // SIGNAL RECURSO_1
-        instruccionSignal(params[0]);
+        instruccionSignal(params[0], pcb);
         return;
     } else if(string_equals_ignore_case(inst, "IO_STDIN_READ")) { // IO_STDIN_READ Int2 EAX AX
-        instruccionIoSTDInRead(params[0], params[1], params[2], &registros);
+        instruccionIoSTDInRead(params[0], params[1], params[2], &registros, pcb);
         return;
     } else if(string_equals_ignore_case(inst, "IO_STDOUT_WRITE")) { // IO_STDOUT_WRITE Int3 BX EAX 
         instruccionIoSTDOutWrite(params[0], params[1], params[2], &registros);

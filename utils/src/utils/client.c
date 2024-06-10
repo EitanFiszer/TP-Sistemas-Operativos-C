@@ -113,11 +113,10 @@ int connectAndHandshake(char* ip, char* puerto, ID modulo, char* dest, t_log* lo
    int conexion_memoria = crear_conexion(ip, puerto);
 
     if (conexion_memoria < 0) {
-		log_error(logger, string_from_format("No se pudo conectar a %s!", dest));
+		log_error(logger, "No se pudo conectar a %s!", dest);
 		return -1;
 	} else {
-		char* mensaje_log = string_from_format("Conectado a %s %s:%s -- %d", dest, ip, puerto, conexion_memoria);
-		log_info(logger, mensaje_log);
+		log_info(logger, "Conectado a %s %s:%s -- %d", dest, ip, puerto, conexion_memoria);
 	}
 
     uint32_t handshake = modulo;

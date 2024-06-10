@@ -44,9 +44,16 @@ typedef enum {
 	//cpu memoria
 	HANDSHAKE_CPU_MEMORIA,
 	SOLICITAR_DIRECCION_FISICA,
+	SOLICITAR_DATO_MEMORIA,
+	ENVIAR_DATO_MEMORIA,
+	RESIZE_MEMORIA,
 	
 	SYSCALL,
 	INTERRUMPIO_PROCESO, // DE CPU A KERNEL, replanificar por interrupcion
+	ERROR_OUT_OF_MEMORY, // DE CPU A KERNEL, error de memoria
+	WAIT,
+	SIGNAL,
+	IO_STDIN_READ,
 	TERMINO_EJECUCION,
 	//entrada salida kernel
 	CONEXION_IO,
@@ -76,8 +83,42 @@ typedef struct {
 } t_payload_solicitar_direccion_fisica;
 
 typedef struct {
+	int direccion;
+} t_payload_solicitar_dato_memoria;
+
+typedef struct {
+	void* dato;
+} t_payload_dato_memoria;
+
+typedef struct {
+	int direccion;
+	void* dato;
+} t_payload_enviar_dato_memoria;
+
+typedef struct {
 	int marco;
 } t_payload_direccion_fisica;
+
+typedef struct {
+	int pid;
+	int tam;
+} t_payload_resize_memoria;
+
+typedef struct {
+	char* recurso;
+} t_payload_wait;
+
+typedef struct {
+	char* recurso;
+} t_payload_signal;
+
+typedef struct {
+	int tam;
+} t_payload_io_stdin_read;
+
+typedef struct {
+	char* string;
+} t_payload_recibir_string_io_stdin;
 
 typedef struct {
 	op_codes_io interfaz;

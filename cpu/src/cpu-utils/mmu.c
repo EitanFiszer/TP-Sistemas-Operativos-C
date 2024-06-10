@@ -2,6 +2,7 @@
 #include <utils/constants.h>
 #include <utils/client.h>
 #include <utils/server.h>
+#include <math.h>
 #include "TLB.h"
 
 /*
@@ -58,4 +59,20 @@ int buscarEnTablaDePaginas(int PID, int numeroPagina) {
     t_payload_direccion_fisica* payloadRecibido = paqueteRecibido->payload;
 
     return payloadRecibido->marco;
+}
+
+int calcularDireccionFisica(int PID, int direccionLogica) {
+    int numeroPagina = (int)floor(direccionLogica / TAM_PAGINA);
+    int desplazamiento = direccionLogica - numeroPagina * TAM_PAGINA;
+
+    int marco = buscarEnTLB(PID, numeroPagina);
+    if (marco == -1) {
+        marco = buscarEnTablaDePaginas(PID, numeroPagina);
+    }
+
+    if (marco == -1) {
+        return -1;
+    }
+
+    return marco * TAM_PAGINA + desplazamiento;
 }

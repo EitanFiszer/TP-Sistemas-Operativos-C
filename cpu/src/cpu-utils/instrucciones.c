@@ -1,4 +1,6 @@
 #include "./instrucciones.h"
+#include "./conexiones.h"
+#include "./mmu.h"
 #include <utils/constants.h>
 #include <stdlib.h>
 #include <commons/string.h>
@@ -32,7 +34,7 @@ int valorDelRegistro(char* reg, registros_t* registros) {
 }
 
 // Asigna al registro el valor pasado como parámetro
-void instruccionSet(t_PCB* pcb, char* reg, int valor, registros_t* registros) {
+void instruccionSet(char* reg, int valor, registros_t* registros) {
     if(string_equals_ignore_case(reg, "AX")){
         registros->AX = (uint8_t)valor;
     } else if (string_equals_ignore_case(reg, "BX")) {
@@ -54,8 +56,6 @@ void instruccionSet(t_PCB* pcb, char* reg, int valor, registros_t* registros) {
     } else if (string_equals_ignore_case(reg, "DI")) {
         registros->DI = (uint32_t)valor;
     }
-
-    pcb->program_counter = pcb->program_counter + 1;
 }
 
 // Suma al Registro Destino el Registro Origen y deja el resultado en el Registro Destino
@@ -66,7 +66,7 @@ void instruccionSum(t_PCB* pcb, char* regDest, char* regOrig, registros_t regist
     valor1 = valorDelRegistro(regDest, &registros);
     valor2 = valorDelRegistro(regOrig, &registros);
 
-    instruccionSet(pcb, regDest, valor1 + valor2, &registros);
+    instruccionSet(regDest, valor1 + valor2, &registros);
     pcb->program_counter = pcb->program_counter + 1;
 }
 
@@ -78,7 +78,7 @@ void instruccionSub(t_PCB* pcb, char* regDest, char* regOrig, registros_t regist
     valor1 = valorDelRegistro(regDest, &registros);
     valor2 = valorDelRegistro(regOrig, &registros);
 
-    instruccionSet(pcb, regDest, valor1 - valor2, &registros);
+    instruccionSet(regDest, valor1 - valor2, &registros);
     pcb->program_counter = pcb->program_counter + 1;
 }
 
@@ -112,37 +112,112 @@ void instruccionIoGenSleep(t_PCB* pcb, char* interfaz, int tiempo) {
     agregar_a_paquete(paq, paquete, sizeof(t_paquete_entre));
 
     enviar_paquete(paq, socketKernel);
+
+    free(paq);
+    pcb->program_counter = pcb->program_counter + 1;
 }
 
 // Lee el valor de memoria correspondiente a la Dirección Lógica que se encuentra en el Registro Dirección y lo almacena en el Registro Datos.
-void instruccionMovIn(char* regDato, char* regDire, registros_t* registros, int pid) {
+void instruccionMovIn(char* regDato, char* regDire, registros_t* registros, t_PCB* pcb) {
     int dirLogica = valorDelRegistro(regDire, registros);
-    int dirFisica = calcularDireccionFisica(pid, dirLogica);
+    int dirFisica = calcularDireccionFisica(pcb->PID, dirLogica);
+
+    int* dato = (int*)solicitar_dato_memoria(dirFisica);
+
+    if (dato == NULL) {
+        return;
+    }
+
+    instruccionSet(regDato, *dato, registros);
+    pcb->program_counter = pcb->program_counter + 1;
 }
 
-void instruccionMovOut(char* regDire, char* regDato, registros_t* registros) {
-    // TODO
+// Lee el valor del Registro Datos y lo escribe en la dirección física de memoria obtenida a partir de la Dirección Lógica almacenada en el Registro Dirección.
+void instruccionMovOut(char* regDire, char* regDato, registros_t* registros, t_PCB* pcb) {
+    int dato = valorDelRegistro(regDato, registros);
+    int dirLogica = valorDelRegistro(regDire, registros);
+
+    int dirFisica = calcularDireccionFisica(pcb->PID, dirLogica);
+    if (dirFisica == -1) {
+        return;
+    }
+
+    enviar_dato_memoria(dirFisica, &dato);
+    pcb->program_counter = pcb->program_counter + 1;
 }
 
+// Solicitará a la Memoria ajustar el tamaño del proceso al tamaño pasado por parámetro. En caso de que la respuesta de la memoria sea Out of Memory, se deberá devolver el contexto de ejecución al Kernel informando de esta situación.
 void instruccionResize(int tam, t_PCB* pcb) {
-    // TODO
+    int ok = solicitar_resize_memoria(pcb->PID, tam);
+
+    if (ok == -1) {
+        enviar_pcb_kernel(pcb, ERROR_OUT_OF_MEMORY);
+    } else {    
+        pcb->program_counter = pcb->program_counter + 1;
+    }
 }
 
-void instruccionCopyString(int tam, registros_t registros) {
-    // TODO
+// Toma del string apuntado por el registro SI y copia la cantidad de bytes indicadas en el parámetro tamaño a la posición de memoria apuntada por el registro DI.
+void instruccionCopyString(int tam, registros_t registros, t_PCB* pcb) {
+    int dirLogicaSI = valorDelRegistro("SI", &registros);
+    int dirLogicaDI = valorDelRegistro("DI", &registros);
+
+    int dirFisicaSI = calcularDireccionFisica(pcb->PID, dirLogicaSI);
+    int dirFisicaDI = calcularDireccionFisica(pcb->PID, dirLogicaDI);
+
+    char* string = (char*)solicitar_dato_memoria(dirFisicaSI);
+
+    if (string == NULL) {
+        return;
+    }
+
+    char* stringCortada = malloc(tam);
+    strncpy(stringCortada, string, tam);
+
+    int ok = enviar_dato_memoria(dirFisicaDI, stringCortada);
+
+    if (ok == -1) {
+        return;
+    } else {
+        pcb->program_counter = pcb->program_counter + 1;
+    }
 }
 
-void instruccionWait(char* recurso) {
-    // TODO
+// Esta instrucción solicita al Kernel que se asigne una instancia del recurso indicado por parámetro.
+void instruccionWait(char* recurso, t_PCB* pcb) {
+    solicitar_wait(recurso);
+    pcb->program_counter = pcb->program_counter +1;
+
 }
 
-void instruccionSignal(char* recurso) {
-    // TODO
+// Esta instrucción solicita al Kernel que se libere una instancia del recurso indicado por parámetro.
+void instruccionSignal(char* recurso, t_PCB* pcb) {
+    solicitar_signal(recurso);
+    pcb->program_counter = pcb->program_counter + 1;
 }
 
-void instruccionIoSTDInRead(char* interfaz, char* regDire, char* regTam, registros_t* registros) {
-    // TODO
+// Esta instrucción solicita al Kernel que mediante la interfaz ingresada se lea desde el STDIN (Teclado) un valor cuyo tamaño está delimitado por el valor del Registro Tamaño y el mismo se guarde a partir de la Dirección Lógica almacenada en el Registro Dirección.
+void instruccionIoSTDInRead(char* interfaz, char* regDire, char* regTam, registros_t* registros, t_PCB* pcb) {
+    int dirLogica = valorDelRegistro(regDire, registros);
+    int tam = valorDelRegistro(regTam, registros);
+
+    char* string = solicitar_io_stdin(tam);
+
+    if (string == NULL) {
+        return;
+    }
+
+    int dirFisica = calcularDireccionFisica(pcb->PID, dirLogica);
+
+    int ok = enviar_dato_memoria(dirFisica, string);
+
+    if (ok == -1) {
+        return;
+    } else {
+        pcb->program_counter = pcb->program_counter + 1;
+    }
 }
+
 
 void instruccionIoSTDOutWrite(char* interfaz, char* regDire, char* regTam, registros_t* registros) {
     // TODO

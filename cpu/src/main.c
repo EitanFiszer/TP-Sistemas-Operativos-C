@@ -30,8 +30,7 @@ void conexion_interrupt(void *argumentos) {
     t_log* logger = puertoYLogger->logger;
     // creamos el servidor
     int server_interrupt_fd = iniciar_servidor(puerto, logger);
-    char* stringParaLogger = string_from_format("[CPU] Escuchando en el puerto interrupt: %s", puerto);
-    log_info(logger, stringParaLogger);
+    log_info(logger, "[CPU] Escuchando en el puerto interrupt: %s", puerto);
 
 
     handshake_t res = esperar_cliente(server_interrupt_fd, logger);
@@ -147,7 +146,7 @@ int main(int argc, char* argv[]) {
                     if (ok == -1) {
                         log_error(logger, "PROCESO TERMINÓ EJECUCIÓN: PID %d", pcb->PID);
                         // Devolver el PCB al kernel
-                        enviar_pcb_kernel(pcb, socketKernel, TERMINO_EJECUCION);
+                        enviar_pcb_kernel(pcb, TERMINO_EJECUCION);
                         break;
                     }
 
@@ -164,7 +163,7 @@ int main(int argc, char* argv[]) {
                     interrupcion = false;
                     pthread_mutex_unlock(&mutex_interrupcion);
                     // Interrumpir el proceso
-                    enviar_pcb_kernel(pcb, socketKernel, INTERRUMPIO_PROCESO);
+                    enviar_pcb_kernel(pcb, INTERRUMPIO_PROCESO);
                 }
                 break;
             default:
