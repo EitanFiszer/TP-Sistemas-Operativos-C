@@ -16,6 +16,13 @@
         "stdio.h": "c",
         "string.h": "c",
         "assert.h": "c",
-        "conexiones.h": "c"
+        "conexiones.h": "c",
+        "readline.h": "c",
+        "consola.h": "c",
+        "constants.h": "c",
+        "espera.h": "c",
+        "planificacion.h": "c",
+        "global.h": "c",
+        "semaphore.h": "c"
     }
 }

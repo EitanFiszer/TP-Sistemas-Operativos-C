@@ -49,11 +49,10 @@ typedef enum {
 	RESIZE_MEMORIA,
 	
 	SYSCALL,
-	INTERRUMPIO_PROCESO, // DE CPU A KERNEL, replanificar por interrupcion
-	ERROR_OUT_OF_MEMORY, // DE CPU A KERNEL, error de memoria
 	WAIT,
 	SIGNAL,
-	IO_STDIN_READ,
+	INTERRUMPIO_PROCESO, // DE CPU A KERNEL, replanificar por interrupcion //PAYLOAD PCB
+	ERROR_OUT_OF_MEMORY, // DE CPU A KERNEL, error de memoria
 	TERMINO_EJECUCION,
 	//entrada salida kernel
 	CONEXION_IO,
@@ -64,8 +63,21 @@ typedef enum {
 } OP_CODES_ENTRE;
 
 typedef enum {
-	IO_GEN_SLEEP
+	IO_GEN_SLEEP,
+	IO_STDIN_READ,
+	IO_STDOUT_READ,
+	IO_STDOUT_WRITE,
+	IO_FS_CREATE,
+	IO_FS_DELETE,
+	IO_FS_TRUNCATE,
+	IO_FS_WRITE,
+	IO_FS_READ,
 } SYSCALL_INSTRUCCIONES;
+
+typedef struct {
+	SYSCALL_INSTRUCCIONES instruccion;
+	void* payload;
+}t_payload_syscall;
 
 typedef struct {
 	OP_CODES_ENTRE operacion;
@@ -105,14 +117,17 @@ typedef struct {
 } t_payload_resize_memoria;
 
 typedef struct {
+	t_PCB* pcb;
 	char* recurso;
 } t_payload_wait;
 
 typedef struct {
+	t_PCB* pcb;
 	char* recurso;
 } t_payload_signal;
 
 typedef struct {
+	t_PCB* pcb;
 	int tam;
 } t_payload_io_stdin_read;
 
