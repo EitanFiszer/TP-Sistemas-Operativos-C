@@ -65,7 +65,7 @@ void hilo_generica(void *argumentos) {
 
         switch(operacionRecibida->op_code){
             case IO_GEN:
-                tiempo_gen=(int)operacionRecibida->tiempo;
+                int tiempo_gen=operacionRecibida->tiempo;
                 log_info(logger,"Operacion: <IO_GEN_SLEEP>");
                 sleep(tiempo_unidad_trabajo / 1000 * tiempo_gen);
             break;
@@ -81,7 +81,7 @@ void hilo_stdin(void* argumentos){
     char* path_config = nombreYpath->path_config;
     char* nombre = nombreYpath->nombre;
 
-     t_config* config = config_create(path_config);
+    t_config* config = config_create(path_config);
 
     char* ip_kernel = config_get_string_value(config, "IP_KERNEL");
     char* puerto_kernel = config_get_string_value(config, "PUERTO_KERNEL");
@@ -107,7 +107,28 @@ void hilo_stdin(void* argumentos){
         switch(operacionRecibida->op_code){
             case IO_STDIN:
                 int resultHandshakeMemoria = conexionMemoria(ip_memoria, puerto_memoria);
+                
+                if (resultHandshakeMemoria < 0) {
+                    log_error(logger, "Error conectando a memoria");
+                    break;
+                }
+
+                char input[256];
+                printf("Ingrese texto: ");
+                fgets(input, sizeof(input), stdin);
+                input[strcspn(input, "\n")] = 0;  // Elimina el salto de línea
+
+                // Enviar el texto a la memoria
+                t_paquete* paquete = crear_paquete();
+                agregar_a_paquete(paquete, input, strlen(input) + 1); // +1 para incluir el '\0'
+                enviar_paquete(paquete, resultHandshakeMemoria);
+                log_info(logger, "Texto enviado a memoria: %s", input);
+                eliminar_paquete(paquete);
+
+                // Cerrar conexión con memoria
+                close(resultHandshakeMemoria);
             break;
+            
             default:
             log_info(logger,"Operacion: <NO DEFINIDA>");
         }
