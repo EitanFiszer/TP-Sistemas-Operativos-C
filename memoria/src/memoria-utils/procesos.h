@@ -15,9 +15,9 @@ typedef struct memoria{
 } Memoria;
 
 
-void inicializarMemoria(t_log* logger);
+void inicializarMemoria();
 char** leer_archivo(const char* nombre_archivo, int* num_lineas);
-void crearProceso(const char *nombre_archivo, int pid, t_log* logger);
-void finalizarProceso(int pid, t_log* logger);
+void crearProceso(char *nombre_archivo, int pid);
+void finalizarProceso(int pid);
 char* obtenerInstruccion(int pid, int n);
 

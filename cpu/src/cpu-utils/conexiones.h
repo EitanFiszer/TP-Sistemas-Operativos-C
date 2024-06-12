@@ -1,6 +1,7 @@
 #include <commons/log.h>
 #include <commons/collections/list.h>
 #include <commons/string.h>
+#include <utils/constants.h>
 #include "./cicloInstruccion.h"
 
 void enviar_pcb_kernel(t_PCB* pcb, OP_CODES_ENTRE operacion);
@@ -11,3 +12,9 @@ int solicitar_resize_memoria(int pid, int tam);
 void solicitar_wait(char* recurso);
 void solicitar_signal(char* recurso);
 char* solicitar_io_stdin(int tam);
+void solicitar_io_stdout(char* interfaz, char* regDire, char* regTam);
+void solicitar_fs_createORdelete(char* interfaz, char* nombreArchivo, OP_CODES_ENTRE oper);
+void solicitar_fs_truncate(char* interfaz, char* nombreArchivo, char* regTam);
+void solicitar_fs_writeORread(char* interfaz, char* nombreArchivo, char* regTam, char* regDire, char* regPuntero, OP_CODES_ENTRE oper);
+
+

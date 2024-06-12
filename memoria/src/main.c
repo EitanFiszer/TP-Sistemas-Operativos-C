@@ -1,43 +1,93 @@
-#include <stdlib.h>
-#include <stdio.h>
-#include <unistd.h>
-#include <utils/hello.h>
-#include <utils/server.h>
-#include <commons/log.h>
-#include <commons/config.h>
-#include <commons/string.h>
-#include <memoria-utils/procesos.h>
-#include "./memoria-utils/conexiones.h"
+#include "main.h"
+
+int retardo_respuesta = 0;
+char* path_instrucciones = "";
+int TAM_PAGINA = 0;
+int TAM_MEMORIA = 0;
+int server_fd = 0;
+
+int socketCpu;
+int socketKernel;
+
+sem_t sem_cpu;
+sem_t sem_kernel;
+
+void liberarMemoria() {
+    log_destroy(logger);
+    config_destroy(config);
+}
+
+handshake_t esperar_cliente_memoria(int socket_servidor, t_log* logger) {
+    int socket_cliente;
+    socket_cliente = accept(socket_servidor, NULL, NULL);
+
+    uint32_t handshake;
+    uint32_t resultOk = 0;
+    uint32_t resultError = -1;
+    handshake_t handshakeCliente;
+
+    recv(socket_cliente, &handshake, sizeof(uint32_t), MSG_WAITALL);
+
+    if (socket_cliente == -1) {
+        log_error(logger, "Error al aceptar un nuevo cliente");
+        send(socket_cliente, &resultError, sizeof(uint32_t), 0);
+    } else if(handshake == CPU) {
+        log_info(logger, "Se conectó un CPU!");
+        send(socket_cliente, &TAM_PAGINA, sizeof(uint32_t), 0);
+    } else {
+        log_error(logger, "Se conectó un cliente");
+        send(socket_cliente, &resultOk, sizeof(uint32_t), 0);
+    }
+
+    handshakeCliente.modulo = handshake;
+    handshakeCliente.socket = socket_cliente;
+
+    return handshakeCliente;
+}
+
+void iniciarSemaforos() {
+    sem_init(&sem_cpu, 0, 0);
+    sem_init(&sem_kernel, 0, 0);
+}
 
 int main(int argc, char* argv[]) {
-    t_log* logger = log_create("memoria.log", "Memoria", 1, LOG_LEVEL_INFO);
-    t_config* config = config_create("memoria.config");
+    logger = log_create("memoria.log", "Memoria", 1, LOG_LEVEL_INFO);
+    config = config_create("memoria.config");
 
     char* puerto_escucha = config_get_string_value(config, "PUERTO_ESCUCHA");
-    int retardo = config_get_int_value(config, "RETARDO_RESPUESTA");
-    char* path_instrucciones = config_get_string_value(config, "PATH_INSTRUCCIONES");
+    retardo_respuesta = config_get_int_value(config, "RETARDO_RESPUESTA");
+    path_instrucciones = config_get_string_value(config, "PATH_INSTRUCCIONES");
+    TAM_PAGINA = config_get_int_value(config, "TAM_PAGINA");
+    TAM_MEMORIA = config_get_int_value(config, "TAM_MEMORIA");
 
-    int server_fd = iniciar_servidor(puerto_escucha, logger);
+    char* string = NULL;
+    bitarray = iniciarBitarray(string);
 
-    char* stringParaLogger = string_from_format("[MEMORIA] Escuchando en el puerto: %s", puerto_escucha);
-    log_info(logger, stringParaLogger);
+    server_fd = iniciar_servidor(puerto_escucha, logger);
+    iniciarSemaforos();
 
-    inicializarMemoria(logger);
+    log_info(logger, "[MEMORIA] Escuchando en el puerto: %s", puerto_escucha);
+
+    inicializarMemoria();
+
+    iniciarHilos();
 
     // CUANDO CPU HACE EL HANDSHAKE HACER 2 SEND: EL PRIMERO CON EL SOCKET Y EL SEGUNDO CON EL TAM_PAGINA
 
     while(1) {
-        handshake_t res = esperar_cliente(server_fd, logger);
+        handshake_t res = esperar_cliente_memoria(server_fd, logger);
         int cliente = res.socket;
-        int modulo = res.modulo;
+        ID modulo = res.modulo;
         
         if (modulo == KERNEL) {
-            log_info(logger, "Se conectó un Kernel");
-            esperar_paquetes_kernel(cliente, logger, path_instrucciones);
+            log_info(logger, "Se conectó un Kernel en el socket %d", cliente);
+            // esperar_paquetes_kernel(cliente, logger, path_instrucciones);
+            socketKernel = cliente;
+            sem_post(&sem_kernel);
         } else if (modulo == CPU) {
-            log_info(logger, "Se conectó un CPU");
-            // Acá pide instrucciones en base a PID y n de instrucción
-			esperar_paquetes_cpu(cliente, logger);
+            log_info(logger, "Se conectó un CPU en el socket %d", cliente);
+            socketCpu = cliente;
+            sem_post(&sem_cpu);
         } else if (modulo == IO) {
             log_info(logger, "Se conectó un IO");
         } else {
@@ -47,5 +97,7 @@ int main(int argc, char* argv[]) {
         close(cliente);
     }
 
-    return 0;
+    liberarMemoria();
+
+    return EXIT_SUCCESS;
 }

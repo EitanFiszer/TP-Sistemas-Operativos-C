@@ -17,22 +17,20 @@ void enviar_pcb_kernel(t_PCB *pcb, OP_CODES_ENTRE operacion) {
 
 handshake_cpu_memoria handshake_memoria(char* ip_memoria, char* puerto_memoria) {
     handshake_cpu_memoria handData = { .socket = -1, .tam_pagina = -1 };
-    char* dest = "Memoria";
+    
+    handData.socket = crear_conexion(ip_memoria, puerto_memoria);
 
-    int conexion_memoria = crear_conexion(ip_memoria, puerto_memoria);
-
-    if (conexion_memoria < 0) {
-		log_error(logger, "No se pudo conectar a %s!", dest);
-		return handData;
-	} else {
-		log_info(logger, "Conectado a %s %s:%s -- %d", dest, ip_memoria, puerto_memoria, conexion_memoria);
-	}
-
+    if (handData.socket == -1) {
+        log_error(logger, "No se pudo conectar con la memoria");
+        return handData;
+    } else {
+        log_info(logger, "Conexión establecida con la memoria");
+    }
 
     uint32_t modulo = CPU;
-    send(conexion_memoria, &modulo, sizeof(uint32_t), 0);
-    recv(conexion_memoria, &handData.socket, sizeof(int), MSG_WAITALL);
-    recv(conexion_memoria, &handData.tam_pagina, sizeof(int), MSG_WAITALL);
+
+    send(handData.socket, &modulo, sizeof(uint32_t), 0);
+    recv(handData.socket, &handData.tam_pagina, sizeof(uint32_t), 0);
 
     return handData;
 }
@@ -186,3 +184,70 @@ char* solicitar_io_stdin(int tam) {
 
     return resultado;
 }
+
+void solicitar_io_stdout(char* interfaz, char* regDire, char* regTam){
+    t_payload_io_stdout_write* payload = malloc(sizeof(t_payload_io_stdout_write));
+    payload->interfaz = interfaz;
+    payload->regDire = regDire;
+    payload->regTam = regTam;
+
+    t_paquete_entre* paquete = malloc(sizeof(t_paquete_entre));
+    paquete->operacion = IO_STDOUT_WRITE;
+    paquete->payload = payload;
+
+    t_paquete* paq = crear_paquete();
+    agregar_a_paquete(paq, paquete, sizeof(t_paquete_entre));
+
+    enviar_paquete(paq, socketKernel);
+}
+
+void solicitar_fs_createORdelete(char* interfaz, char* nombreArchivo, OP_CODES_ENTRE oper){
+    t_payload_fs_create* payload = malloc(sizeof(t_payload_fs_create));
+    payload->interfaz = interfaz;
+    payload->nombreArchivo = nombreArchivo;
+
+    t_paquete_entre* paquete = malloc(sizeof(t_paquete_entre));
+    paquete->operacion = oper;
+    paquete->payload = payload;
+
+    t_paquete* paq = crear_paquete();
+    agregar_a_paquete(paq, paquete, sizeof(t_paquete_entre));
+
+    enviar_paquete(paq, socketKernel);
+}
+
+void solicitar_fs_truncate(char* interfaz, char* nombreArchivo, char* regTam){
+    t_payload_fs_truncate* payload = malloc(sizeof(t_payload_fs_truncate));
+    payload->interfaz = interfaz;
+    payload->nombreArchivo = nombreArchivo;
+    payload->regTam = regTam;
+
+    t_paquete_entre* paquete = malloc(sizeof(t_paquete_entre));
+    paquete->operacion = FS_TRUNCATE;
+    paquete->payload = payload;
+
+    t_paquete* paq = crear_paquete();
+    agregar_a_paquete(paq, paquete, sizeof(t_paquete_entre));
+
+    enviar_paquete(paq, socketKernel);
+}
+
+void solicitar_fs_writeORread(char* interfaz, char* nombreArchivo, char* regTam, char* regDire, char* regPuntero, OP_CODES_ENTRE oper){
+    t_payload_fs_writeORread* payload = malloc(sizeof(t_payload_fs_writeORread));
+    payload->interfaz = interfaz;
+    payload->nombreArchivo = nombreArchivo;
+    payload->regTam = regTam;
+    payload->regDire = regDire;
+    payload->regPuntero = regPuntero;
+
+    t_paquete_entre* paquete = malloc(sizeof(t_paquete_entre));
+    paquete->operacion = oper;
+    paquete->payload = payload;
+
+    t_paquete* paq = crear_paquete();
+    agregar_a_paquete(paq, paquete, sizeof(t_paquete_entre));
+
+    enviar_paquete(paq, socketKernel);
+}
+
+

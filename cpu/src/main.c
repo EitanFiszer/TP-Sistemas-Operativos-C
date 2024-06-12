@@ -109,7 +109,7 @@ int main(int argc, char* argv[]) {
         log_error(logger, "No se pudo conectar con la memoria");
         finalizarCPU(logger,config);
     }
-    printf("Handshake socket: %d\n", socketMemoria);
+    printf("Handshake socket: %d, TAM_PAG: %d\n", socketMemoria, TAM_PAGINA);
 
     // El kernel se conecta a nosotros (CPU) y recibimos su handshake para poder recibir el pcb de parte del kernel
     int server_dispatch_fd = iniciar_servidor(puerto_escucha_dispatch, logger);

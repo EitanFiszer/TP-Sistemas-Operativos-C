@@ -7,12 +7,18 @@
 // *Falta importar del config el TAM_MEMORIA y TAM_PAGINA e implementarlos
 // También el RETARDO en la/s respuesta/s y concatenar PATH con el recibido de la cpu
 
+extern int TAM_PAGINA;
+extern int TAM_MEMORIA; 
+extern t_log* logger;
+extern char* path_instrucciones;
+
 Memoria memoria;
 
-void inicializarMemoria(t_log* logger) {
-    memoria.max_procesos = 10;
 
-    memoria.memoria = malloc(65536);
+void inicializarMemoria() {
+    memoria.max_procesos = TAM_MEMORIA/TAM_PAGINA;
+
+    memoria.memoria = malloc(TAM_MEMORIA);
     memoria.marcos = malloc(32 * sizeof(int));
     memoria.procesos = malloc(memoria.max_procesos * sizeof(Proceso));
     memoria.cant_procesos = 0;
@@ -24,8 +30,8 @@ void inicializarMemoria(t_log* logger) {
     log_info(logger, "Se inicializó la memoria");
 }
 
-char** leer_archivo(const char *nombre_archivo, int* num_lineas) {
-    FILE *archivo = fopen(nombre_archivo, "r");
+char** leer_archivo(const char *path_archivo, int* num_lineas) {
+    FILE *archivo = fopen(path_archivo, "r");
 
     if (!archivo) {
         exit(1);
@@ -46,20 +52,24 @@ char** leer_archivo(const char *nombre_archivo, int* num_lineas) {
     }
 }
 
-void crearProceso(const char* nombre_archivo, int pid, t_log* logger) {
+void crearProceso(char* nombre_archivo, int pid) {
     if (memoria.cant_procesos >= memoria.max_procesos) {
         log_info(logger, "Se alcanzó la cantidad máxima de procesos");
         return;
     }
 
+    char* path_archivo;
+    strcpy(path_archivo, path_instrucciones);
+    strcat(path_archivo, nombre_archivo);
+
     Proceso *proceso = &memoria.procesos[memoria.cant_procesos++];
     proceso->pid = pid;
-    proceso->instrucciones = leer_archivo(nombre_archivo, &proceso->cant_instrucciones);
+    proceso->instrucciones = leer_archivo(path_archivo, &proceso->cant_instrucciones);
 
     log_info(logger, "Se creó el proceso con ID: %d", pid);
 }
 
-void finalizarProceso(int pid, t_log* logger) {
+void finalizarProceso(int pid) {
     int indice = -1;
 
     for (int i = 0; i < memoria.cant_procesos; i++) {

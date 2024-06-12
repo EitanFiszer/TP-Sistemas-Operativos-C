@@ -107,25 +107,25 @@ void ejecutarInstruccion(instruccionCPU_t* instruccion, t_PCB* pcb, t_log* logge
         instruccionIoSTDInRead(params[0], params[1], params[2], &registros, pcb);
         return;
     } else if(string_equals_ignore_case(inst, "IO_STDOUT_WRITE")) { // IO_STDOUT_WRITE Int3 BX EAX 
-        instruccionIoSTDOutWrite(params[0], params[1], params[2], &registros);
+        instruccionIoSTDOutWrite(params[0], params[1], params[2], &registros, pcb);
         return;
     } else if(string_equals_ignore_case(inst, "IO_FS_CREATE")) { // IO_FS_CREATE Int4 notas.txt  
-        instruccionIoFSCreate(params[0], params[1]);
+        instruccionIoFSCreate(params[0], params[1], pcb);
         return;
     } else if(string_equals_ignore_case(inst, "IO_FS_DELETE")) { // IO_FS_DELETE Int4 notas.txt
-        instruccionIoFSDelete(params[0], params[1]);
+        instruccionIoFSDelete(params[0], params[1], pcb);
         return;
     } else if(string_equals_ignore_case(inst, "IO_FS_TRUNCATE")) { // IO_FS_TRUNCATE Int4 notas.txt ECX  
-        instruccionIoFSTruncate(params[0], params[1], params[2], &registros);
+        instruccionIoFSTruncate(params[0], params[1], params[2], &registros, pcb);
         return;
     } else if(string_equals_ignore_case(inst, "IO_FS_WRITE")) { // IO_FS_WRITE Int4 notas.txt AX ECX EDX
-        instruccionIoFSWrite(params[0], params[1], params[2], params[3], params[4], &registros);
+        instruccionIoFSWrite(params[0], params[1], params[2], params[3], params[4], &registros, pcb);
         return;
     } else if(string_equals_ignore_case(inst, "IO_FS_READ")) { // IO_FS_READ Int4 notas.txt BX ECX EDX
-        instruccionIoFSRead(params[0], params[1], params[2], params[3], params[4], &registros);
+        instruccionIoFSRead(params[0], params[1], params[2], params[3], params[4], &registros, pcb);
         return;
     } else if(string_equals_ignore_case(inst, "EXIT")) { // EXIT
-        instruccionExit();
+        instruccionExit(&pcb);
         return;
     } 
 

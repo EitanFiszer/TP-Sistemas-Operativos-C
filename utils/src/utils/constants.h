@@ -41,6 +41,14 @@ typedef enum {
 	EXEC_PROCESO, //ejecuta esta pcb
 	INTERRUMPIR_PROCESO, //DE KERNEL A CPU
 
+	FS_TRUNCATE,
+	FS_WRITE,
+	FS_READ,
+	FS_CREATE,
+	FS_DELETE,
+
+	IO_STDOUT_WRITE,
+
 	//cpu memoria
 	HANDSHAKE_CPU_MEMORIA,
 	SOLICITAR_DIRECCION_FISICA,
@@ -59,7 +67,9 @@ typedef enum {
 	CONEXION_IO,
 
 	INSTRUCCION_IO,
-	IO_INTERFAZ_CREADA
+	IO_INTERFAZ_CREADA,
+
+	EXIT_PROCESS
 
 } OP_CODES_ENTRE;
 
@@ -71,6 +81,20 @@ typedef struct {
 	OP_CODES_ENTRE operacion;
 	void* payload;
 } t_paquete_entre;
+
+typedef struct {
+    int pid;
+    char* path;
+} t_payload_crear_proceso;
+
+typedef struct {
+    int pid;
+} t_payload_finalizar_proceso;
+
+typedef struct {
+    int PID;
+    int program_counter;
+} t_payload_pc_a_instruccion;
 
 typedef struct {
     int PID;
@@ -144,7 +168,30 @@ typedef struct {
 	char* tipo_interfaz;
 } t_payload_interfaz_creada;
 
+typedef struct{
+	char* interfaz;
+	char* regDire;
+	char* regTam;
+}t_payload_io_stdout_write;
 
+typedef struct{
+	char* interfaz;
+	char* nombreArchivo;
+}t_payload_fs_create;
+
+typedef struct{
+	char* interfaz;
+	char* nombreArchivo;
+	char* regTam;
+}t_payload_fs_truncate;
+
+typedef struct{
+	char* interfaz;
+	char* nombreArchivo;
+	char* regTam;
+	char* regDire;
+	char* regPuntero;
+}t_payload_fs_writeORread;
 
 /*
 typedef struct {
