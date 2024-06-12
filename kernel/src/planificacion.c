@@ -1,6 +1,13 @@
 #include "planificacion.h"
 
-
+int buscar_recurso(char* nombre) {
+    for (int i = 0; i < MAX_RECURSOS; i++) {
+        if (strcmp(recursos[i].nombre_recurso, nombre) == 0) {
+            return i;
+        }
+    }
+    return -1; // No encontrado
+}
 
 void *planificacion(void *args){
     iniciar_colas();
@@ -104,13 +111,12 @@ void cargar_ready_por_pid(int num_pid) //PLANIFICADOR A LARGO PLAZO
 }
 void cargar_ready(t_PCB* pcb) 
 {
+
         pcb->estado = READY;
 
         pthread_mutex_lock(&sem_q_ready);
         queue_push(cola_ready, pcb);
         pthread_mutex_unlock(&sem_q_ready);
-
-        log_info(logger, "PID:%d - Estado Anterior: EXEC - Estado Actual: READY", pcb->PID);
 
         sem_post(&sem_cont_ready);
 }
@@ -175,6 +181,7 @@ void stl_VRR()
 
 void lts_ex(t_PCB* pcb)
 {
+    pcb->estado=EXIT;
     pthread_mutex_lock(&sem_q_exit);
     queue_push(cola_exit, pcb);
     pthread_mutex_unlock(&sem_q_exit);
@@ -191,8 +198,47 @@ void desalojar(){
 }
 
 void atender_wait(t_PCB* pcb, char* recurso){
-    
+    int id_recurso = buscar_recurso(recurso);
+    pthread_mutex_lock(recursos[id_recurso].mutex_recurso);
+    if(id_recurso==-1 || recursos[id_recurso].nombre_recurso=="NA"){
+        //ENVIO PROCESO A EXIT
+        desalojar();
+        log_info(logger, "PID:%d - Estado Anterior: EXEC - Estado Actual: EXIT", pcb->PID);
+        lts_ex(pcb);
+        
+    }else{
+        recursos[id_recurso].instancias_recurso--;
+        if(recursos[id_recurso].instancias_recurso >= 0){
+            //RECURSO ASIGNADO SEGUIR CON EJECUCION
+        }else{
+            //desalojo y envio a cola de bloqueados
+            desalojar();
+            queue_push(recursos[id_recurso].cola_blocked_recurso, pcb);
+            log_info(logger, "PID:%d - Estado Anterior: EXEC - Estado Actual: BLOCKED", pcb->PID);
+        }
+    }
+    pthread_mutex_unlock(recursos[id_recurso].mutex_recurso);
 }
 void atender_signal(t_PCB* pcb, char* recurso){
-    
+    int id_recurso = buscar_recurso(recurso);
+    pthread_mutex_lock(recursos[id_recurso].mutex_recurso);
+    if(id_recurso==-1 || recursos[id_recurso].nombre_recurso=="NA"){
+        //ENVIO PROCESO A EXIT
+        desalojar();
+        log_info(logger, "PID:%d - Estado Anterior: EXEC - Estado Actual: EXIT", pcb->PID);
+        lts_ex(pcb);
+        
+    }else{
+        recursos[id_recurso].instancias_recurso++;
+        if(recursos[id_recurso].instancias_recurso >= 0){
+            //SE PUEDE DESBLOQUEAR UN RECURSO
+            //SI HAY RECURSOS EN LA COLA DE BLOQUEADOS
+            if(queue_size(recursos[id_recurso].cola_blocked_recurso)>0){
+                t_PCB* retirar_bloqueo = queue_pop(recursos[id_recurso].cola_blocked_recurso);
+                cargar_ready(retirar_bloqueo);
+                log_info(logger, "PID:%d - Estado Anterior: BLOCKED - Estado Actual: READY", pcb->PID);
+            }
+        }
+    }
+    pthread_mutex_unlock(recursos[id_recurso].mutex_recurso);
 }
