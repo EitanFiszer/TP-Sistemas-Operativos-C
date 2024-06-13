@@ -223,7 +223,7 @@ void solicitar_fs_truncate(char* interfaz, char* nombreArchivo, char* regTam){
     payload->regTam = regTam;
 
     t_paquete_entre* paquete = malloc(sizeof(t_paquete_entre));
-    paquete->operacion = FS_TRUNCATE;
+    paquete->operacion = IO_FS_TRUNCATE;
     paquete->payload = payload;
 
     t_paquete* paq = crear_paquete();

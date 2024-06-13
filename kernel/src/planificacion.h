@@ -9,6 +9,7 @@
 #include "espera.h"
 #include <semaphore.h>
 
+/*
 //colas
 t_list* lista_new;
 t_queue* cola_ready;
@@ -26,8 +27,8 @@ pthread_mutex_t  sem_q_exit;
 pthread_mutex_t  sem_q_exec;
 pthread_mutex_t  sem_CPU_libre;
 sem_t sem_cont_ready;
-int PID=0;
-
+int PID;
+*/
 
 
 void* planificacion (void*);

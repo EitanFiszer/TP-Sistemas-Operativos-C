@@ -94,7 +94,6 @@ int main(int argc, char* argv[]) {
             log_error(logger, "Se conectó un cliente desconocido");
         }
 
-        close(cliente);
     }
 
     liberarMemoria();
