@@ -30,7 +30,7 @@ sem_t sem_cont_ready;
 int PID;
 */
 
-
+int buscar_recurso(char*);
 void* planificacion (void*);
 void iniciar_proceso(char*);
 void iniciar_colas();

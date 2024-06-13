@@ -6,6 +6,8 @@
 #include <pthread.h>
 #include <espera.h>
 #include "planificacion.h"
+
+
 //conexiones
 
 t_log *logger;
@@ -24,6 +26,7 @@ int server_fd;
 int quantum;
 char *algoritmo_planificacion; 
 
+
 void leer_configs(t_config* config){
     ip_memoria = config_get_string_value(config, "IP_MEMORIA");
     ip_cpu = config_get_string_value(config, "IP_CPU");
@@ -34,14 +37,56 @@ void leer_configs(t_config* config){
     quantum = config_get_int_value(config, "QUANTUM");
     algoritmo_planificacion = config_get_string_value(config, "ALGORITMO_PLANIFICACION");
 }
+void inicializar_recursos(){
+    
+    for (int i = 0; i < MAX_RECURSOS; i++) {
+        strcpy(recursos[i].nombre_recurso, "NA"); // NA significa "No Asignado"
+        recursos[i].instancias_recurso = 0;
+        pthread_mutex_init(&recursos[i].mutex_recurso, NULL);
+        queue_create(recursos[i].cola_blocked_recurso);
+    }
+}
+
+void configurar_recurso(int index, char * nombre,int instancias){
+    strncpy(recursos[index].nombre_recurso, nombre, 3);
+    recursos[index].instancias_recurso = instancias;
+}
+
+void leer_recursos(t_config* config) {
+    char** nombres_r = config_get_array_value(config,"RECURSOS");
+    char** instancias_r = config_get_array_value(config, "INSTANCIAS_RECURSOS");
+    if (nombres_r == NULL || instancias_r == NULL){
+        log_info(logger,"ERROR AL LEER RECURSOS");
+    }
+    int i = 0;
+    while (nombres_r[i]!=NULL && instancias_r[i] != NULL && i<MAX_RECURSOS)
+    {
+        int instancias = atoi (instancias_r);
+        configurar_recurso(i,nombres_r[i],instancias);
+        i++;
+    }
+    // Libera la memoria asignada por config_get_array_value
+    i = 0;
+    while (nombres_r[i] != NULL) {
+        free(nombres_r[i]);
+        i++;
+    }
+    free(nombres_r);
+    i = 0;
+    while (instancias_r[i] != NULL) {
+        free(instancias_r[i]);
+        i++;
+    }
+    free(instancias_r);
+}
 
 int main(){
     // decir_hola("Kernel");
     logger = log_create("kernel.log", "Kernel", 1, LOG_LEVEL_INFO);
     t_config *config = config_create("kernel.config");
     leer_configs(config);
-
-
+    inicializar_recursos();
+    leer_recursos(config);
     log_info(logger, "[KERNEL] Escuchando en el puerto: %d", puerto);
 
     // cliente se conecta al sevidor

@@ -34,6 +34,7 @@ void esperar_paquetes_cpu_dispatch(int socketDispatch)
             desalojar();
             pcb_dispatch = paquete_dispatch->payload;
             cargar_ready(pcb_dispatch);
+            log_info(logger, "PID:%d - Estado Anterior: EXEC - Estado Actual: READY", pcb_dispatch->PID);
             //ESTO ES PORQUE KERNEL PIDIO QUE SE INTERRUMPA POR FIN DE QUANTUM PROBABLEMENTE
             //ENTONCES VUELVO A CARGAR EL PROCESO EN COLA DE READY AL FINAL
             break;
