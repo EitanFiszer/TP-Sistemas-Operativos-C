@@ -4,7 +4,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-// *Falta importar del config el TAM_MEMORIA y TAM_PAGINA e implementarlos
 // También el RETARDO en la/s respuesta/s y concatenar PATH con el recibido de la cpu
 
 extern int TAM_PAGINA;
@@ -19,15 +18,15 @@ void inicializarMemoria() {
     memoria.max_procesos = TAM_MEMORIA/TAM_PAGINA;
 
     memoria.memoria = malloc(TAM_MEMORIA);
-    memoria.marcos = malloc(32 * sizeof(int));
+    memoria.marcos = malloc(memoria.max_procesos * sizeof(int));
     memoria.procesos = malloc(memoria.max_procesos * sizeof(Proceso));
     memoria.cant_procesos = 0;
 
-    for (int i = 0; i < 32; i++) {
+    for (int i = 0; i < memoria.max_procesos; i++) {
         memoria.marcos[i] = -1;
     }
 
-    log_info(logger, "Se inicializó la memoria");
+    log_info(logger, "Se inicializó la memoria con un tamaño de %d y %d marcos", TAM_MEMORIA, 32);
 }
 
 char** leer_archivo(const char *path_archivo, int* num_lineas) {
