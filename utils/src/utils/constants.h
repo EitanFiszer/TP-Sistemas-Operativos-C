@@ -20,6 +20,7 @@ typedef struct{
     op_codes_io op_code;
 	char* interfaz;
     void* tiempo;
+	uint32_t direccion;
 }op_io;
 
 typedef struct {

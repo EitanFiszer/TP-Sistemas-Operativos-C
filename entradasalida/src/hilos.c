@@ -167,7 +167,33 @@ void hilo_stdout(void* argumentos){
         switch(operacionRecibida->op_code){
             case IO_STDIN:
                 int resultHandshakeMemoria = conexionMemoria(ip_memoria, puerto_memoria);
-            break;
+                if (resultHandshakeMemoria < 0) {
+                    log_error(logger, "Error conectando a memoria");
+                    break;
+                }
+
+                // Supongamos que el payload contiene la dirección de memoria a leer
+                uint32_t direccion_memoria = operacionRecibida->direccion;
+
+                // Enviar solicitud de lectura de memoria
+                t_paquete* paquete = crear_paquete();
+                agregar_a_paquete(paquete, &direccion_memoria, sizeof(direccion_memoria));
+                enviar_paquete(paquete, resultHandshakeMemoria);
+                eliminar_paquete(paquete);
+
+                // Recibir respuesta de la memoria
+                t_list* respuesta = recibir_paquete(resultHandshakeMemoria);
+                char* valor_leido = list_get(respuesta, 0);
+                log_info(logger, "Valor leído de memoria: %s", valor_leido);
+
+                // Mostrar el valor leído en la consola
+                printf("Valor leído de memoria en la dirección %u: %s\n", direccion_memoria, valor_leido);
+
+                // Limpiar la lista recibida y cerrar conexión
+                list_destroy(respuesta);
+                close(resultHandshakeMemoria);
+            
+                break;
             default:
             log_info(logger,"Operacion: <NO DEFINIDA>");
         }
