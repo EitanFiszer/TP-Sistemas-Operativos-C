@@ -72,26 +72,41 @@ int main(int argc, char* argv[]) {
 
     iniciarHilos();
 
-    while(1) {
+    bool seConectoKernel = false;
+    bool seConectoCpu = false;
+
+    while(!seConectoKernel || !seConectoCpu) {
         handshake_t res = esperar_cliente_memoria(server_fd, logger);
         int cliente = res.socket;
         ID modulo = res.modulo;
         
         if (modulo == KERNEL) {
+            if (seConectoKernel) {
+              log_error(logger, "Ya se conectó un Kernel");
+              break;
+            }
+
             log_info(logger, "Se conectó un Kernel en el socket %d", cliente);
             // esperar_paquetes_kernel(cliente, logger, path_instrucciones);
             socketKernel = cliente;
             sem_post(&sem_kernel);
+            seConectoKernel = true;
         } else if (modulo == CPU) {
+            if (seConectoCpu) {
+              log_error(logger, "Ya se conectó un CPU");
+              break;
+            }
+
             log_info(logger, "Se conectó un CPU en el socket %d", cliente);
             socketCpu = cliente;
             sem_post(&sem_cpu);
+            seConectoCpu = true;
         } else if (modulo == IO) {
             log_info(logger, "Se conectó un IO");
         } else {
             log_error(logger, "Se conectó un cliente desconocido");
+            break;
         }
-
     }
 
     liberarMemoria();

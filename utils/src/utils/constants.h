@@ -27,7 +27,6 @@ typedef struct {
 	int tam_pagina;
 } handshake_cpu_memoria;
 
-
 typedef enum {
 	//kernel memoria
 	CREAR_PROCESO,
@@ -90,9 +89,15 @@ typedef struct {
 	void* payload;
 }t_payload_syscall;
 
+// typedef struct {
+// 	OP_CODES_ENTRE operacion;
+// 	void* payload;
+// } t_paquete_entre;
+
 typedef struct {
-	OP_CODES_ENTRE operacion;
-	void* payload;
+    OP_CODES_ENTRE operacion;
+    void* payload;
+    int size_payload;
 } t_paquete_entre;
 
 typedef struct {
