@@ -8,10 +8,13 @@
 #include <pthread.h>
 #include "espera.h"
 #include <semaphore.h>
+#include <commons/temporal.h>
 
 //colas
 t_list* lista_new;
 t_queue* cola_ready;
+t_queue* cola_ready_priori;
+
 t_queue* cola_blocked;
 t_queue* cola_exit;
 t_queue* cola_exec;
@@ -28,6 +31,11 @@ pthread_mutex_t  sem_CPU_libre;
 sem_t sem_cont_ready;
 int PID=0;
 
+t_temporal* tempo_quantum;
+
+//hilo para manejar el quantum 
+
+pthread_t hilo_quantum;
 
 int buscar_recurso(char*);
 void* planificacion (void*);

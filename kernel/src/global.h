@@ -24,7 +24,7 @@ extern int resultHandshakeMemoria;
 extern int resultHandshakeDispatch;
 extern int resultHandshakeInterrupt;
 extern int server_fd;
-extern int quantum;
+extern int64_t quantum;
 extern char *algoritmo_planificacion; 
 extern Recurso recursos[MAX_RECURSOS];
 

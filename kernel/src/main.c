@@ -23,7 +23,7 @@ int resultHandshakeDispatch;
 int resultHandshakeInterrupt;
 //conexiones 
 int server_fd;
-int quantum;
+int64_t quantum;
 char *algoritmo_planificacion; 
 
 
