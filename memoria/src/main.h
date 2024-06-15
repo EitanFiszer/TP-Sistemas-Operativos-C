@@ -1,7 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
-#include <utils/hello.h>
 #include <utils/server.h>
 #include <commons/log.h>
 #include <commons/config.h>

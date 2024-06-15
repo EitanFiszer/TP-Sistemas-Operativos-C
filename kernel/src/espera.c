@@ -25,11 +25,14 @@ void esperar_paquetes_cpu_dispatch(int socketDispatch)
     {
         t_list *paquete = recibir_paquete(socketDispatch);
         t_paquete_entre *paquete_dispatch = list_get(paquete, 0);
+
+        t_PCB* pcb_dispatch;
+
         switch (paquete_dispatch->operacion)
         {
         case INTERRUMPIO_PROCESO:
             desalojar();
-            t_PCB* pcb_dispatch = paquete_dispatch->payload;
+            pcb_dispatch = paquete_dispatch->payload;
             cargar_ready(pcb_dispatch);
             log_info(logger, "PID:%d - Estado Anterior: EXEC - Estado Actual: READY", pcb_dispatch->PID);
             //ESTO ES PORQUE KERNEL PIDIO QUE SE INTERRUMPA POR FIN DE QUANTUM PROBABLEMENTE
@@ -38,7 +41,7 @@ void esperar_paquetes_cpu_dispatch(int socketDispatch)
         case SYSCALL:
             desalojar();
             atender_syscall(paquete_dispatch->payload); //aca modifico el quantum 
-        //puede ser instruccion de IO 
+            //puede ser instruccion de IO 
             break;
         case WAIT:
             t_payload_wait* paquete_wait = paquete_dispatch->payload;
@@ -51,7 +54,7 @@ void esperar_paquetes_cpu_dispatch(int socketDispatch)
             break;
         case TERMINO_EJECUCION:
             desalojar();
-            t_PCB* pcb_dispatch = paquete_dispatch->payload;
+            pcb_dispatch = paquete_dispatch->payload;
             lts_ex(pcb_dispatch);
             ///PROCESO TERMINADO SE DESALOJA Y SE ENVIA A EXIT
             break;

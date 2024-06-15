@@ -1,11 +1,28 @@
 #include "planificacion.h"
 
-int buscar_recurso(char *nombre)
-{
-    for (int i = 0; i < MAX_RECURSOS; i++)
-    {
-        if (strcmp(recursos[i].nombre_recurso, nombre) == 0)
-        {
+
+// //colas
+// t_list* lista_new;
+// t_queue* cola_ready;
+// t_queue* cola_blocked;
+// t_queue* cola_exit;
+// t_queue* cola_exec;
+
+// //semaforos de colas
+
+// pthread_mutex_t sem_q_new;
+// pthread_mutex_t sem_q_ready;
+// pthread_mutex_t sem_q_ready_priori;
+// pthread_mutex_t  sem_q_blocked;
+// pthread_mutex_t  sem_q_exit;
+// pthread_mutex_t  sem_q_exec;
+// pthread_mutex_t  sem_CPU_libre;
+// sem_t sem_cont_ready;
+// int PID=0;
+
+int buscar_recurso(char* nombre) {
+    for (int i = 0; i < MAX_RECURSOS; i++) {
+        if (strcmp(recursos[i].nombre_recurso, nombre) == 0) {
             return i;
         }
     }
@@ -239,6 +256,7 @@ void hubo_syscall(t_PCB *pcb)
         pthread_mutex_unlock(&sem_q_ready);
         sem_post(&sem_cont_ready);
     }
+    temporal_destroy(tempo_quantum);
 }
 
 void stl_VRR()

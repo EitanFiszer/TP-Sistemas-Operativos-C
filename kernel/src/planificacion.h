@@ -10,6 +10,7 @@
 #include <semaphore.h>
 #include <commons/temporal.h>
 
+
 //colas
 t_list* lista_new;
 t_queue* cola_ready;
@@ -29,6 +30,7 @@ pthread_mutex_t  sem_q_exit;
 pthread_mutex_t  sem_q_exec;
 pthread_mutex_t  sem_CPU_libre;
 sem_t sem_cont_ready;
+
 int PID=0;
 
 t_temporal* tempo_quantum;
@@ -36,6 +38,9 @@ t_temporal* tempo_quantum;
 //hilo para manejar el quantum 
 
 pthread_t hilo_quantum;
+
+int PID;
+
 
 int buscar_recurso(char*);
 void* planificacion (void*);

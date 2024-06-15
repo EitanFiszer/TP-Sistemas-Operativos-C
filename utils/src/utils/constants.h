@@ -20,13 +20,13 @@ typedef struct{
     op_codes_io op_code;
 	char* interfaz;
     void* tiempo;
+	uint32_t direccion;
 }op_io;
 
 typedef struct {
 	int socket;
 	int tam_pagina;
 } handshake_cpu_memoria;
-
 
 typedef enum {
 	//kernel memoria
@@ -41,13 +41,14 @@ typedef enum {
 	EXEC_PROCESO, //ejecuta esta pcb
 	INTERRUMPIR_PROCESO, //DE KERNEL A CPU
 
-	FS_TRUNCATE,
-	FS_WRITE,
-	FS_READ,
-	FS_CREATE,
-	FS_DELETE,
+	IO_FS_TRUNCATE,
+	IO_FS_WRITE,
+	IO_FS_READ,
+	IO_FS_CREATE,
+	IO_FS_DELETE,
 
 	IO_STDOUT_WRITE,
+	IO_STDIN_READ,
 
 	//cpu memoria
 	HANDSHAKE_CPU_MEMORIA,
@@ -73,15 +74,15 @@ typedef enum {
 } OP_CODES_ENTRE;
 
 typedef enum {
-	IO_GEN_SLEEP,
-	IO_STDIN_READ,
-	IO_STDOUT_READ,
-	IO_STDOUT_WRITE,
-	IO_FS_CREATE,
-	IO_FS_DELETE,
-	IO_FS_TRUNCATE,
-	IO_FS_WRITE,
-	IO_FS_READ,
+	GEN_SLEEP,
+	STDIN_READ,
+	STDOUT_READ,
+	STDOUT_WRITE,
+	FS_CREATE,
+	FS_DELETE,
+	FS_TRUNCATE,
+	FS_WRITE,
+	FS_READ,
 } SYSCALL_INSTRUCCIONES;
 
 typedef struct {
@@ -89,9 +90,15 @@ typedef struct {
 	void* payload;
 }t_payload_syscall;
 
+// typedef struct {
+// 	OP_CODES_ENTRE operacion;
+// 	void* payload;
+// } t_paquete_entre;
+
 typedef struct {
-	OP_CODES_ENTRE operacion;
-	void* payload;
+    OP_CODES_ENTRE operacion;
+    void* payload;
+    int size_payload;
 } t_paquete_entre;
 
 typedef struct {
