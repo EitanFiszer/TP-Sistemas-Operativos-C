@@ -1,7 +1,13 @@
-#pragma once
+#ifndef CONSTANTS_H
+#define CONSTANTS_H
 
 #include "./PCB.h"
 
+typedef enum
+{
+	MENSAJE,
+	PAQUETE
+}op_code;
 
 typedef enum {
 	CPU,
@@ -234,3 +240,5 @@ instruccion->payload = payload;
 
 agregar_a_paquete(paquete, instruccion, sizeof(t_paquete_entre));
 */
+
+#endif /* CONSTANTS_H */

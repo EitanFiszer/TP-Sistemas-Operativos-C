@@ -6,6 +6,6 @@
 #include <readline/readline.h>
 #include <commons/string.h>
 
-void* consola_interactiva(void);
+void* consola_interactiva();
 
 #endif // CONSOLA_H

@@ -76,17 +76,17 @@ t_payload_pc_a_instruccion* deserializar_pc_a_instruccion(void* stream, int size
 void esperar_paquetes_cpu()
 {
     sem_wait(&sem_cpu);    
-    printf("Esperando paquetes de CPU en el socket %d\n", socketCpu);
+    log_info(logger,"Esperando paquetes de CPU en el socket %d\n", socketCpu);
     while (1) {
         t_paquete_entre *paquete_cpu = recibir_paquete_entre(socketCpu, deserializar_pc_a_instruccion);
 
         if (paquete_cpu->payload == NULL) {
             log_error(logger, "No se pudo recibir el paquete de la CPU");
         } else {
-            printf("Paquete recibido de CPU, %d, %d\n", paquete_cpu->operacion, paquete_cpu->size_payload);
+            log_info(logger,"Paquete recibido de CPU, %d, %d\n", paquete_cpu->operacion, paquete_cpu->size_payload);
         }
 
-        printf("%d",paquete_cpu->operacion);
+        log_info(logger,"%d",paquete_cpu->operacion);
 
         switch (paquete_cpu->operacion) {
             case PC_A_INSTRUCCION:

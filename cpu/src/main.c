@@ -1,5 +1,6 @@
 #include "main.h"
 #include <utils/protocol.h>
+#include <utils/iniciar.h>
 
 void finalizarCPU (t_log* logger, t_config* config) {
     log_destroy(logger);
@@ -34,7 +35,7 @@ void conexion_interrupt(void *argumentos) {
     log_info(logger, "[CPU] Escuchando en el puerto interrupt: %s", puerto);
 
 
-    handshake_t res = esperar_cliente(server_interrupt_fd, logger);
+    Handshake res = esperar_cliente(server_interrupt_fd, logger);
     int modulo = res.modulo;
     int socket_cliente = res.socket;
     switch (modulo) {
@@ -82,9 +83,9 @@ void* serializar_pc_a_instruccion(t_payload_pc_a_instruccion* payload, int despl
 
 int main(int argc, char* argv[]) {
     // creamos logs y configs
-    logger = log_create("cpu.log", "CPU", 1, LOG_LEVEL_INFO);
-    t_config* config = config_create("cpu.config");
-
+    logger = iniciar_logger("cpu.log", "CPU");
+    t_config* config = iniciar_config("../cpu.config");
+    
     // leemos las configs
     char* ip_memoria = config_get_string_value(config, "IP_MEMORIA");
     char* puerto_memoria = config_get_string_value(config, "PUERTO_MEMORIA");
@@ -122,12 +123,12 @@ int main(int argc, char* argv[]) {
     }
     printf("Handshake socket: %d, TAM_PAG: %d\n", socketMemoria, TAM_PAGINA);
 
-    OP_CODES_ENTRE op = PC_A_INSTRUCCION;
-    t_payload_pc_a_instruccion* payload = malloc(sizeof(t_payload_pc_a_instruccion));
-    payload->PID = 1;
-    payload->program_counter = 0;
-    t_paquete_entre* paq = crear_paquete_entre(op, &payload, sizeof(t_payload_pc_a_instruccion));
-    enviar_paquete_entre(paq, socketMemoria, serializar_pc_a_instruccion);
+    // OP_CODES_ENTRE op = PC_A_INSTRUCCION;
+    // t_payload_pc_a_instruccion* payload = malloc(sizeof(t_payload_pc_a_instruccion));
+    // payload->PID = 1;
+    // payload->program_counter = 0;
+    // t_paquete_entre* paq = crear_paquete_entre(op, &payload, sizeof(t_payload_pc_a_instruccion));
+    // enviar_paquete_entre(paq, socketMemoria, serializar_pc_a_instruccion);
 
 
     // // El kernel se conecta a nosotros (CPU) y recibimos su handshake para poder recibir el pcb de parte del kernel

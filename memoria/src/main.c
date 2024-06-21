@@ -17,14 +17,14 @@ void liberarMemoria() {
     config_destroy(config);
 }
 
-handshake_t esperar_cliente_memoria(int socket_servidor, t_log* logger) {
+Handshake esperar_cliente_memoria(int socket_servidor, t_log* logger) {
     int socket_cliente;
     socket_cliente = accept(socket_servidor, NULL, NULL);
 
     uint32_t handshake;
     uint32_t resultOk = 0;
     uint32_t resultError = -1;
-    handshake_t handshakeCliente;
+    Handshake handshakeCliente;
 
     recv(socket_cliente, &handshake, sizeof(uint32_t), MSG_WAITALL);
 
@@ -51,8 +51,8 @@ void iniciarSemaforos() {
 }
 
 int main(int argc, char* argv[]) {
-    logger = log_create("memoria.log", "Memoria", 1, LOG_LEVEL_INFO);
-    config = config_create("memoria.config");
+    logger = iniciar_logger("memoria.log", "Memoria");
+    config = iniciar_config("../memoria.config");
 
     char* puerto_escucha = config_get_string_value(config, "PUERTO_ESCUCHA");
     retardo_respuesta = config_get_int_value(config, "RETARDO_RESPUESTA");
@@ -64,6 +64,7 @@ int main(int argc, char* argv[]) {
     bitarray = iniciarBitarray(string);
 
     server_fd = iniciar_servidor(puerto_escucha, logger);
+
     iniciarSemaforos();
 
     log_info(logger, "[MEMORIA] Escuchando en el puerto: %s", puerto_escucha);
@@ -75,8 +76,9 @@ int main(int argc, char* argv[]) {
     bool seConectoKernel = false;
     bool seConectoCpu = false;
 
+
     while(!seConectoKernel || !seConectoCpu) {
-        handshake_t res = esperar_cliente_memoria(server_fd, logger);
+       Handshake res = esperar_cliente(server_fd, logger);
         int cliente = res.socket;
         ID modulo = res.modulo;
         
@@ -85,9 +87,7 @@ int main(int argc, char* argv[]) {
               log_error(logger, "Ya se conectó un Kernel");
               break;
             }
-
             log_info(logger, "Se conectó un Kernel en el socket %d", cliente);
-            // esperar_paquetes_kernel(cliente, logger, path_instrucciones);
             socketKernel = cliente;
             sem_post(&sem_kernel);
             seConectoKernel = true;
@@ -96,7 +96,6 @@ int main(int argc, char* argv[]) {
               log_error(logger, "Ya se conectó un CPU");
               break;
             }
-
             log_info(logger, "Se conectó un CPU en el socket %d", cliente);
             socketCpu = cliente;
             sem_post(&sem_cpu);
@@ -113,3 +112,25 @@ int main(int argc, char* argv[]) {
 
     return EXIT_SUCCESS;
 }
+
+
+	// while(!seConectoKernel || !seConectoCpu){
+	// 	Handshake res = esperar_cliente(server_fd, logger);
+	// 	int modulo = res.modulo;
+	// 	int socket_cliente = res.socket;
+	// 	log_info(logger, "SOCKET: %d", socket_cliente);
+	// 	switch (modulo) {
+	// 		case CPU:
+	// 			log_info(logger, "Se conecto un CPU");
+	// 			break;
+	// 		case KERNEL:
+	// 			log_info(logger, "Se conecto un Kernel");
+	// 			break;
+	// 		case IO:
+	// 			log_info(logger, "Se conecto un IO");
+	// 			break;
+	// 		default:
+	// 			log_error(logger, "Se conecto un cliente desconocido");
+	// 			break;
+	// 	}
+	// }

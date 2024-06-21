@@ -23,4 +23,4 @@ typedef struct {
 }t_PCB;
 
 
-#endif
+#endif /* PCB_H */

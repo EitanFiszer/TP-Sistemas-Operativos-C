@@ -32,7 +32,7 @@ int iniciar_servidor(char* puerto, t_log* logger)
 	return socket_servidor;
 }
 
-handshake_t esperar_cliente(int socket_servidor, t_log* logger)
+Handshake esperar_cliente(int socket_servidor, t_log* logger)
 {
 	// Aceptamos un nuevo cliente
 	int socket_cliente;
@@ -41,10 +41,10 @@ handshake_t esperar_cliente(int socket_servidor, t_log* logger)
 	uint32_t handshake;
 	uint32_t resultOk = 0;
 	uint32_t resultError = -1;
-	handshake_t handshakeCliente;
-
+	Handshake handshakeCliente;
 	recv(socket_cliente, &handshake, sizeof(uint32_t), MSG_WAITALL);
 
+	
 	if (socket_cliente == -1) 	{
 		log_error(logger, "Error al aceptar un nuevo cliente");
 		send(socket_cliente, &resultError, sizeof(uint32_t), 0);

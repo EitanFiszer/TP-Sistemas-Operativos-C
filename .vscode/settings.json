@@ -23,6 +23,9 @@
         "espera.h": "c",
         "planificacion.h": "c",
         "global.h": "c",
-        "semaphore.h": "c"
+        "semaphore.h": "c",
+        "iniciar.h": "c",
+        "stdint.h": "c",
+        "netdb.h": "c"
     }
 }

@@ -1,19 +1,18 @@
-#pragma once
+
+#ifndef CLIENT_H
+#define CLIENT_H
 
 #include<stdio.h>
 #include<stdlib.h>
 #include<signal.h>
 #include<unistd.h>
 #include<sys/socket.h>
-#include<netdb.h>
+#include <netdb.h>
 #include<string.h>
 #include<commons/log.h>
 #include "constants.h"
-typedef enum
-{
-	MENSAJE,
-	PAQUETE
-}op_code;
+
+
 
 typedef struct
 {
@@ -38,3 +37,5 @@ void liberar_conexion(int socket_cliente);
 void eliminar_paquete(t_paquete* paquete);
 
 int connectAndHandshake(char* ip, char* puerto, ID modulo, char* dest, t_log* logger);
+
+#endif /* CLIENT_H */

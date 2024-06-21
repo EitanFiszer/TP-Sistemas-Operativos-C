@@ -1,7 +1,16 @@
 #include "espera.h"
 
-void esperar_paquetes_memoria(int socketMemoria)
+void* conectarse_cpu_interrupt(void* args){
+    resultHandshakeInterrupt = connectAndHandshake(ip_cpu, puerto_cpu_interrupt, KERNEL, "cpu", logger);
+    return NULL;
+}
+
+void* esperar_paquetes_memoria(void* arg)
 {
+    resultHandshakeMemoria = connectAndHandshake(ip_memoria, puerto_memoria, KERNEL, "memoria", logger);
+
+    int* socket = (int*)arg;
+    int socketMemoria = *socket;
     while (1)
     {
         t_list *paquete = recibir_paquete(socketMemoria);
@@ -9,7 +18,8 @@ void esperar_paquetes_memoria(int socketMemoria)
         switch (paquete_dispatch->operacion)
         {
         case INSTRUCCIONES_CARGADAS:
-            int PID = paquete_dispatch->payload;
+            // int PID = paquete_dispatch->payload;
+            int PID = 0;
             cargar_ready_por_pid(PID);
             break;
         default:
@@ -19,11 +29,15 @@ void esperar_paquetes_memoria(int socketMemoria)
     }
 }
 
-void esperar_paquetes_cpu_dispatch(int socketDispatch)
+void* esperar_paquetes_cpu_dispatch(void* arg)
 {
+    
+    resultHandshakeDispatch = connectAndHandshake(ip_cpu, puerto_cpu_dispatch, KERNEL, "cpu", logger);
+
+    // int* socket_dispatch = (int*)arg;
     while (1)
     {
-        t_list *paquete = recibir_paquete(socketDispatch);
+        t_list *paquete = recibir_paquete(resultHandshakeDispatch);
         t_paquete_entre *paquete_dispatch = list_get(paquete, 0);
 
         t_PCB* pcb_dispatch;
@@ -31,6 +45,7 @@ void esperar_paquetes_cpu_dispatch(int socketDispatch)
         switch (paquete_dispatch->operacion)
         {
         case INTERRUMPIO_PROCESO:
+            
             desalojar();
             pcb_dispatch = paquete_dispatch->payload;
             cargar_ready(pcb_dispatch);
@@ -63,9 +78,10 @@ void esperar_paquetes_cpu_dispatch(int socketDispatch)
             break;
         }
     }
+    return NULL;
 }
 
-void enviar_instrucciones_memoria(char* path, int PID,int socketMemoria)
+void enviar_instrucciones_memoria(char* path, int PID)
 {
     t_paquete *nuevo_paquete = crear_paquete();
     t_paquete_entre *instruccion;
@@ -77,42 +93,42 @@ void enviar_instrucciones_memoria(char* path, int PID,int socketMemoria)
     instruccion->payload = payload;
     agregar_a_paquete(nuevo_paquete, instruccion, sizeof(t_paquete_entre));
     // envio el paquete a la memoria //ENVIO EL NUEVO PROCESO
-    enviar_paquete(nuevo_paquete, socketMemoria);
+    enviar_paquete(nuevo_paquete, resultHandshakeMemoria);
 
     eliminar_paquete(nuevo_paquete);
 }
 
-void enviar_paquete_memoria(OP_CODES_ENTRE operacion, void* payload, int socketMemoria){
+void enviar_paquete_memoria(OP_CODES_ENTRE operacion, void* payload){
     t_paquete *paq = crear_paquete();
     t_paquete_entre *paquete = malloc(sizeof(t_paquete_entre));
     paquete->operacion = operacion;
     paquete->payload = payload;
     agregar_a_paquete(paq, paquete, sizeof(t_paquete_entre));
-    enviar_paquete(paq,socketMemoria);
+    enviar_paquete(paq,resultHandshakeMemoria);
     log_info(logger, "PAQUETE CREADO Y ENVIADO A MEMORIA");
     eliminar_paquete(paq);
     free(paquete);
 }
 
-void enviar_paquete_cpu_dispatch(OP_CODES_ENTRE operacion, void *payload, int socketDispatch)
+void enviar_paquete_cpu_dispatch(OP_CODES_ENTRE operacion, void *payload)
 {
     t_paquete *paq = crear_paquete();
     t_paquete_entre *paquete = malloc(sizeof(t_paquete_entre));
     paquete->operacion = operacion;
     paquete->payload = payload;
     agregar_a_paquete(paq, paquete, sizeof(t_paquete_entre));
-    enviar_paquete(paq,socketDispatch);
+    enviar_paquete(paq,resultHandshakeDispatch);
     log_info(logger, "PAQUETE CREADO Y ENVIADO A CPU DISPATCH");
     eliminar_paquete(paq);
     free(paquete);
 }
 
-void interrumpir(int socketInterrupt)
+void interrumpir()
 {
     t_paquete *paquete_fin_de_q = crear_paquete();
     t_paquete_entre *fin_q = malloc(sizeof(t_paquete_entre));
     fin_q->operacion = INTERRUMPIR_PROCESO;
     agregar_a_paquete(paquete_fin_de_q, fin_q, sizeof(t_paquete_entre));
-    enviar_paquete(paquete_fin_de_q, socketInterrupt);
+    enviar_paquete(paquete_fin_de_q, resultHandshakeInterrupt);
     eliminar_paquete(paquete_fin_de_q);
 }

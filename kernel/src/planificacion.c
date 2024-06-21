@@ -1,6 +1,38 @@
 #include "planificacion.h"
 
 
+//colas
+t_list* lista_new;
+t_queue* cola_ready;
+t_queue* cola_ready_priori;
+
+t_queue* cola_blocked;
+t_queue* cola_exit;
+t_queue* cola_exec;
+
+//semaforos de colas
+
+pthread_mutex_t sem_q_new;
+pthread_mutex_t sem_q_ready;
+pthread_mutex_t sem_q_ready_priori;
+pthread_mutex_t  sem_q_blocked;
+pthread_mutex_t  sem_q_exit;
+pthread_mutex_t  sem_q_exec;
+pthread_mutex_t  sem_CPU_libre;
+sem_t sem_cont_ready;
+
+int PID=0;
+
+t_temporal* tempo_quantum;
+
+//hilo para manejar el quantum 
+
+pthread_t hilo_quantum;
+
+int PID;
+
+// Recurso recursos[MAX_RECURSOS];
+
 // //colas
 // t_list* lista_new;
 // t_queue* cola_ready;
@@ -20,16 +52,19 @@
 // sem_t sem_cont_ready;
 // int PID=0;
 
-int buscar_recurso(char* nombre) {
-    for (int i = 0; i < MAX_RECURSOS; i++) {
-        if (strcmp(recursos[i].nombre_recurso, nombre) == 0) {
-            return i;
-        }
-    }
-    return -1; // No encontrado
-}
+// int buscar_recurso(char *nombre)
+// {
+//     for (int i = 0; i < MAX_RECURSOS; i++)
+//     {
+//         if (strcmp(recursos[i].nombre_recurso, nombre) == 0)
+//         {
+//             return i;
+//         }
+//     }
+//     return -1; // No encontrado
+// }
 
-void *planificacion(void *args)
+void* planificacion(void *args)
 {
     iniciar_colas();
     iniciar_semaforos();
@@ -50,6 +85,7 @@ void *planificacion(void *args)
     {
         log_error(logger, "Error con el algoritmo de planificacion enviado");
     }
+    return NULL;
 }
 
 void iniciar_colas(void)
@@ -81,7 +117,7 @@ void iniciar_proceso(char *path) // PLANIFICADOR A LARGO PLAZO
     // CREO EL PROCESO LOG
     log_info(logger, "Se crea el proceso <%d> en NEW", PID);
     // creo el paquete con las instrucciones para enviar a memoria las instrucciones
-    enviar_instrucciones_memoria(path, PID, resultHandshakeMemoria);
+    enviar_instrucciones_memoria(path, PID);
     // creo la PCB Y la guardo en cola NEW
     t_PCB *new_PCB = crear_PCB(PID);
 
@@ -169,7 +205,7 @@ void stl_FIFO()
         log_info(logger, "PID:%d - Estado Anterior: READY - Estado Actual: EXEC", retirar_ready->PID);
         // envio proceso a cpu
         // POR AHORA NO SE SI AGREFAR SEMAFORO ACA
-        enviar_paquete_cpu_dispatch(EXEC_PROCESO, retirar_ready, resultHandshakeDispatch);
+        enviar_paquete_cpu_dispatch(EXEC_PROCESO, retirar_ready);
 
         // semaforo de planificacion a corto plazo para replanifica
     }
@@ -214,7 +250,7 @@ void stl_RR()
             pthread_create(&hilo_quantum, NULL, manejar_quantum, (void *)retirar_ready);
 
             // envio proceso a cpu
-            enviar_paquete_cpu_dispatch(EXEC_PROCESO, retirar_ready, resultHandshakeDispatch);
+            enviar_paquete_cpu_dispatch(EXEC_PROCESO, retirar_ready);
 
             // // interrumpo el proceso por fin de quantum
             // interrumpir(resultHandshakeInterrupt);
@@ -232,6 +268,7 @@ void *manejar_quantum(void *arg)
     sleep((unsigned int)(pcb->quantum));
     interrumpir(resultHandshakeInterrupt);
     temporal_destroy(tempo_quantum);
+    return NULL;
 }
 
 void hubo_syscall(t_PCB *pcb)
@@ -312,7 +349,7 @@ void stl_VRR()
             pthread_create(&hilo_quantum, NULL, manejar_quantum, (void *)retirar_ready);
 
             // envio proceso a cpu
-            enviar_paquete_cpu_dispatch(EXEC_PROCESO, retirar_ready, resultHandshakeDispatch);
+            enviar_paquete_cpu_dispatch(EXEC_PROCESO, retirar_ready);
 
             // // interrumpo el proceso por fin de quantum
             // interrumpir(resultHandshakeInterrupt);
@@ -328,7 +365,7 @@ void lts_ex(t_PCB *pcb)
     queue_push(cola_exit, pcb);
     pthread_mutex_unlock(&sem_q_exit);
     // avisar a memoria que elimine instrucciones de PID
-    enviar_paquete_memoria(FINALIZAR_PROCESO, pcb->PID, resultHandshakeMemoria);
+    enviar_paquete_memoria(FINALIZAR_PROCESO, &pcb->PID);
 }
 
 void desalojar()
@@ -337,69 +374,73 @@ void desalojar()
     t_PCB *retirar_PCB = queue_pop(cola_exec);
     pthread_mutex_unlock(&sem_q_exec);
     // CPU LIBRE
+    free(retirar_PCB);
     pthread_mutex_unlock(&sem_CPU_libre);
 }
 
 void atender_wait(t_PCB *pcb, char *recurso)
 {
-    int id_recurso = buscar_recurso(recurso);
-    pthread_mutex_lock(recursos[id_recurso].mutex_recurso);
-    if (id_recurso == -1 || recursos[id_recurso].nombre_recurso == "NA")
-    {
-        // ENVIO PROCESO A EXIT
-        desalojar();
-        log_info(logger, "PID:%d - Estado Anterior: EXEC - Estado Actual: EXIT", pcb->PID);
-        lts_ex(pcb);
-    }
-    else
-    {
-        recursos[id_recurso].instancias_recurso--;
-        if (recursos[id_recurso].instancias_recurso >= 0)
-        {
-            quantum; // esto no va
-            // RECURSO ASIGNADO SEGUIR CON EJECUCION
-        }
-        else
-        {
-            // desalojo y envio a cola de bloqueados
-            desalojar();
-            queue_push(recursos[id_recurso].cola_blocked_recurso, pcb);
-            log_info(logger, "PID:%d - Estado Anterior: EXEC - Estado Actual: BLOCKED", pcb->PID);
-        }
-    }
-    pthread_mutex_unlock(recursos[id_recurso].mutex_recurso);
+    // int id_recurso = buscar_recurso(recurso);
+    // pthread_mutex_lock(&recursos[id_recurso].mutex_recurso);
+    // if (id_recurso == -1 || strcmp(recursos[id_recurso].nombre_recurso, "NA") == 0)
+    // {
+    //     // ENVIO PROCESO A EXIT
+    //     desalojar();
+    //     log_info(logger, "PID:%d - Estado Anterior: EXEC - Estado Actual: EXIT", pcb->PID);
+    //     lts_ex(pcb);
+    // }
+    // else
+    // {
+    //     recursos[id_recurso].instancias_recurso--;
+    //     if (recursos[id_recurso].instancias_recurso >= 0)
+    //     {
+    //         // quantum; // esto no va
+    //         // RECURSO ASIGNADO SEGUIR CON EJECUCION
+    //     }
+    //     else
+    //     {
+    //         // desalojo y envio a cola de bloqueados
+    //         desalojar();
+    //         queue_push(recursos[id_recurso].cola_blocked_recurso, pcb);
+    //         log_info(logger, "PID:%d - Estado Anterior: EXEC - Estado Actual: BLOCKED", pcb->PID);
+    //     }
+    // }
+    // pthread_mutex_unlock(&recursos[id_recurso].mutex_recurso);
 }
-atender_syscall(t_PCB *pcb){
+
+void atender_syscall(void* args)
+{
+    t_PCB* pcb = (t_PCB*)args;
     hubo_syscall(pcb);
 }
 
 void atender_signal(t_PCB *pcb, char *recurso)
 {
-    int id_recurso = buscar_recurso(recurso);
-    pthread_mutex_lock(recursos[id_recurso].mutex_recurso);
-    if (id_recurso == -1 || recursos[id_recurso].nombre_recurso == "NA")
-    {
-        // ENVIO PROCESO A EXIT
-        desalojar();
-        log_info(logger, "PID:%d - Estado Anterior: EXEC - Estado Actual: EXIT", pcb->PID);
-        lts_ex(pcb);
-    }
-    else
-    {
-        recursos[id_recurso].instancias_recurso++;
-        if (recursos[id_recurso].instancias_recurso >= 0)
-        {
-            // SE PUEDE DESBLOQUEAR UN RECURSO
-            // SI HAY RECURSOS EN LA COLA DE BLOQUEADOS
-            if (queue_size(recursos[id_recurso].cola_blocked_recurso) > 0)
-            {
-                t_PCB *retirar_bloqueo = queue_pop(recursos[id_recurso].cola_blocked_recurso);
-                cargar_ready(retirar_bloqueo);
-                log_info(logger, "PID:%d - Estado Anterior: BLOCKED - Estado Actual: READY", pcb->PID);
-            }
-        }
-    }
-    pthread_mutex_unlock(recursos[id_recurso].mutex_recurso);
+    // int id_recurso = buscar_recurso(recurso);
+    // pthread_mutex_lock(&recursos[id_recurso].mutex_recurso);
+    // if (id_recurso == -1 || strcmp(recursos[id_recurso].nombre_recurso, "NA") == 0)
+    // {
+    //     // ENVIO PROCESO A EXIT
+    //     desalojar();
+    //     log_info(logger, "PID:%d - Estado Anterior: EXEC - Estado Actual: EXIT", pcb->PID);
+    //     lts_ex(pcb);
+    // }
+    // else
+    // {
+    //     recursos[id_recurso].instancias_recurso++;
+    //     if (recursos[id_recurso].instancias_recurso >= 0)
+    //     {
+    //         // SE PUEDE DESBLOQUEAR UN RECURSO
+    //         // SI HAY RECURSOS EN LA COLA DE BLOQUEADOS
+    //         if (queue_size(recursos[id_recurso].cola_blocked_recurso) > 0)
+    //         {
+    //             t_PCB *retirar_bloqueo = queue_pop(recursos[id_recurso].cola_blocked_recurso);
+    //             cargar_ready(retirar_bloqueo);
+    //             log_info(logger, "PID:%d - Estado Anterior: BLOCKED - Estado Actual: READY", pcb->PID);
+    //         }
+    //     }
+    // }
+    // pthread_mutex_unlock(&recursos[id_recurso].mutex_recurso);
 }
 
 // ME FALTA VER LO DE GRADO DE MULTIPROGRAMACION

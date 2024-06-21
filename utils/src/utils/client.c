@@ -1,6 +1,4 @@
 #include "client.h"
-#include <commons/string.h>
-#include <commons/log.h>
 
 void* serializar_paquete(t_paquete* paquete, int bytes)
 {
@@ -110,6 +108,7 @@ void liberar_conexion(int socket_cliente)
 }
 
 int connectAndHandshake(char* ip, char* puerto, ID modulo, char* dest, t_log* logger) {
+	log_info(logger,"CONNECT & HANDSHAKE EN PUERTO %s",puerto);
    int conexion_memoria = crear_conexion(ip, puerto);
 
     if (conexion_memoria < 0) {
