@@ -1,38 +1,39 @@
 #include <stdio.h>
 #include "global.h"
-#include <commons/config.h> 
-#include <commons/log.h> 
+#include <commons/config.h>
+#include <commons/log.h>
 #include "consola.h"
 #include <pthread.h>
 #include <espera.h>
 #include "planificacion.h"
 #include <utils/iniciar.h>
+// #include <utils/client.h>
+// #include <utils/server.h>
 
-//conexiones
+// conexiones
 
 t_log *logger;
 int puerto;
-char* ip_memoria;
-char* ip_cpu;
-char* puerto_memoria;
-char* puerto_escucha;
-char* puerto_cpu_dispatch;
-char* puerto_cpu_interrupt;
+char *ip_memoria;
+char *ip_cpu;
+char *puerto_memoria;
+char *puerto_escucha;
+char *puerto_cpu_dispatch;
+char *puerto_cpu_interrupt;
 int resultHandshakeMemoria;
 int resultHandshakeDispatch;
 int resultHandshakeInterrupt;
-//conexiones 
+// conexiones
 int server_fd;
 int64_t quantum;
-char *algoritmo_planificacion; 
-
+char *algoritmo_planificacion;
 
 pthread_mutex_t logger_mutex;
 pthread_mutex_t printf_mutex;
 pthread_mutex_t consola_mutex;
 
-
-void leer_configs(t_config* config){
+void leer_configs(t_config *config)
+{
     ip_memoria = config_get_string_value(config, "IP_MEMORIA");
     ip_cpu = config_get_string_value(config, "IP_CPU");
     puerto_memoria = config_get_string_value(config, "PUERTO_MEMORIA");
@@ -42,13 +43,14 @@ void leer_configs(t_config* config){
     quantum = config_get_int_value(config, "QUANTUM");
     algoritmo_planificacion = config_get_string_value(config, "ALGORITMO_PLANIFICACION");
 }
-void iniciar_mutex(){
+void iniciar_mutex()
+{
     pthread_mutex_init(&logger_mutex, NULL);
     pthread_mutex_init(&printf_mutex, NULL);
     pthread_mutex_init(&consola_mutex, NULL);
 }
 // void inicializar_recursos(){
-    
+
 //     for (int i = 0; i < MAX_RECURSOS; i++) {
 //         strcpy(recursos[i].nombre_recurso, "NA"); // NA significa "No Asignado"
 //         recursos[i].instancias_recurso = 0;
@@ -90,9 +92,8 @@ void iniciar_mutex(){
 //     free(instancias_r);
 // }
 
-
-
-int main(){
+int main()
+{
     // decir_hola("Kernel");
     logger = iniciar_logger("kernel.log", "Kernel");
     t_config *config = iniciar_config("../kernel.config");
@@ -106,57 +107,61 @@ int main(){
     // resultHandshakeDispatch = conectarse_cpu_interrupt(ip_cpu,puerto_cpu_interrupt);
     // resultHandshakeDispatch = conectarse_memoria(ip_cpu,puerto_memoria);
 
-    // // resultHandshakeDispatch = connectAndHandshake(ip_cpu, puerto_cpu_dispatch, KERNEL, "cpu", logger);
-    // resultHandshakeDispatch = connectAndHandshake(ip_cpu, puerto_cpu_dispatch, KERNEL, "cpu", logger);
-    // resultHandshakeInterrupt = connectAndHandshake(ip_cpu, puerto_cpu_interrupt, KERNEL, "cpu", logger);
+    resultHandshakeDispatch = connectAndHandshake(ip_cpu, puerto_cpu_dispatch, KERNEL, "cpu", logger);
+    resultHandshakeInterrupt = connectAndHandshake(ip_cpu, puerto_cpu_interrupt, KERNEL, "cpu", logger);
 
     // // ESTE ES EL SOCKET PARA CONECTARSE A LA MEMORIA
-    // resultHandshakeMemoria = connectAndHandshake(ip_memoria, puerto_memoria, KERNEL, "memoria", logger);
-
+    resultHandshakeMemoria = connectAndHandshake(ip_memoria, puerto_memoria, KERNEL, "memoria", logger);
 
     // // creamos el servidor
-    // server_fd = iniciar_servidor(puerto_escucha, logger);
+    server_fd = iniciar_servidor(puerto_escucha, logger);
 
-    // Handshake res = esperar_cliente(server_fd, logger);
-    // int modulo = res.modulo;
-    // //int socket_cliente = res.socket;
-    // switch (modulo)
-    // {
-    // case IO:
-    //     log_info(logger, "Se conecto un I/O");
-    //     break;
-    // default:
-    //     log_error(logger, "Se conecto un cliente desconocido");
-    //     break;
-    // }
+    Handshake res = esperar_cliente(server_fd, logger);
+    int modulo = res.modulo;
+    // int socket_cliente = res.socket;
+    switch (modulo)
+    {
+    case IO:
+        log_info(logger, "Se conecto un I/O");
+        break;
+    default:
+        log_error(logger, "Se conecto un cliente desconocido");
+        break;
+    }
 
-    // creo hilo para que reciba informacion de la consola constantemente
-    // pthread_t hilo_conexion_interrupt;
-    // int err = pthread_create(&hilo_conexion_interrupt, NULL, conectarse_cpu_interrupt, NULL);
-    // pthread_join(hilo_conexion_interrupt,NULL);
-    // if(err!=0){
-    //     log_error(logger,"HUBO UN ERROR AL CREAR EL HILO");
-    // }
+   
 
     // HILO PARA QUE ESPERA PAQUETES DE LA CPU
     pthread_t hilo_espera_cpu;
-    pthread_create(&hilo_espera_cpu, NULL, esperar_paquetes_cpu_dispatch, NULL);
-    pthread_join(hilo_espera_cpu,NULL);
-
+    int err = pthread_create(&hilo_espera_cpu, NULL, esperar_paquetes_cpu_dispatch, NULL);
+    pthread_join(hilo_espera_cpu, NULL);
+    if (err != 0)
+    {
+        log_error(logger, "HUBO UN ERROR AL CREAR EL HILO");
+    }
     // HILO PARA QUE ESPERE PAQUETES DE LA MEMORIA
     pthread_t hilo_espera_memoria;
-    pthread_create(&hilo_espera_memoria, NULL, esperar_paquetes_memoria,NULL);
-    pthread_join(hilo_espera_memoria,NULL);
-
-    //HILO PARA MANEJAR PLANIFICACION 
+    err = pthread_create(&hilo_espera_memoria, NULL, esperar_paquetes_memoria, NULL);
+    pthread_join(hilo_espera_memoria, NULL);
+    if (err != 0)
+    {
+        log_error(logger, "HUBO UN ERROR AL CREAR EL HILO");
+    }
+    // HILO PARA MANEJAR PLANIFICACION
     pthread_t hilo_planificacion;
-    pthread_create(&hilo_planificacion, NULL, planificacion,NULL);
-    pthread_join(hilo_planificacion,NULL);
-
+    err = pthread_create(&hilo_planificacion, NULL, planificacion, NULL);
+    pthread_join(hilo_planificacion, NULL);
+    if (err != 0)
+    {
+        log_error(logger, "HUBO UN ERROR AL CREAR EL HILO");
+    }
     // creo hilo para que reciba informacion de la consola constantemente
     pthread_t hilo_consola;
-    pthread_create(&hilo_consola, NULL, consola_interactiva, NULL);
-    pthread_join(hilo_consola,NULL);
-    
+    err = pthread_create(&hilo_consola, NULL, consola_interactiva, NULL);
+    pthread_join(hilo_consola, NULL);
+    if (err != 0)
+    {
+        log_error(logger, "HUBO UN ERROR AL CREAR EL HILO");
+    }
     return 0;
 }

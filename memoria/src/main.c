@@ -52,7 +52,7 @@ void iniciarSemaforos() {
 
 int main(int argc, char* argv[]) {
     logger = iniciar_logger("memoria.log", "Memoria");
-    config = iniciar_config("../memoria.config");
+    config = iniciar_config("memoria.config");
 
     char* puerto_escucha = config_get_string_value(config, "PUERTO_ESCUCHA");
     retardo_respuesta = config_get_int_value(config, "RETARDO_RESPUESTA");
@@ -78,7 +78,7 @@ int main(int argc, char* argv[]) {
 
 
     while(!seConectoKernel || !seConectoCpu) {
-       Handshake res = esperar_cliente(server_fd, logger);
+        Handshake res = esperar_cliente_memoria(server_fd, logger);
         int cliente = res.socket;
         ID modulo = res.modulo;
         

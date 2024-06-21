@@ -100,12 +100,12 @@ typedef struct {
 // 	OP_CODES_ENTRE operacion;
 // 	void* payload;
 // } t_paquete_entre;
-
 typedef struct {
-    OP_CODES_ENTRE operacion;
-    void* payload;
-    int size_payload;
+	OP_CODES_ENTRE operacion;
+	int size_payload;
+	void* payload;
 } t_paquete_entre;
+
 
 typedef struct {
     int pid;

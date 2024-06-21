@@ -28,9 +28,9 @@ extern int resultHandshakeInterrupt;
 extern int server_fd;
 extern int64_t quantum;
 extern char *algoritmo_planificacion; 
-extern pthread_mutex_t logger_mutex;
-extern pthread_mutex_t printf_mutex;
-extern pthread_mutex_t consola_mutex;
+// extern pthread_mutex_t logger_mutex;
+// extern pthread_mutex_t printf_mutex;
+// extern pthread_mutex_t consola_mutex;
 
 // extern Recurso recursos[MAX_RECURSOS];
 

@@ -27,4 +27,15 @@ t_list* recibir_paquete(int);
 void recibir_mensaje(int);
 int recibir_operacion(int);
 
+// void* recibir_buffer(int*, int);
+
+// int iniciar_servidor(void);
+// int esperar_cliente(int);
+// t_list* recibir_paquete(int);
+// void recibir_mensaje(int);
+// int recibir_operacion(int);
+t_paquete_entre *deserializar_paquete_entre(void *buffer);
+t_paquete_entre* recibir_paquete_entre(int socket_cliente);
+void recibir_paquete_completo(int socket_cliente);
+
 #endif /* SERVER_H */

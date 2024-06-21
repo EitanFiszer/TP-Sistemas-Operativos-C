@@ -3,8 +3,11 @@
 #include <utils/iniciar.h>
 
 void finalizarCPU (t_log* logger, t_config* config) {
+    printf("Finalizando CPU\n");
     log_destroy(logger);
     config_destroy(config);
+    liberar_conexion(socketMemoria);
+    // liberar_conexion(socketKernel);
     exit(1);
 }
 
@@ -71,20 +74,11 @@ int getHayInterrupcion() {
     return hayInterrupcion;
 }
 
-void* serializar_pc_a_instruccion(t_payload_pc_a_instruccion* payload, int desplazamiento, int* bytes) {
-    void* magic = malloc(sizeof(int) * 2);
-    memcpy(magic + desplazamiento, &(payload->PID), sizeof(int));
-    desplazamiento += sizeof(int);
-    memcpy(magic + desplazamiento, &(payload->program_counter), sizeof(int));
-    desplazamiento += sizeof(int);
-    *bytes = desplazamiento;
-    return magic;
-}
 
 int main(int argc, char* argv[]) {
     // creamos logs y configs
     logger = iniciar_logger("cpu.log", "CPU");
-    t_config* config = iniciar_config("../cpu.config");
+    t_config* config = iniciar_config("cpu.config");
     
     // leemos las configs
     char* ip_memoria = config_get_string_value(config, "IP_MEMORIA");
@@ -123,12 +117,19 @@ int main(int argc, char* argv[]) {
     }
     printf("Handshake socket: %d, TAM_PAG: %d\n", socketMemoria, TAM_PAGINA);
 
-    // OP_CODES_ENTRE op = PC_A_INSTRUCCION;
-    // t_payload_pc_a_instruccion* payload = malloc(sizeof(t_payload_pc_a_instruccion));
-    // payload->PID = 1;
-    // payload->program_counter = 0;
-    // t_paquete_entre* paq = crear_paquete_entre(op, &payload, sizeof(t_payload_pc_a_instruccion));
-    // enviar_paquete_entre(paq, socketMemoria, serializar_pc_a_instruccion);
+    OP_CODES_ENTRE op = PC_A_INSTRUCCION;
+    t_payload_pc_a_instruccion* payload = malloc(sizeof(t_payload_pc_a_instruccion));
+    payload->PID = 6;
+    payload->program_counter = 9;
+    t_paquete* paq = crear_paquete();
+    t_paquete_entre* paq_entre = malloc(sizeof(t_paquete_entre));
+
+    paq_entre->operacion = op;
+    paq_entre->size_payload = sizeof(t_payload_pc_a_instruccion);
+    paq_entre->payload = payload;
+
+    agregar_paquete_entre_a_paquete(paq, paq_entre);
+    enviar_paquete(paq, socketMemoria);
 
 
     // // El kernel se conecta a nosotros (CPU) y recibimos su handshake para poder recibir el pcb de parte del kernel
@@ -192,7 +193,7 @@ int main(int argc, char* argv[]) {
     //     }
 
     // }
-
+    
     finalizarCPU(logger, config);
     
 }

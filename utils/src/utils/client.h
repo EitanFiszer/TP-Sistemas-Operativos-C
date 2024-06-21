@@ -35,6 +35,10 @@ void agregar_a_paquete(t_paquete* paquete, void* valor, int tamanio);
 void enviar_paquete(t_paquete* paquete, int socket_cliente);
 void liberar_conexion(int socket_cliente);
 void eliminar_paquete(t_paquete* paquete);
+void agregar_paquete_entre_a_paquete(t_paquete *paquete, t_paquete_entre *paquete_entre);
+// void *serializar_paquete_entre(t_paquete_entre *paquete, int *bytes,int size_payload);
+void *serializar_paquete_entre(t_paquete_entre *paquete, int *bytes);
+
 
 int connectAndHandshake(char* ip, char* puerto, ID modulo, char* dest, t_log* logger);
 

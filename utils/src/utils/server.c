@@ -1,4 +1,5 @@
 #include "server.h"
+#include <errno.h>
 
 int iniciar_servidor(char* puerto, t_log* logger)
 {
@@ -62,9 +63,10 @@ Handshake esperar_cliente(int socket_servidor, t_log* logger)
 int recibir_operacion(int socket_cliente)
 {
 	int cod_op;
-	if (recv(socket_cliente, &cod_op, sizeof(int), MSG_WAITALL) > 0) {
+	if(recv(socket_cliente, &cod_op, sizeof(int), MSG_WAITALL) > 0)
 		return cod_op;
-	} else {
+	else
+	{
 		close(socket_cliente);
 		return -1;
 	}
@@ -108,4 +110,86 @@ t_list *recibir_paquete(int socket_cliente)
 	}
 	free(buffer);
 	return valores;
+}
+
+// t_paquete_entre *deserializar_paquete_entre(void *buffer)
+// {
+//     t_paquete_entre *paquete = malloc(sizeof(t_paquete_entre));
+//     int desplazamiento = 0;
+//     int size_payload = sizeof(t_PCB);
+
+//     memcpy(&(paquete->operacion), buffer + desplazamiento, sizeof(OP_CODES_ENTRE));
+//     desplazamiento += sizeof(OP_CODES_ENTRE);
+
+//     paquete->payload = malloc(size_payload);
+//     memcpy(paquete->payload, buffer + desplazamiento, size_payload);
+
+//     return paquete;
+// }
+
+t_paquete_entre *deserializar_paquete_entre(void *buffer)
+{
+    t_paquete_entre *paquete = malloc(sizeof(t_paquete_entre));
+    int desplazamiento = 0;
+
+    memcpy(&(paquete->operacion), buffer + desplazamiento, sizeof(OP_CODES_ENTRE));
+    desplazamiento += sizeof(OP_CODES_ENTRE);
+    memcpy(&(paquete->size_payload), buffer + desplazamiento, sizeof(int));
+    desplazamiento += sizeof(int);
+
+    paquete->payload = malloc(paquete->size_payload);
+    memcpy(paquete->payload, buffer + desplazamiento, paquete->size_payload);
+
+    return paquete;
+}
+
+t_paquete_entre* recibir_paquete_entre(int socket_cliente)
+{
+		printf("Recibiendo paquete entre de %d", socket_cliente);
+		int op = recibir_operacion(socket_cliente);
+		printf("Operacion: %d\n", op);
+ 
+    int size;
+    void *buffer = recibir_buffer(&size, socket_cliente);
+
+    int desplazamiento = 0;
+
+    // Leer el tamaño del `t_paquete_entre`
+    int size_paquete_entre;
+    memcpy(&size_paquete_entre, buffer + desplazamiento, sizeof(int));
+    desplazamiento += sizeof(int);
+
+    // Deserializar el `t_paquete_entre`
+    t_paquete_entre *paquete_entre = deserializar_paquete_entre(buffer + desplazamiento);
+    
+    free(buffer);
+    return paquete_entre;
+}
+
+void recibir_paquete_completo(int socket_cliente)
+{
+    int size;
+    void *buffer = recibir_buffer(&size, socket_cliente);
+
+    int desplazamiento = 0;
+    while (desplazamiento < size)
+    {
+        int size_paquete_entre;
+        memcpy(&size_paquete_entre, buffer + desplazamiento, sizeof(int));
+        desplazamiento += sizeof(int);
+
+        t_paquete_entre *paquete_entre = deserializar_paquete_entre(buffer + desplazamiento);
+        desplazamiento += size_paquete_entre;
+
+        if (paquete_entre->operacion == EXEC_PROCESO)
+        {
+            t_PCB *pcb = (t_PCB *)paquete_entre->payload;
+            // Procesa la PCB
+            log_info(logger, "Recibí una PCB con PID: %d y PC: %d", pcb->PID, pcb->program_counter);
+        }
+
+        free(paquete_entre->payload);
+        free(paquete_entre);
+    }
+    free(buffer);
 }

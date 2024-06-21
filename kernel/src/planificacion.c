@@ -205,7 +205,7 @@ void stl_FIFO()
         log_info(logger, "PID:%d - Estado Anterior: READY - Estado Actual: EXEC", retirar_ready->PID);
         // envio proceso a cpu
         // POR AHORA NO SE SI AGREFAR SEMAFORO ACA
-        enviar_paquete_cpu_dispatch(EXEC_PROCESO, retirar_ready);
+        enviar_paquete_cpu_dispatch(EXEC_PROCESO, retirar_ready,sizeof(t_PCB));
 
         // semaforo de planificacion a corto plazo para replanifica
     }
@@ -250,7 +250,7 @@ void stl_RR()
             pthread_create(&hilo_quantum, NULL, manejar_quantum, (void *)retirar_ready);
 
             // envio proceso a cpu
-            enviar_paquete_cpu_dispatch(EXEC_PROCESO, retirar_ready);
+            enviar_paquete_cpu_dispatch(EXEC_PROCESO, retirar_ready, sizeof(t_PCB));
 
             // // interrumpo el proceso por fin de quantum
             // interrumpir(resultHandshakeInterrupt);
@@ -349,7 +349,7 @@ void stl_VRR()
             pthread_create(&hilo_quantum, NULL, manejar_quantum, (void *)retirar_ready);
 
             // envio proceso a cpu
-            enviar_paquete_cpu_dispatch(EXEC_PROCESO, retirar_ready);
+            enviar_paquete_cpu_dispatch(EXEC_PROCESO, retirar_ready,sizeof(t_PCB));
 
             // // interrumpo el proceso por fin de quantum
             // interrumpir(resultHandshakeInterrupt);
@@ -365,7 +365,7 @@ void lts_ex(t_PCB *pcb)
     queue_push(cola_exit, pcb);
     pthread_mutex_unlock(&sem_q_exit);
     // avisar a memoria que elimine instrucciones de PID
-    enviar_paquete_memoria(FINALIZAR_PROCESO, &pcb->PID);
+    enviar_paquete_memoria(FINALIZAR_PROCESO, &pcb->PID,sizeof(int));
 }
 
 void desalojar()
