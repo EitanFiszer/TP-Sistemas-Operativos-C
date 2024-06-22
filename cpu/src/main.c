@@ -1,5 +1,4 @@
 #include "main.h"
-#include <utils/protocol.h>
 #include <utils/iniciar.h>
 
 void finalizarCPU (t_log* logger, t_config* config) {

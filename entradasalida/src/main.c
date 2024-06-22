@@ -17,7 +17,7 @@ t_log* logger;
 
 void crearHilo(char* nombre, char* path_config) {
 
-    t_config* config = config_create(path_config);
+    t_config* config = iniciar_config(path_config);
     if (config == NULL) {
         log_error(logger, "No se pudo cargar el archivo de configuración: %s", path_config);
         return;

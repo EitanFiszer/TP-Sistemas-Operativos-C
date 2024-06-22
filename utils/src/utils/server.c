@@ -60,6 +60,33 @@ Handshake esperar_cliente(int socket_servidor, t_log* logger)
 	return handshakeCliente;
 }
 
+// Handshake esperar_cliente_IO(int socket_servidor, t_log* logger)
+// {
+// 	// Aceptamos un nuevo cliente
+// 	int socket_cliente;
+// 	socket_cliente = accept(socket_servidor, NULL, NULL);
+
+// 	uint32_t handshake;
+// 	uint32_t resultOk = 0;
+// 	uint32_t resultError = -1;
+// 	Handshake handshakeCliente;
+// 	recv(socket_cliente, &handshake, sizeof(uint32_t), MSG_WAITALL);
+
+	
+// 	if (socket_cliente == -1) 	{
+// 		log_error(logger, "Error al aceptar un nuevo cliente");
+// 		send(socket_cliente, &resultError, sizeof(uint32_t), 0);
+// 	} else {
+// 		log_info(logger, "Se conecto un cliente!");
+// 		send(socket_cliente, &resultOk, sizeof(uint32_t), 0);
+// 	}
+
+// 	handshakeCliente.modulo = handshake;
+// 	handshakeCliente.socket = socket_cliente;
+
+// 	return handshakeCliente;
+// }
+
 int recibir_operacion(int socket_cliente)
 {
 	int cod_op;

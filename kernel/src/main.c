@@ -92,6 +92,29 @@ void iniciar_mutex()
 //     free(instancias_r);
 // }
 
+esperar_clientes_kernel(void *args)
+{
+    while (1)
+    {
+        pthread_t hilo_atender_cliente;
+        int *fd_conexion_ptr = malloc(sizeof(int));
+        Handshake res = esperar_cliente(server_fd, logger);
+        int modulo = res.modulo;
+        fd_conexion_ptr = res.socket;
+        switch (modulo)
+        {
+        case IO:
+            log_info(logger, "Se conecto un I/O");
+            pthread_create(&hilo_atender_cliente, NULL, (void *)atender_cliente, fd_conexion_ptr);
+            pthread_detach(hilo_atender_cliente);
+            break;
+        default:
+            log_error(logger, "Se conecto un cliente desconocido");
+            break;
+        }
+    }
+}
+
 int main()
 {
     // decir_hola("Kernel");
@@ -116,24 +139,31 @@ int main()
     // // creamos el servidor
     server_fd = iniciar_servidor(puerto_escucha, logger);
 
-    Handshake res = esperar_cliente(server_fd, logger);
-    int modulo = res.modulo;
-    // int socket_cliente = res.socket;
-    switch (modulo)
-    {
-    case IO:
-        log_info(logger, "Se conecto un I/O");
-        break;
-    default:
-        log_error(logger, "Se conecto un cliente desconocido");
-        break;
-    }
+    // Handshake res = esperar_cliente(server_fd, logger);
+    // int modulo = res.modulo;
+    // // int socket_cliente = res.socket;
+    // switch (modulo)
+    // {
+    // case IO:
+    //     log_info(logger, "Se conecto un I/O");
+    //     break;
+    // default:
+    //     log_error(logger, "Se conecto un cliente desconocido");
+    //     break;
+    // }
 
-   
+    // HILO PARA ATENDER CLIENTES -- ESPERAR QUE SE CONECTEN IO
+    pthread_t hilo_esperar_clientes;
+    int err = pthread_create(&hilo_esperar_clientes, NULL, (void *)esperar_clientes_kernel, NULL);
+    pthread_join(hilo_esperar_clientes, NULL);
+    if (err != 0)
+    {
+        log_error(logger, "HUBO UN ERROR AL CREAR EL HILO");
+    }
 
     // HILO PARA QUE ESPERA PAQUETES DE LA CPU
     pthread_t hilo_espera_cpu;
-    int err = pthread_create(&hilo_espera_cpu, NULL, esperar_paquetes_cpu_dispatch, NULL);
+    err = pthread_create(&hilo_espera_cpu, NULL, esperar_paquetes_cpu_dispatch, NULL);
     pthread_join(hilo_espera_cpu, NULL);
     if (err != 0)
     {

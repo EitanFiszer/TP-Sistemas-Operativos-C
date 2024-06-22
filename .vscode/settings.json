@@ -26,6 +26,7 @@
         "semaphore.h": "c",
         "iniciar.h": "c",
         "stdint.h": "c",
-        "netdb.h": "c"
+        "netdb.h": "c",
+        "manejointerfaces.h": "c"
     }
 }

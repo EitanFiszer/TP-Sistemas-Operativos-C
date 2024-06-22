@@ -4,6 +4,8 @@
 #include <unistd.h>
 #include <utils/constants.h>
 #include <utils/client.h>
+#include <utils/server.h>
+
 struct args {
     char* nombre;
     char* path_config;
@@ -17,13 +19,15 @@ int conexionKernell (char* ip, char* puerto, char* tipo_interfaz, char* nombre){
     t_paquete* paq = crear_paquete();
     t_paquete_entre* paquete=malloc(sizeof(t_paquete_entre));  
     t_payload_interfaz_creada* payload = malloc(sizeof(t_payload_interfaz_creada));
+    
+    paquete->operacion = IO_INTERFAZ_CREADA;
+    paquete->size_payload = sizeof(t_payload_interfaz_creada);
 
     payload->tipo_interfaz = tipo_interfaz;
     payload->nombre = nombre;
     paquete->payload = payload;
-    paquete->operacion = IO_INTERFAZ_CREADA;
-
-    agregar_a_paquete(paq, paquete, sizeof(t_paquete_entre));
+    
+    agregar_paquete_entre_a_paquete(paq,paquete);
     enviar_paquete(paquete,resultHandshake);
     log_info(logger, "PAQUETE CREADO Y ENVIADO A KERNEL");
     eliminar_paquete(paq);
@@ -93,10 +97,8 @@ void hilo_stdin(void* argumentos){
 
 
      while(1){
-        t_list* paq = recibir_paquete(resultHandshakeKernell);
-        t_paquete_entre* paquete_dispatch = list_get(paq, 0);
+        t_paquete_entre* paquete_dispatch = recibir_paquete_entre(resultHandshakeKernell);
         OP_CODES_ENTRE op = paquete_dispatch->operacion;
-
         if (op != INSTRUCCION_IO) {
             log_error(logger, "Operacion no soportada");
             break;
@@ -153,8 +155,8 @@ void hilo_stdout(void* argumentos){
 
 
      while(1){
-        t_list* paq = recibir_paquete(resultHandshakeKernell);
-        t_paquete_entre* paquete_dispatch = list_get(paq, 0);
+        // t_list* paq = recibir_paquete(resultHandshakeKernell);
+        t_paquete_entre* paquete_dispatch = recibir_paquete_entre(resultHandshakeKernell);
         OP_CODES_ENTRE op = paquete_dispatch->operacion;
 
         if (op != INSTRUCCION_IO) {
@@ -182,8 +184,9 @@ void hilo_stdout(void* argumentos){
                 eliminar_paquete(paquete);
 
                 // Recibir respuesta de la memoria
-                t_list* respuesta = recibir_paquete(resultHandshakeMemoria);
-                char* valor_leido = list_get(respuesta, 0);
+                t_paquete_entre* respuesta = recibir_paquete_entre(resultHandshakeMemoria);
+                char* valor_leido = (char*)respuesta->payload;
+                
                 log_info(logger, "Valor leído de memoria: %s", valor_leido);
 
                 // Mostrar el valor leído en la consola
