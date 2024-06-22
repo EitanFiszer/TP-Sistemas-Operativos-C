@@ -50,8 +50,8 @@ void conexion_interrupt(void *argumentos) {
     }
 
     while(1) {
-        t_list* paq = recibir_paquete(socket_cliente);
-        t_paquete_entre* paquete = list_get(paq, 0);
+        
+        t_paquete_entre* paquete = recibir_paquete_entre(socket_cliente);
         
         switch (paquete->operacion) {
             case INTERRUMPIR_PROCESO:
@@ -88,6 +88,8 @@ void testConnMem() {
 
     agregar_paquete_entre_a_paquete(paq, paq_entre);
     enviar_paquete(paq, socketMemoria);
+    eliminar(paq);
+    free(payload);
 }
 
 
@@ -140,7 +142,7 @@ int main(int argc, char* argv[]) {
      log_info(logger, "CPU listo para recibir al cliente");
      socketKernel = -1;
      while (socketKernel == -1){
-         handshake_t handshake_res = esperar_cliente(server_dispatch_fd, logger);
+         Handshake handshake_res = esperar_cliente(server_dispatch_fd, logger);
          if (handshake_res.modulo == KERNEL){
              socketKernel = handshake_res.socket;
              log_info(logger, "Se conecto un Kernel");
@@ -153,14 +155,13 @@ int main(int argc, char* argv[]) {
 
      while (1) {
          // Recibo el paquete del kernel
-         t_list* paquetePCB = recibir_paquete(socketKernel);
-         if (paquetePCB == NULL) {
+         
+
+         t_paquete_entre* paq = recibir_paquete_entre(socketKernel);
+         if (paq == NULL) {
              log_error(logger, "No se pudo recibir el paquete de la memoria");
          }
-
-         t_paquete_entre* paq = list_get(paquetePCB, 0);
-         t_PCB* pcb = paq->payload;
-
+         t_PCB* pcb = (t_PCB*)paq->payload;
          switch (paq->operacion) {
              case EXEC_PROCESO:
                  while(getHayInterrupcion() == false) {
@@ -200,7 +201,7 @@ int main(int argc, char* argv[]) {
      log_info(logger, "CPU listo para recibir al cliente");
      socketKernel = -1;
      while (socketKernel == -1){
-         handshake_t handshake_res = esperar_cliente(server_dispatch_fd, logger);
+         Handshake handshake_res = esperar_cliente(server_dispatch_fd, logger);
          if (handshake_res.modulo == KERNEL){
              socketKernel = handshake_res.socket;
              log_info(logger, "Se conecto un Kernel");
@@ -212,14 +213,12 @@ int main(int argc, char* argv[]) {
 
 
      while (1) {
-         // Recibo el paquete del kernel
-         t_list* paquetePCB = recibir_paquete(socketKernel);
-         if (paquetePCB == NULL) {
+        
+         t_paquete_entre* paq = recibir_paquete_entre(socketKernel);
+         if (paq == NULL) {
              log_error(logger, "No se pudo recibir el paquete de la memoria");
          }
-
-         t_paquete_entre* paq = list_get(paquetePCB, 0);
-         t_PCB* pcb = paq->payload;
+         t_PCB* pcb = (t_PCB*)paq->payload;
 
          switch (paq->operacion) {
              case EXEC_PROCESO:

@@ -103,11 +103,6 @@ typedef struct {
 	void* payload;
 } t_paquete_entre;
 
-
-typedef struct {
-    int pid;
-} t_payload_finalizar_proceso;
-
 typedef struct {
     int PID;
     int program_counter;

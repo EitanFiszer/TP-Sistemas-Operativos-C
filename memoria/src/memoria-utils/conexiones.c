@@ -1,6 +1,6 @@
 #include "./conexiones.h"
 #include <commons/log.h>
-#include <utils/protocol.h>
+#include <utils/serializacion.h>
 #include <memoria-utils/procesos.h>
 #include <semaphore.h>
 
@@ -23,15 +23,15 @@ void esperar_paquetes_kernel()
 
         switch (paquete->operacion) {
             case CREAR_PROCESO:
-                t_payload_crear_proceso *payloadCrear = (t_payload_crear_proceso*) paquete->payload;
+                t_payload_crear_proceso *payloadCrear = deser(paquete->payload);
                 int pidCrear = payloadCrear->pid;
                 char *path = payloadCrear->path;
                 log_info(logger, "Se llamó a CREAR_PROCESO con PID: %d, archivo: %s", pidCrear, path);
                 crearProceso(path, pidCrear);
                 break;
             case FINALIZAR_PROCESO: 
-                t_payload_finalizar_proceso *payloadFin = (t_payload_finalizar_proceso*) paquete->payload;
-                int pidFin = payloadFin->pid;
+                int *payloadFin = (int*) paquete->payload;
+                int pidFin = *payloadFin;
                 log_info(logger, "Se llamó a FINALIZAR_PROCESO con PID: %d", pidFin);
                 finalizarProceso(pidFin);
                 break;

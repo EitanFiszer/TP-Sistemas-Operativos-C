@@ -5,7 +5,7 @@
 #include <utils/constants.h>
 #include <utils/client.h>
 #include <utils/server.h>
-
+#include <utils/serializacion.h>
 struct args {
     char* nombre;
     char* path_config;
@@ -16,22 +16,24 @@ extern t_log* logger;
 int conexionKernell (char* ip, char* puerto, char* tipo_interfaz, char* nombre){
     int resultHandshake = connectAndHandshake(ip, puerto, IO, "kernel", logger); 
 
-    t_paquete* paq = crear_paquete();
-    t_paquete_entre* paquete=malloc(sizeof(t_paquete_entre));  
     t_payload_interfaz_creada* payload = malloc(sizeof(t_payload_interfaz_creada));
     
-    paquete->operacion = IO_INTERFAZ_CREADA;
-    paquete->size_payload = sizeof(t_payload_interfaz_creada);
-
     payload->tipo_interfaz = tipo_interfaz;
     payload->nombre = nombre;
-    paquete->payload = payload;
     
+    int size_pay;
+    void* buffer = serializar_interfaz_creada(payload, size_pay);
+
+    t_paquete* paq = crear_paquete();
+    t_paquete_entre* paquete=malloc(sizeof(t_paquete_entre));  
+    paquete->operacion = IO_INTERFAZ_CREADA;
+    paquete->size_payload = size_pay;
+    paquete->payload = buffer;
+
     agregar_paquete_entre_a_paquete(paq,paquete);
     enviar_paquete(paquete,resultHandshake);
     log_info(logger, "PAQUETE CREADO Y ENVIADO A KERNEL");
     eliminar_paquete(paq);
-    free(paquete);
 
     return resultHandshake;
 }

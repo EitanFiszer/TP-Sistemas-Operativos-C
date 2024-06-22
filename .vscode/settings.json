@@ -27,6 +27,7 @@
         "iniciar.h": "c",
         "stdint.h": "c",
         "netdb.h": "c",
-        "manejointerfaces.h": "c"
+        "manejointerfaces.h": "c",
+        "cicloinstruccion.h": "c"
     }
 }
