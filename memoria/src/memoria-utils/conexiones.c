@@ -52,7 +52,12 @@ void esperar_paquetes_cpu()
         printf("Entró en while\n");
         t_paquete_entre *paquete_cpu = recibir_paquete_entre(socketCpu);
 
-        printf("Paquete recibido de CPU, %d, %d\n", paquete_cpu->operacion, paquete_cpu->size_payload);
+        if (paquete_cpu == NULL) {
+            log_error(logger, "No se pudo recibir el paquete de la CPU, cerrando hilo");
+            break;
+        } else {
+            log_info(logger,"Paquete recibido de CPU, %d, %d\n", paquete_cpu->operacion, paquete_cpu->size_payload);
+        }
 
         if (paquete_cpu->payload == NULL) {
             log_error(logger, "No se pudo recibir el paquete de la CPU");

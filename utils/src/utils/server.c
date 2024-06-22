@@ -63,10 +63,13 @@ Handshake esperar_cliente(int socket_servidor, t_log* logger)
 int recibir_operacion(int socket_cliente)
 {
 	int cod_op;
-	if(recv(socket_cliente, &cod_op, sizeof(int), MSG_WAITALL) > 0)
+	int recib = recv(socket_cliente, &cod_op, sizeof(int32_t), MSG_WAITALL);
+
+	if(recib > 0) {
 		return cod_op;
-	else
-	{
+	} else {
+		// print error
+		printf("recv: %s (%d)\n", strerror(errno), errno);
 		close(socket_cliente);
 		return -1;
 	}
@@ -145,9 +148,16 @@ t_paquete_entre *deserializar_paquete_entre(void *buffer)
 
 t_paquete_entre* recibir_paquete_entre(int socket_cliente)
 {
-		printf("Recibiendo paquete entre de %d", socket_cliente);
-		int op = recibir_operacion(socket_cliente);
-		printf("Operacion: %d\n", op);
+	printf("Recibiendo paquete entre de %d", socket_cliente);
+	int op = recibir_operacion(socket_cliente);
+
+	if (op == -1)
+	{
+		log_error(logger, "Error al recibir el código de operación");
+		return NULL;
+	}
+
+	printf("Operacion: %d\n", op);
  
     int size;
     void *buffer = recibir_buffer(&size, socket_cliente);
