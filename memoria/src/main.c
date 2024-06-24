@@ -12,9 +12,14 @@ int socketKernel;
 sem_t sem_cpu;
 sem_t sem_kernel;
 
+pthread_t hiloEsperaCpu;
+pthread_t hiloEsperaKernel;
+pthread_t hiloEsperaIO;
+
 void liberarMemoria() {
     log_destroy(logger);
     config_destroy(config);
+    liberar_conexion(server_fd);
 }
 
 Handshake esperar_cliente_memoria(int socket_servidor, t_log* logger) {
@@ -34,9 +39,15 @@ Handshake esperar_cliente_memoria(int socket_servidor, t_log* logger) {
     } else if(handshake == CPU) {
         log_info(logger, "Se conectó un CPU!");
         send(socket_cliente, &TAM_PAGINA, sizeof(uint32_t), 0);
-    } else {
-        log_error(logger, "Se conectó un cliente");
+    } else if (handshake == KERNEL) {
+        log_info(logger, "Se conectó un Kernel!");
         send(socket_cliente, &resultOk, sizeof(uint32_t), 0);
+    } else if (handshake == IO) {
+        log_info(logger, "Se conectó un IO!");
+        send(socket_cliente, &resultOk, sizeof(uint32_t), 0);
+    } else {
+        log_error(logger, "Se conectó un cliente desconocido");
+        send(socket_cliente, &resultError, sizeof(uint32_t), 0);
     }
 
     handshakeCliente.modulo = handshake;
@@ -76,7 +87,6 @@ int main(int argc, char* argv[]) {
     bool seConectoKernel = false;
     bool seConectoCpu = false;
 
-
     while(!seConectoKernel || !seConectoCpu) {
         Handshake res = esperar_cliente_memoria(server_fd, logger);
         int cliente = res.socket;
@@ -107,6 +117,13 @@ int main(int argc, char* argv[]) {
             break;
         }
     }
+
+    printf("Memoria inicializada, esperando hilos\n");
+
+    // esperar a los hilos
+    pthread_detach(hiloEsperaKernel);
+    pthread_join(hiloEsperaCpu, NULL);
+    // pthread_join(hiloEsperaIO, NULL);
 
     liberarMemoria();
 

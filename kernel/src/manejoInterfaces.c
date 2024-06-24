@@ -1,5 +1,5 @@
 #include <manejoInterfaces.h>
-
+#include <stdlib.h>
 
 t_dictionary* interfaces_dict;
 

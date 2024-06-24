@@ -23,7 +23,7 @@ void esperar_paquetes_kernel()
 
         switch (paquete->operacion) {
             case CREAR_PROCESO:
-                t_payload_crear_proceso *payloadCrear = deser(paquete->payload);
+                t_payload_crear_proceso *payloadCrear = deserializar_crear_proceso(paquete->payload);
                 int pidCrear = payloadCrear->pid;
                 char *path = payloadCrear->path;
                 log_info(logger, "Se llamó a CREAR_PROCESO con PID: %d, archivo: %s", pidCrear, path);
@@ -46,6 +46,7 @@ void esperar_paquetes_kernel()
 
 void esperar_paquetes_cpu()
 {
+    log_info(logger, "Esperar_paq_cpu");
     sem_wait(&sem_cpu);    
     log_info(logger,"Esperando paquetes de CPU en el socket %d\n", socketCpu);
     while (1) {

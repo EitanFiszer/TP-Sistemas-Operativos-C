@@ -1,4 +1,5 @@
 #include "serializacion.h"
+#include <string.h>
 
 // void* serializar_dato_memoria(t_payload_dato_memoria* payload, int* size_payload) {
 //     int desplazamiento = 0;

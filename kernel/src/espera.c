@@ -41,12 +41,12 @@ void atender_cliente(void *socket)
 void *esperar_paquetes_memoria(void *arg)
 {
 
-    int *socket = (int *)arg;
-    int socketMemoria = *socket;
+    // int *socket = (int *)arg;
+    // int socketMemoria = *socket;
 
     while (1)
     {
-        t_paquete_entre *unPaquete = recibir_paquete_entre(socketMemoria);
+        t_paquete_entre *unPaquete = recibir_paquete_entre(resultHandshakeMemoria);
         switch (unPaquete->operacion)
         {
         case INSTRUCCIONES_CARGADAS:
@@ -62,11 +62,11 @@ void *esperar_paquetes_memoria(void *arg)
 
 void *esperar_paquetes_cpu_dispatch(void *arg)
 {
-    int *socket_dispatch = (int *)arg;
+    // int *socket_dispatch = (int *)arg;
     while (1)
     {
 
-        t_paquete_entre *paquete_dispatch = recibir_paquete_entre(*socket_dispatch);
+        t_paquete_entre *paquete_dispatch = recibir_paquete_entre(resultHandshakeDispatch);
         switch (paquete_dispatch->operacion)
         {
         case INTERRUMPIO_PROCESO:

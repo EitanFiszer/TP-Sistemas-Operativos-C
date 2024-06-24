@@ -15,7 +15,6 @@
 
 
 extern t_log *logger;
-extern int puerto;
 extern char* ip_memoria;
 extern char* ip_cpu;
 extern char* puerto_memoria;

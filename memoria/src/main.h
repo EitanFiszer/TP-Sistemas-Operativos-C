@@ -12,10 +12,15 @@
 #include <utils/iniciar.h>
 
 #include <semaphore.h>
+#include <pthread.h>
 #include "./memoria-utils/conexiones.h"
 
 t_log* logger;
 t_config* config;
 t_bitarray *bitarray;
+
+pthread_t hiloEsperaCpu;
+pthread_t hiloEsperaKernel;
+pthread_t hiloEsperaIO;
 
 void liberarMemoria();

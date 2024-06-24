@@ -12,6 +12,10 @@ extern int TAM_PAGINA;
 extern int socketCpu;
 extern int socketKernel;
 
+extern pthread_t hiloEsperaCpu;
+extern pthread_t hiloEsperaKernel;
+extern pthread_t hiloEsperaIO;
+
 t_bitarray* iniciarBitarray(char* string) {
     int tamBitArray = TAM_MEMORIA / TAM_PAGINA;
     int tamString = (int)ceil((double)tamBitArray / 8);
@@ -38,15 +42,12 @@ t_bitarray* iniciarBitarray(char* string) {
 }
 
 void iniciarHilos() {
-    pthread_t hiloEsperaCpu;
-    pthread_t hiloEsperaKernel;
-    pthread_t hiloEsperaIO;
 
     pthread_create(&hiloEsperaCpu, NULL, (void*)esperar_paquetes_cpu, NULL);   
     pthread_create(&hiloEsperaKernel, NULL, (void*)esperar_paquetes_kernel, NULL);
     // pthread_create(&hiloEsperaIO, NULL, (void*)esperar_paquetes_io, NULL);
 
-    pthread_detach(hiloEsperaCpu);
-    pthread_detach(hiloEsperaKernel);
+    // pthread_detach(hiloEsperaCpu);
+    // pthread_detach(hiloEsperaKernel);
     // pthread_detach(hiloEsperaIO);
 }

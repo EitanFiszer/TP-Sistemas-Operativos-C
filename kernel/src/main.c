@@ -13,7 +13,7 @@
 // conexiones
 
 t_log *logger;
-int puerto;
+// int puerto;
 char *ip_memoria;
 char *ip_cpu;
 char *puerto_memoria;
@@ -39,7 +39,7 @@ void leer_configs(t_config *config)
     puerto_memoria = config_get_string_value(config, "PUERTO_MEMORIA");
     puerto_cpu_dispatch = config_get_string_value(config, "PUERTO_CPU_DISPATCH");
     puerto_cpu_interrupt = config_get_string_value(config, "PUERTO_CPU_INTERRUPT");
-    puerto = config_get_int_value(config, "PUERTO_ESCUCHA");
+    puerto_escucha = config_get_string_value(config, "PUERTO_ESCUCHA");
     quantum = config_get_int_value(config, "QUANTUM");
     algoritmo_planificacion = config_get_string_value(config, "ALGORITMO_PLANIFICACION");
 }
@@ -92,12 +92,12 @@ void iniciar_mutex()
 //     free(instancias_r);
 // }
 
-esperar_clientes_kernel(void *args)
+void esperar_clientes_kernel(void *args)
 {
     while (1)
     {
         pthread_t hilo_atender_cliente;
-        int *fd_conexion_ptr = malloc(sizeof(int));
+        int fd_conexion_ptr = -1;
         Handshake res = esperar_cliente(server_fd, logger);
         int modulo = res.modulo;
         fd_conexion_ptr = res.socket;
@@ -119,11 +119,11 @@ int main()
 {
     // decir_hola("Kernel");
     logger = iniciar_logger("kernel.log", "Kernel");
-    t_config *config = iniciar_config("../kernel.config");
+    t_config *config = iniciar_config("kernel.config");
     leer_configs(config);
     // inicializar_recursos();
     // leer_recursos(config);
-    log_info(logger, "[KERNEL] Escuchando en el puerto: %d", puerto);
+    log_info(logger, "[KERNEL] Escuchando en el puerto: %s", puerto_escucha);
 
     // cliente se conecta al sevidor
     // resultHandshakeDispatch = conectarse_cpu_dispatch(ip_cpu,puerto_cpu_dispatch);
@@ -155,7 +155,7 @@ int main()
     // HILO PARA ATENDER CLIENTES -- ESPERAR QUE SE CONECTEN IO
     pthread_t hilo_esperar_clientes;
     int err = pthread_create(&hilo_esperar_clientes, NULL, (void *)esperar_clientes_kernel, NULL);
-    pthread_join(hilo_esperar_clientes, NULL);
+    pthread_detach(hilo_esperar_clientes);
     if (err != 0)
     {
         log_error(logger, "HUBO UN ERROR AL CREAR EL HILO");
@@ -164,7 +164,7 @@ int main()
     // HILO PARA QUE ESPERA PAQUETES DE LA CPU
     pthread_t hilo_espera_cpu;
     err = pthread_create(&hilo_espera_cpu, NULL, esperar_paquetes_cpu_dispatch, NULL);
-    pthread_join(hilo_espera_cpu, NULL);
+    pthread_detach(hilo_espera_cpu);
     if (err != 0)
     {
         log_error(logger, "HUBO UN ERROR AL CREAR EL HILO");
@@ -172,7 +172,7 @@ int main()
     // HILO PARA QUE ESPERE PAQUETES DE LA MEMORIA
     pthread_t hilo_espera_memoria;
     err = pthread_create(&hilo_espera_memoria, NULL, esperar_paquetes_memoria, NULL);
-    pthread_join(hilo_espera_memoria, NULL);
+    pthread_detach(hilo_espera_memoria);
     if (err != 0)
     {
         log_error(logger, "HUBO UN ERROR AL CREAR EL HILO");
@@ -180,7 +180,7 @@ int main()
     // HILO PARA MANEJAR PLANIFICACION
     pthread_t hilo_planificacion;
     err = pthread_create(&hilo_planificacion, NULL, planificacion, NULL);
-    pthread_join(hilo_planificacion, NULL);
+    pthread_detach(hilo_planificacion);
     if (err != 0)
     {
         log_error(logger, "HUBO UN ERROR AL CREAR EL HILO");
