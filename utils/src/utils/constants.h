@@ -36,6 +36,7 @@ typedef enum {
 	AMPLIAR_PROCESO,
 	REDUCIR_PROCESO,
 	PC_A_INSTRUCCION,
+  GET_INSTRUCCION, // memoria a cpu
 	PEDIR_VALOR,
 	INSTRUCCIONES_CARGADAS,
 	//cpu kernel
@@ -104,14 +105,13 @@ typedef struct {
 } t_paquete_entre;
 
 typedef struct {
-    int PID;
-    int program_counter;
-} t_payload_pc_a_instruccion;
+  char* instruccion;
+} t_payload_get_instruccion;
 
 typedef struct {
     int PID;
-    uint32_t program_counter;
-} t_payload_fetch_instruccion;
+    int program_counter;
+} t_payload_pc_a_instruccion;
 
 typedef struct {
 	int PID;
@@ -176,7 +176,7 @@ typedef struct {
 typedef struct {
 	char* path;
 	int pid;
-} payload_crear_proceso;
+} t_payload_crear_proceso;
 
 typedef struct {
 	SYSCALL_INSTRUCCIONES instruccion;
@@ -214,12 +214,6 @@ typedef struct{
 	char* regDire;
 	char* regPuntero;
 }t_payload_fs_writeORread;
-
-
-typedef struct {
-    int pid;
-    char* path;
-} t_payload_crear_proceso;
 
 
 

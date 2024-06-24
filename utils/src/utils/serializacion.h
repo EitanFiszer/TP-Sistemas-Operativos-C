@@ -15,6 +15,8 @@
 // t_payload_io_stdin_read* deserializar_io_stdin_read(void* buffer);
 // void* serializar_io_stdin_read(t_payload_io_stdin_read* payload, int* size_payload);
 
+void* serializar_get_instruccion(t_payload_get_instruccion* payload, int *size_payload);
+t_payload_get_instruccion* deserializar_get_instruccion(void* buffer);
 
 t_payload_wait_signal* deserializar_wait_signal(void* buffer);
 void* serializar_wait_signal(t_payload_wait_signal* payload, int* size_payload);

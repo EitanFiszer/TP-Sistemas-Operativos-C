@@ -1,6 +1,8 @@
 #include "cicloInstruccion.h"
 #include <commons/string.h>
 #include <utils/server.h>
+#include <utils/envios.h>
+#include <utils/serializacion.h>
 
 extern int socketKernel;
 
@@ -9,9 +11,8 @@ int fetchInstruccion(t_PCB* pcb, int socketMemoria, char** instruccionRecibida, 
     int pid = pcb->PID;
     uint32_t pc = pcb->program_counter;
     
+    /*
     // 1.1 Crear paquete entre CPU y Memoria
-    t_paquete* paquete = crear_paquete();
-
     t_paquete_entre* instruccion = malloc(sizeof(t_paquete_entre));
     t_payload_fetch_instruccion* payload = malloc(sizeof(t_payload_fetch_instruccion));
 
@@ -25,28 +26,38 @@ int fetchInstruccion(t_PCB* pcb, int socketMemoria, char** instruccionRecibida, 
 
     // 1.3 Enviar paquete
     enviar_paquete(paquete, socketMemoria);
+    */
+
+    // 1.1 Crear paquete entre CPU y Memoria
+    t_payload_pc_a_instruccion* payload = malloc(sizeof(t_payload_pc_a_instruccion));
+    payload->PID = pid;
+    payload->program_counter = pc;
+
+    enviar_paquete_entre(socketMemoria, PC_A_INSTRUCCION, payload, sizeof(t_payload_pc_a_instruccion));
 
     // 2. Recibir instruccion de Memoria
     // 2.1 Recibir paquete
-    t_list* paqueteInstruccion = recibir_paquete(socketMemoria);
-    if (paqueteInstruccion == NULL) {
-        return -1;
-    }
-
-    // 2.2 Extraer instruccion
-    t_paquete_entre* paqueteRecibido = list_get(paqueteInstruccion, 0);
+    t_paquete_entre* paqueteRecibido = recibir_paquete_entre(socketMemoria);
     if (paqueteRecibido == NULL) {
         return -1;
     }
 
-    instruccionRecibida = paqueteRecibido->payload;
+    if (paqueteRecibido->operacion != GET_INSTRUCCION) {
+        return -1;
+    }
+
+    // 2.2 Extraer instruccion
+    t_payload_get_instruccion* payloadRecibido = deserializar_get_instruccion(paqueteRecibido->payload);
+    *instruccionRecibida = payloadRecibido->instruccion;
 
     // 5. Retornar 0 si todo salio bien, -1 si hubo un error
     if (instruccionRecibida == NULL) {
         return -1;
     }
 
-    log_info(logger, "PID: %d - FETCH - Program Counter: %d", pid, pc);
+    log_info(logger, "PID: %d, Program Counter: %d - FETCH - Instruccion: %s", pid, pc, instruccionRecibida);
+
+    
 
     return 0;
 }

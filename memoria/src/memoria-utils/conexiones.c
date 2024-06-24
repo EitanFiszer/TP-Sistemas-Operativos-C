@@ -1,6 +1,7 @@
 #include "./conexiones.h"
 #include <commons/log.h>
 #include <utils/serializacion.h>
+#include <utils/envios.h>
 #include <memoria-utils/procesos.h>
 #include <semaphore.h>
 
@@ -72,19 +73,25 @@ void esperar_paquetes_cpu()
             case PC_A_INSTRUCCION:
                 usleep(retardo_respuesta * 1000);
 
+                // Recibir PID y PC
                 t_payload_pc_a_instruccion *payload = (t_payload_pc_a_instruccion *)paquete_cpu->payload;
                 int pid = payload->PID;
                 int pc = payload->program_counter;
                 log_info(logger, "Se llamó a PC_A_INSTRUCCION para PID: %d con PC: %d", pid, pc);
-                char *instruccion = obtenerInstruccion(pid, pc);
 
-                t_paquete *respuesta = crear_paquete();
-                t_paquete_entre *instruccion_respuesta = malloc(sizeof(t_paquete_entre));
-                // Definir si incluímos un atributo "operación" = INSTRUCCION
-                instruccion_respuesta->payload = instruccion;
-                agregar_a_paquete(respuesta, instruccion_respuesta, sizeof(t_paquete_entre));
-                enviar_paquete(respuesta, socketCpu);
-                eliminar_paquete(respuesta);
+
+                // Obtener instrucción
+                char *instruccion = obtenerInstruccion(pid, pc);
+                printf("Instruccion: %s\n", instruccion);
+
+                // Enviar instrucción a CPU
+                t_payload_get_instruccion* payloadGet = malloc(sizeof(t_payload_get_instruccion));
+                payloadGet->instruccion = instruccion;
+                printf("InstruccionGet: %s\n", payloadGet->instruccion);
+
+                int size_instruccion;
+                void* instruccionSerializada = serializar_get_instruccion(payloadGet, &size_instruccion);
+                enviar_paquete_entre(socketCpu, GET_INSTRUCCION, instruccionSerializada, size_instruccion);
                 break;
             default:
                 log_info(logger, "Operación desconocida de CPU");

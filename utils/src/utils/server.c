@@ -175,7 +175,6 @@ t_paquete_entre *deserializar_paquete_entre(void *buffer)
 
 t_paquete_entre* recibir_paquete_entre(int socket_cliente)
 {
-	printf("Recibiendo paquete entre de %d", socket_cliente);
 	int op = recibir_operacion(socket_cliente);
 
 	if (op == -1)

@@ -69,6 +69,23 @@
 //     return buffer;
 // }
 
+void* serializar_get_instruccion(t_payload_get_instruccion* payload, int *size_payload) {
+    int size_instruccion = strlen(payload->instruccion) + 1; // Incluye el carácter nulo
+    *size_payload = size_instruccion;
+    void* buffer = malloc(*size_payload);
+
+    memcpy(buffer, payload->instruccion, size_instruccion);
+
+    return buffer;
+}
+
+t_payload_get_instruccion *deserializar_get_instruccion(void *buffer)
+{
+    t_payload_get_instruccion *payload = malloc(sizeof(t_payload_get_instruccion));
+    payload->instruccion = strdup(buffer);
+    return payload;
+}
+
 void *serializar_wait_signal(t_payload_wait_signal *payload, int *size_payload)
 {
     int size_recurso = strlen(payload->recurso) + 1;

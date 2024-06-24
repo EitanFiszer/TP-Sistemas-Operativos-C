@@ -51,6 +51,7 @@ void *esperar_paquetes_memoria(void *arg)
         {
         case INSTRUCCIONES_CARGADAS:
             int *PID = (int *)unPaquete->payload;
+            log_info(logger, "INSTRUCCIONES CARGADAS del PID: %d", *PID);
             cargar_ready_por_pid(*PID);
             break;
         default:
@@ -105,17 +106,18 @@ void *esperar_paquetes_cpu_dispatch(void *arg)
 
 void enviar_instrucciones_memoria(char *path, int PID)
 {
-    t_paquete *nuevo_paquete = crear_paquete();
-    t_paquete_entre *instruccion;
+    printf("enviando instrucciones a memoria, path: %s, PID: %d\n", path, PID);
 
-    payload_crear_proceso *payload = malloc(sizeof(payload_crear_proceso));
+    t_paquete *nuevo_paquete = crear_paquete();
+    t_paquete_entre *instruccion = malloc(sizeof(t_paquete_entre));
+
+    t_payload_crear_proceso *payload = malloc(sizeof(t_payload_crear_proceso));
     payload->path = path;
     payload->pid = PID;
     int size_crear;
 
     void* buffer = serializar_crear_proceso(payload, &size_crear);
 
-    instruccion = malloc(sizeof(t_paquete_entre));
     instruccion->operacion = CREAR_PROCESO;
     instruccion->size_payload = size_crear;
     instruccion->payload = buffer;

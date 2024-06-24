@@ -29,8 +29,6 @@ t_temporal* tempo_quantum;
 
 pthread_t hilo_quantum;
 
-int PID;
-
 // Recurso recursos[MAX_RECURSOS];
 
 // //colas
@@ -115,7 +113,7 @@ void iniciar_semaforos(void)
 void iniciar_proceso(char *path) // PLANIFICADOR A LARGO PLAZO
 {
     // CREO EL PROCESO LOG
-    log_info(logger, "Se crea el proceso <%d> en NEW", PID);
+    log_info(logger, "Se crea el proceso con el path %s <%d> en NEW", path, PID);
     // creo el paquete con las instrucciones para enviar a memoria las instrucciones
     enviar_instrucciones_memoria(path, PID);
     // creo la PCB Y la guardo en cola NEW
