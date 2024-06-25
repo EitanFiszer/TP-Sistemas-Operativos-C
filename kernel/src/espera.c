@@ -5,10 +5,10 @@ void atender_cliente(void *socket)
     int *socket_cliente_IO = (int *)socket;
     while (1)
     {
-        t_paquete_entre *unPaquete = recibir_paquete_entre(socket_cliente_IO);
+        t_paquete_entre *unPaquete = recibir_paquete_entre(*socket_cliente_IO);
         if (unPaquete == NULL)
         {
-            log_error(logger,"Cliente IO desconectado, socket: %d", socket_cliente_IO);
+            log_error(logger, "Cliente IO desconectado, socket: %d", *socket_cliente_IO);
         }
         else
         {
@@ -16,8 +16,8 @@ void atender_cliente(void *socket)
             {
             case IO_INTERFAZ_CREADA:
                 t_payload_interfaz_creada *datos_interfaz = deserializar_interfaz_creada(unPaquete->payload);
-                agregar_interfaz(datos_interfaz->nombre, datos_interfaz->tipo_interfaz, socket_cliente_IO);
-                log_info(logger,"NUEVA INTERFAZ %s CONECTADA", datos_interfaz->nombre);
+                agregar_interfaz(datos_interfaz->nombre, datos_interfaz->tipo_interfaz, *socket_cliente_IO);
+                log_info(logger, "NUEVA INTERFAZ %s CONECTADA", datos_interfaz->nombre);
                 break;
             default:
                 log_error(logger, "no se recibio paquete de la memoria, error");
@@ -47,16 +47,23 @@ void *esperar_paquetes_memoria(void *arg)
     while (1)
     {
         t_paquete_entre *unPaquete = recibir_paquete_entre(resultHandshakeMemoria);
-        switch (unPaquete->operacion)
+        if (unPaquete == NULL)
         {
-        case INSTRUCCIONES_CARGADAS:
-            int *PID = (int *)unPaquete->payload;
-            log_info(logger, "INSTRUCCIONES CARGADAS del PID: %d", *PID);
-            cargar_ready_por_pid(*PID);
-            break;
-        default:
-            log_error(logger, "no se recibio paquete de la memoria, error");
-            break;
+            log_error(logger, "Memoria desconectada");
+        }
+        else
+        {
+            switch (unPaquete->operacion)
+            {
+            case INSTRUCCIONES_CARGADAS:
+                int *PID = (int *)unPaquete->payload;
+                log_info(logger, "INSTRUCCIONES CARGADAS del PID: %d", *PID);
+                cargar_ready_por_pid(*PID);
+                break;
+            default:
+                log_error(logger, "no se recibio paquete de la memoria, error");
+                break;
+            }
         }
     }
 }
@@ -71,6 +78,8 @@ void *esperar_paquetes_cpu_dispatch(void *arg)
         switch (paquete_dispatch->operacion)
         {
         case INTERRUMPIO_PROCESO:
+
+            // DEPENDE PORQUE SE INTERRUMPIO EL PROCESO PUDO HABER SIDO DESALOJADO O ELIMINADO ARREGLARLO CON UN BOOL O ALGO DE ESO
             int *PID = (int *)paquete_dispatch->payload;
             cargar_ready_por_pid(*PID);
             break;
@@ -116,7 +125,7 @@ void enviar_instrucciones_memoria(char *path, int PID)
     payload->pid = PID;
     int size_crear;
 
-    void* buffer = serializar_crear_proceso(payload, &size_crear);
+    void *buffer = serializar_crear_proceso(payload, &size_crear);
 
     instruccion->operacion = CREAR_PROCESO;
     instruccion->size_payload = size_crear;

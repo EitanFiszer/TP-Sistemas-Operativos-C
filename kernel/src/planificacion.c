@@ -21,6 +21,9 @@ pthread_mutex_t  sem_q_exec;
 pthread_mutex_t  sem_CPU_libre;
 sem_t sem_cont_ready;
 
+sem_t sem_gm_actual; //semaforo grado de multiprogramacion
+
+
 int PID=0;
 
 t_temporal* tempo_quantum;
@@ -108,6 +111,7 @@ void iniciar_semaforos(void)
     pthread_mutex_init(&sem_CPU_libre, NULL);
 
     sem_init(&sem_cont_ready, 0, 0);
+    sem_init(&sem_gm_actual,0,grado_multiprog);
 }
 
 void iniciar_proceso(char *path) // PLANIFICADOR A LARGO PLAZO
@@ -149,6 +153,10 @@ t_PCB *crear_PCB(int num_pid)
 
 void cargar_ready_por_pid(int num_pid) // PLANIFICADOR A LARGO PLAZO
 {
+    
+    sem_wait(&sem_gm_actual);
+
+
     // semaforo cola new
     pthread_mutex_lock(&sem_q_new);
     t_PCB *retirar_PCB = list_remove(lista_new, num_pid);
@@ -358,6 +366,7 @@ void stl_VRR()
 
 void lts_ex(t_PCB *pcb)
 {
+    sem_post(&sem_gm_actual);
     pcb->estado = EXIT;
     pthread_mutex_lock(&sem_q_exit);
     queue_push(cola_exit, pcb);
@@ -376,35 +385,7 @@ void desalojar()
     pthread_mutex_unlock(&sem_CPU_libre);
 }
 
-void atender_wait(t_PCB *pcb, char *recurso)
-{
-    // int id_recurso = buscar_recurso(recurso);
-    // pthread_mutex_lock(&recursos[id_recurso].mutex_recurso);
-    // if (id_recurso == -1 || strcmp(recursos[id_recurso].nombre_recurso, "NA") == 0)
-    // {
-    //     // ENVIO PROCESO A EXIT
-    //     desalojar();
-    //     log_info(logger, "PID:%d - Estado Anterior: EXEC - Estado Actual: EXIT", pcb->PID);
-    //     lts_ex(pcb);
-    // }
-    // else
-    // {
-    //     recursos[id_recurso].instancias_recurso--;
-    //     if (recursos[id_recurso].instancias_recurso >= 0)
-    //     {
-    //         // quantum; // esto no va
-    //         // RECURSO ASIGNADO SEGUIR CON EJECUCION
-    //     }
-    //     else
-    //     {
-    //         // desalojo y envio a cola de bloqueados
-    //         desalojar();
-    //         queue_push(recursos[id_recurso].cola_blocked_recurso, pcb);
-    //         log_info(logger, "PID:%d - Estado Anterior: EXEC - Estado Actual: BLOCKED", pcb->PID);
-    //     }
-    // }
-    // pthread_mutex_unlock(&recursos[id_recurso].mutex_recurso);
-}
+
 
 void atender_syscall(void* args)
 {
@@ -412,33 +393,3 @@ void atender_syscall(void* args)
     hubo_syscall(pcb);
 }
 
-void atender_signal(t_PCB *pcb, char *recurso)
-{
-    // int id_recurso = buscar_recurso(recurso);
-    // pthread_mutex_lock(&recursos[id_recurso].mutex_recurso);
-    // if (id_recurso == -1 || strcmp(recursos[id_recurso].nombre_recurso, "NA") == 0)
-    // {
-    //     // ENVIO PROCESO A EXIT
-    //     desalojar();
-    //     log_info(logger, "PID:%d - Estado Anterior: EXEC - Estado Actual: EXIT", pcb->PID);
-    //     lts_ex(pcb);
-    // }
-    // else
-    // {
-    //     recursos[id_recurso].instancias_recurso++;
-    //     if (recursos[id_recurso].instancias_recurso >= 0)
-    //     {
-    //         // SE PUEDE DESBLOQUEAR UN RECURSO
-    //         // SI HAY RECURSOS EN LA COLA DE BLOQUEADOS
-    //         if (queue_size(recursos[id_recurso].cola_blocked_recurso) > 0)
-    //         {
-    //             t_PCB *retirar_bloqueo = queue_pop(recursos[id_recurso].cola_blocked_recurso);
-    //             cargar_ready(retirar_bloqueo);
-    //             log_info(logger, "PID:%d - Estado Anterior: BLOCKED - Estado Actual: READY", pcb->PID);
-    //         }
-    //     }
-    // }
-    // pthread_mutex_unlock(&recursos[id_recurso].mutex_recurso);
-}
-
-// ME FALTA VER LO DE GRADO DE MULTIPROGRAMACION

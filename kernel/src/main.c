@@ -7,6 +7,7 @@
 #include <espera.h>
 #include "planificacion.h"
 #include <utils/iniciar.h>
+#include "recursos.h"
 // #include <utils/client.h>
 // #include <utils/server.h>
 
@@ -23,6 +24,7 @@ char *puerto_cpu_interrupt;
 int resultHandshakeMemoria;
 int resultHandshakeDispatch;
 int resultHandshakeInterrupt;
+int grado_multiprog;
 // conexiones
 int server_fd;
 int64_t quantum;
@@ -31,6 +33,8 @@ char *algoritmo_planificacion;
 pthread_mutex_t logger_mutex;
 pthread_mutex_t printf_mutex;
 pthread_mutex_t consola_mutex;
+t_dictionary* diccionario_recursos;
+
 
 void leer_configs(t_config *config)
 {
@@ -42,6 +46,7 @@ void leer_configs(t_config *config)
     puerto_escucha = config_get_string_value(config, "PUERTO_ESCUCHA");
     quantum = config_get_int_value(config, "QUANTUM");
     algoritmo_planificacion = config_get_string_value(config, "ALGORITMO_PLANIFICACION");
+    grado_multiprog = config_get_int_value(config, "GRADO_MULTIPROGRAMACION");
 }
 void iniciar_mutex()
 {
@@ -49,48 +54,7 @@ void iniciar_mutex()
     pthread_mutex_init(&printf_mutex, NULL);
     pthread_mutex_init(&consola_mutex, NULL);
 }
-// void inicializar_recursos(){
 
-//     for (int i = 0; i < MAX_RECURSOS; i++) {
-//         strcpy(recursos[i].nombre_recurso, "NA"); // NA significa "No Asignado"
-//         recursos[i].instancias_recurso = 0;
-//         pthread_mutex_init(&recursos[i].mutex_recurso, NULL);
-//         queue_create(recursos[i].cola_blocked_recurso);
-//     }
-// }
-
-// void configurar_recurso(int index, char * nombre,int instancias){
-//     strncpy(recursos[index].nombre_recurso, nombre, 3);
-//     recursos[index].instancias_recurso = instancias;
-// }
-
-// void leer_recursos(t_config* config) {
-//     char** nombres_r = config_get_array_value(config,"RECURSOS");
-//     char** instancias_r = config_get_array_value(config, "INSTANCIAS_RECURSOS");
-//     if (nombres_r == NULL || instancias_r == NULL){
-//         log_info(logger,"ERROR AL LEER RECURSOS");
-//     }
-//     int i = 0;
-//     while (nombres_r[i]!=NULL && instancias_r[i] != NULL && i<MAX_RECURSOS)
-//     {
-//         int instancias = atoi (instancias_r[i]);
-//         configurar_recurso(i,nombres_r[i],instancias);
-//         i++;
-//     }
-//     // Libera la memoria asignada por config_get_array_value
-//     i = 0;
-//     while (nombres_r[i] != NULL) {
-//         free(nombres_r[i]);
-//         i++;
-//     }
-//     free(nombres_r);
-//     i = 0;
-//     while (instancias_r[i] != NULL) {
-//         free(instancias_r[i]);
-//         i++;
-//     }
-//     free(instancias_r);
-// }
 
 void esperar_clientes_kernel(void *args)
 {
@@ -105,7 +69,7 @@ void esperar_clientes_kernel(void *args)
         {
         case IO:
             log_info(logger, "Se conecto un I/O");
-            pthread_create(&hilo_atender_cliente, NULL, (void *)atender_cliente, fd_conexion_ptr);
+            pthread_create(&hilo_atender_cliente, NULL, (void *)atender_cliente, &fd_conexion_ptr);
             pthread_detach(hilo_atender_cliente);
             break;
         default:
@@ -119,16 +83,22 @@ int main()
 {
     // decir_hola("Kernel");
     logger = iniciar_logger("kernel.log", "Kernel");
-    t_config *config = iniciar_config("../kernel.config");
+    t_config *config = iniciar_config("kernel.config");
     leer_configs(config);
     // inicializar_recursos();
     // leer_recursos(config);
     log_info(logger, "[KERNEL] Escuchando en el puerto: %s", puerto_escucha);
 
+    guardar_dictionary_recursos(config);
+
+
+    //probando recursos
+    // t_recurso* unRecurso = dictionary_get(diccionario_recursos,"RA");
+    // log_info(logger,"Un nombre del diccionario : %s, con instancias: %d",unRecurso->nombre_recurso, unRecurso->instancias_recurso);
+
+
     // cliente se conecta al sevidor
-    // resultHandshakeDispatch = conectarse_cpu_dispatch(ip_cpu,puerto_cpu_dispatch);
-    // resultHandshakeDispatch = conectarse_cpu_interrupt(ip_cpu,puerto_cpu_interrupt);
-    // resultHandshakeDispatch = conectarse_memoria(ip_cpu,puerto_memoria);
+    
 
     resultHandshakeDispatch = connectAndHandshake(ip_cpu, puerto_cpu_dispatch, KERNEL, "cpu", logger);
     resultHandshakeInterrupt = connectAndHandshake(ip_cpu, puerto_cpu_interrupt, KERNEL, "cpu", logger);

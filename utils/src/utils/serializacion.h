@@ -2,7 +2,7 @@
 #define SERIALIZACION_H
 
 #include "constants.h"
-
+#include <stdlib.h>
 // t_payload_dato_memoria* deserializar_dato_memoria(void* buffer);
 // void* serializar_dato_memoria(t_payload_dato_memoria* payload, int* size_payload);
 
