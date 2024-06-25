@@ -37,6 +37,7 @@ typedef enum {
 	REDUCIR_PROCESO,
 	PC_A_INSTRUCCION,
   GET_INSTRUCCION, // memoria a cpu
+  FIN_DE_INSTRUCCIONES, // memoria a cpu
 	PEDIR_VALOR,
 	INSTRUCCIONES_CARGADAS,
 	//cpu kernel

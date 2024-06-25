@@ -5,17 +5,21 @@ extern int socketMemoria;
 extern int socketKernel;
 
 void enviar_pcb_kernel(t_PCB *pcb, OP_CODES_ENTRE operacion) {
-    t_paquete *paq = crear_paquete();
-    t_paquete_entre *paquete=malloc(sizeof(t_paquete_entre));  
+    int size_pcb;
+    void* pcbSerializado = serializar_pcb(pcb, &size_pcb);
+    enviar_paquete_entre(socketMemoria, operacion, pcbSerializado, size_pcb);
 
-    paquete->operacion = operacion;
-    paquete->payload = pcb;
-    paquete->size_payload = sizeof(t_PCB);
+    // t_paquete *paq = crear_paquete();
+    // t_paquete_entre *paquete=malloc(sizeof(t_paquete_entre));  
+
+    // paquete->operacion = operacion;
+    // paquete->payload = pcb;
+    // paquete->size_payload = sizeof(t_PCB);
     
-    agregar_paquete_entre_a_paquete(paq, paquete);
-    enviar_paquete(paq, socketKernel);
-    eliminar_paquete(paq);
-    free(paquete);
+    // agregar_paquete_entre_a_paquete(paq, paquete);
+    // enviar_paquete(paq, socketKernel);
+    // eliminar_paquete(paq);
+    // free(paquete);
 }
 
 handshake_cpu_memoria handshake_memoria(char* ip_memoria, char* puerto_memoria) {

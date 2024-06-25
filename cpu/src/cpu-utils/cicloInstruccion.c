@@ -22,10 +22,15 @@ int fetchInstruccion(t_PCB* pcb, int socketMemoria, char** instruccionRecibida, 
     // 2.1 Recibir paquete
     t_paquete_entre* paqueteRecibido = recibir_paquete_entre(socketMemoria);
     if (paqueteRecibido == NULL) {
+        free(paqueteRecibido);
         return -1;
     }
 
-    if (paqueteRecibido->operacion != GET_INSTRUCCION) {
+    if (paqueteRecibido->operacion == FIN_DE_INSTRUCCIONES) {
+        free(paqueteRecibido);
+        return -1;
+    } else if ( paqueteRecibido->operacion != GET_INSTRUCCION) {
+        free(paqueteRecibido);
         return -1;
     }
 
@@ -38,9 +43,7 @@ int fetchInstruccion(t_PCB* pcb, int socketMemoria, char** instruccionRecibida, 
         return -1;
     }
 
-    log_info(logger, "PID: %d, Program Counter: %d - FETCH - Instruccion: %s", pid, pc, instruccionRecibida);
-
-    
+    log_info(logger, "PID: %d, Program Counter: %d - FETCH - Instruccion: %s", pid, pc, *instruccionRecibida);
 
     return 0;
 }
@@ -61,15 +64,20 @@ void ejecutarInstruccion(instruccionCPU_t* instruccion, t_PCB* pcb, t_log* logge
     char* inst = instruccion->instruccion;
 
     char* paramsString = string_new();
-    for (int i = 0; i < sizeof(params); i++) {
-        string_append(&paramsString, params[i]);
-        string_append(&paramsString, ", ");
+
+    int idx = 0;
+    while(params[idx]) {
+        // string_append(&paramsString, params[i]);
+        // string_append(&paramsString, ", ");
+
+        string_append_with_format(&paramsString, "%s, ", params[idx++]);
     }
 
     log_info(logger, "PID: %d - Ejecutando: %s - %s", pcb->PID, inst, paramsString);
 
     if(string_equals_ignore_case(inst, "SET")) {
-        instruccionSet(params[0], (intptr_t)params[1], &registros);
+        instruccionSet(params[0], atoi(params[1]), &registros);
+        pcb->program_counter++;
     } else if(string_equals_ignore_case(inst, "SUM")){
         instruccionSum(pcb, params[0], params[1], registros);
     } else if(string_equals_ignore_case(inst, "SUB")) {

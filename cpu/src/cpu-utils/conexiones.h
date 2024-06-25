@@ -4,6 +4,7 @@
 #include <utils/constants.h>
 #include "./cicloInstruccion.h"
 #include <utils/serializacion.h>
+#include <utils/envios.h>
 
 void enviar_pcb_kernel(t_PCB* pcb, OP_CODES_ENTRE operacion);
 handshake_cpu_memoria handshake_memoria(char* ip_memoria, char* puerto_memoria);

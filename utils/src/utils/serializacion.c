@@ -1,78 +1,90 @@
 #include "serializacion.h"
 #include <string.h>
 
-// void* serializar_dato_memoria(t_payload_dato_memoria* payload, int* size_payload) {
-//     int desplazamiento = 0;
+/*
+void* serializar_dato_memoria(t_payload_dato_memoria* payload, int* size_payload) {
+    int desplazamiento = 0;
 
-//     *size_payload = sizeof(int) + payload->size_dato;
-//     void* buffer = malloc(*size_payload);
+    *size_payload = sizeof(int) + payload->size_dato;
+    void* buffer = malloc(*size_payload);
 
-//     memcpy(buffer + desplazamiento, &(payload->size_dato), sizeof(int));
-//     desplazamiento += sizeof(int);
-//     memcpy(buffer + desplazamiento, payload->dato, payload->size_dato);
+    memcpy(buffer + desplazamiento, &(payload->size_dato), sizeof(int));
+    desplazamiento += sizeof(int);
+    memcpy(buffer + desplazamiento, payload->dato, payload->size_dato);
 
-//     return buffer;
-// }
+    return buffer;
+}
+*/
 
-// void* serializar_enviar_dato_memoria(t_payload_enviar_dato_memoria* payload, int* size_payload) {
-//     int desplazamiento = 0;
+/*
+void* serializar_enviar_dato_memoria(t_payload_enviar_dato_memoria* payload, int* size_payload) {
+    int desplazamiento = 0;
+    *size_payload = sizeof(int) * 2 + payload->size_dato;
+    void* buffer = malloc(*size_payload);
+    memcpy(buffer + desplazamiento, &(payload->direccion), sizeof(int));
+    desplazamiento += sizeof(int);
+    memcpy(buffer + desplazamiento, &(payload->size_dato), sizeof(int));
+    desplazamiento += sizeof(int);
+    memcpy(buffer + desplazamiento, payload->dato, payload->size_dato);
+    return buffer;
+}
+*/
 
-//     *size_payload = sizeof(int) * 2 + payload->size_dato;
-//     void* buffer = malloc(*size_payload);
+/*
+t_payload_dato_memoria* deserializar_dato_memoria(void* buffer) {
+    t_payload_dato_memoria* payload = malloc(sizeof(t_payload_dato_memoria));
+    int desplazamiento = 0;
+    memcpy(&(payload->size_dato), buffer + desplazamiento, sizeof(int));
+    desplazamiento += sizeof(int);
+    payload->dato = malloc(payload->size_dato);
+    memcpy(payload->dato, buffer + desplazamiento, payload->size_dato);
+    return payload;
+}
+*/
 
-//     memcpy(buffer + desplazamiento, &(payload->direccion), sizeof(int));
-//     desplazamiento += sizeof(int);
-//     memcpy(buffer + desplazamiento, &(payload->size_dato), sizeof(int));
-//     desplazamiento += sizeof(int);
-//     memcpy(buffer + desplazamiento, payload->dato, payload->size_dato);
+/*
+t_payload_enviar_dato_memoria* deserializar_enviar_dato_memoria(void* buffer) {
+    t_payload_enviar_dato_memoria* payload = malloc(sizeof(t_payload_enviar_dato_memoria));
+    int desplazamiento = 0;
+    memcpy(&(payload->direccion), buffer + desplazamiento, sizeof(int));
+    desplazamiento += sizeof(int);
+    memcpy(&(payload->size_dato), buffer + desplazamiento, sizeof(int));
+    desplazamiento += sizeof(int);
+    payload->dato = malloc(payload->size_dato);
+    memcpy(payload->dato, buffer + desplazamiento, payload->size_dato);
+    return payload;
+}
+*/
 
-//     return buffer;
-// }
+/*
+void* serializar_io_stdin_read(t_payload_io_stdin_read* payload, int* size_payload) {
+    // Suponiendo que la estructura t_PCB tiene un tamaño fijo conocido como SIZE_T_PCB
+    int size_pcb = sizeof(t_PCB);
+    *size_payload = sizeof(int) + size_pcb;
+    void* buffer = malloc(*size_payload);
+    memcpy(buffer, payload->pcb, size_pcb);
+    memcpy(buffer + size_pcb, &(payload->tam), sizeof(int));
+    return buffer;
+}
+*/
 
-// t_payload_dato_memoria* deserializar_dato_memoria(void* buffer) {
-//     t_payload_dato_memoria* payload = malloc(sizeof(t_payload_dato_memoria));
-//     int desplazamiento = 0;
+void* serializar_pcb(t_PCB* pcb, int* size_pcb) {
+    *size_pcb = sizeof(t_PCB);
+    void* buffer = malloc(*size_pcb);
+    memcpy(buffer, pcb, *size_pcb);
+    return buffer;
+}
 
-//     memcpy(&(payload->size_dato), buffer + desplazamiento, sizeof(int));
-//     desplazamiento += sizeof(int);
-
-//     payload->dato = malloc(payload->size_dato);
-//     memcpy(payload->dato, buffer + desplazamiento, payload->size_dato);
-
-//     return payload;
-// }
-
-// t_payload_enviar_dato_memoria* deserializar_enviar_dato_memoria(void* buffer) {
-//     t_payload_enviar_dato_memoria* payload = malloc(sizeof(t_payload_enviar_dato_memoria));
-//     int desplazamiento = 0;
-
-//     memcpy(&(payload->direccion), buffer + desplazamiento, sizeof(int));
-//     desplazamiento += sizeof(int);
-//     memcpy(&(payload->size_dato), buffer + desplazamiento, sizeof(int));
-//     desplazamiento += sizeof(int);
-
-//     payload->dato = malloc(payload->size_dato);
-//     memcpy(payload->dato, buffer + desplazamiento, payload->size_dato);
-
-//     return payload;
-// }
-
-// void* serializar_io_stdin_read(t_payload_io_stdin_read* payload, int* size_payload) {
-//     // Suponiendo que la estructura t_PCB tiene un tamaño fijo conocido como SIZE_T_PCB
-//     int size_pcb = sizeof(t_PCB);
-//     *size_payload = sizeof(int) + size_pcb;
-//     void* buffer = malloc(*size_payload);
-
-//     memcpy(buffer, payload->pcb, size_pcb);
-//     memcpy(buffer + size_pcb, &(payload->tam), sizeof(int));
-
-//     return buffer;
-// }
+t_PCB* deserializar_pcb(void* buffer) {
+    t_PCB* pcb = malloc(sizeof(t_PCB));
+    memcpy(pcb, buffer, sizeof(t_PCB));
+    return pcb;
+}
 
 void* serializar_get_instruccion(t_payload_get_instruccion* payload, int *size_payload) {
     int size_instruccion = strlen(payload->instruccion) + 1; // Incluye el carácter nulo
     *size_payload = size_instruccion;
-    void* buffer = malloc(*size_payload);
+    void* buffer = malloc(size_instruccion);
 
     memcpy(buffer, payload->instruccion, size_instruccion);
 
@@ -82,7 +94,8 @@ void* serializar_get_instruccion(t_payload_get_instruccion* payload, int *size_p
 t_payload_get_instruccion *deserializar_get_instruccion(void *buffer)
 {
     t_payload_get_instruccion *payload = malloc(sizeof(t_payload_get_instruccion));
-    payload->instruccion = strdup(buffer);
+    payload->instruccion = malloc(strlen(buffer) + 1);
+    strcpy(payload->instruccion, buffer);
     return payload;
 }
 

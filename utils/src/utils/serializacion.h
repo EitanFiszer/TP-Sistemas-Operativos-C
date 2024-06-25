@@ -15,6 +15,9 @@
 // t_payload_io_stdin_read* deserializar_io_stdin_read(void* buffer);
 // void* serializar_io_stdin_read(t_payload_io_stdin_read* payload, int* size_payload);
 
+void* serializar_pcb(t_PCB* pcb, int* size_pcb);
+t_PCB* deserializar_pcb(void* buffer);
+
 void* serializar_get_instruccion(t_payload_get_instruccion* payload, int *size_payload);
 t_payload_get_instruccion* deserializar_get_instruccion(void* buffer);
 

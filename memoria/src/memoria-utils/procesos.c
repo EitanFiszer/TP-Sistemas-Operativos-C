@@ -45,12 +45,16 @@ char** leer_archivo(const char *path_archivo, int* num_lineas) {
     if (!archivo) {
         exit(1);
     } else {
-        char linea[32];
+        char linea[255];
         char** lineas = malloc(1000 * sizeof(char*)); //Puse 1000 lineas de tamanio
         int contador = 0;
 
         while (fgets(linea, sizeof(linea), archivo)) {
-            lineas[contador] = sacar_salto_linea(linea);
+            char* lineaLeida = sacar_salto_linea(linea);
+            lineas[contador] = malloc(strlen(lineaLeida) + 1);
+            strcpy(lineas[contador], lineaLeida);
+
+            printf("Linea %d: %s\n", contador, lineas[contador]);
             contador++;
             if (contador >= 1000 || feof(archivo)) { break; }
         }
@@ -71,19 +75,17 @@ void crearProceso(char* nombre_archivo, int pid) {
     strcpy(path_archivo, path_instrucciones);
     strcat(path_archivo, nombre_archivo);
 
+
     Proceso *proceso = &memoria.procesos[memoria.cant_procesos++];
     proceso->pid = pid;
     proceso->instrucciones = leer_archivo(path_archivo, &proceso->cant_instrucciones);
+    log_info(logger, "Cantidad instrucciones: %d", proceso->cant_instrucciones);
+
+    for(int i = 0; i < proceso->cant_instrucciones; i++) {
+        log_info(logger, "Instruccion %d: %s", i, proceso->instrucciones[i]);
+    }
 
     log_info(logger, "Se creó el proceso con ID: %d", pid);
-
-    char* palog = malloc(sizeof("Instrucciones: ") + 100);
-    strcpy(palog, "Instrucciones: ");
-    for (int i = 0; i < proceso->cant_instrucciones; i++) {
-        strcat(palog, proceso->instrucciones[i]);
-        strcat(palog, " ");
-    }
-    log_info(logger, palog);
 
     enviar_paquete_entre(socketKernel, INSTRUCCIONES_CARGADAS, &pid, sizeof(int));
 }
@@ -134,6 +136,8 @@ char* obtenerInstruccion(int pid, int n) {
             break;
         }
     }
+
+    printf("Indice: %d, primera instruccion: %s\n", indice, memoria.procesos[indice].instrucciones[0]);
 
     if (indice == -1) {
         return NULL;

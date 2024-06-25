@@ -84,6 +84,11 @@ void esperar_paquetes_cpu()
                 char *instruccion = obtenerInstruccion(pid, pc);
                 printf("Instruccion: %s\n", instruccion);
 
+                if (instruccion == NULL) {
+                    log_info(logger, "Fin de archivo");
+                    enviar_paquete_entre(socketCpu, FIN_DE_INSTRUCCIONES, NULL, 0);
+                }
+
                 // Enviar instrucción a CPU
                 t_payload_get_instruccion* payloadGet = malloc(sizeof(t_payload_get_instruccion));
                 payloadGet->instruccion = instruccion;
