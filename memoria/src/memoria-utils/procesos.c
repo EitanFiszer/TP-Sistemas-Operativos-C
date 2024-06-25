@@ -77,6 +77,14 @@ void crearProceso(char* nombre_archivo, int pid) {
 
     log_info(logger, "Se creó el proceso con ID: %d", pid);
 
+    char* palog = malloc(sizeof("Instrucciones: ") + 100);
+    strcpy(palog, "Instrucciones: ");
+    for (int i = 0; i < proceso->cant_instrucciones; i++) {
+        strcat(palog, proceso->instrucciones[i]);
+        strcat(palog, " ");
+    }
+    log_info(logger, palog);
+
     enviar_paquete_entre(socketKernel, INSTRUCCIONES_CARGADAS, &pid, sizeof(int));
 }
 

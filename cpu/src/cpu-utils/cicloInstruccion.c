@@ -10,23 +10,6 @@ int fetchInstruccion(t_PCB* pcb, int socketMemoria, char** instruccionRecibida, 
     // 1. Enviar PID y PC a Memoria
     int pid = pcb->PID;
     uint32_t pc = pcb->program_counter;
-    
-    /*
-    // 1.1 Crear paquete entre CPU y Memoria
-    t_paquete_entre* instruccion = malloc(sizeof(t_paquete_entre));
-    t_payload_fetch_instruccion* payload = malloc(sizeof(t_payload_fetch_instruccion));
-
-    instruccion->operacion = PC_A_INSTRUCCION;
-    payload->PID = pid;
-    payload->program_counter = pc;
-    instruccion->payload = payload;
-
-    // 1.2 Agregar PID y PC al paquete
-    agregar_a_paquete(paquete, instruccion, sizeof(t_paquete_entre));
-
-    // 1.3 Enviar paquete
-    enviar_paquete(paquete, socketMemoria);
-    */
 
     // 1.1 Crear paquete entre CPU y Memoria
     t_payload_pc_a_instruccion* payload = malloc(sizeof(t_payload_pc_a_instruccion));

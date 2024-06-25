@@ -11,7 +11,6 @@
 #include <IO-utils/Definitions.h>
 #include <pthread.h>
 #include "hilos.h"
-#include "main.h"
 
 t_log* logger;
 

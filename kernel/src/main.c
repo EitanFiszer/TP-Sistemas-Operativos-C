@@ -119,7 +119,7 @@ int main()
 {
     // decir_hola("Kernel");
     logger = iniciar_logger("kernel.log", "Kernel");
-    t_config *config = iniciar_config("../kernel.config");
+    t_config *config = iniciar_config("kernel.config");
     leer_configs(config);
     // inicializar_recursos();
     // leer_recursos(config);

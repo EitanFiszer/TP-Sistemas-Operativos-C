@@ -6,6 +6,8 @@
 #include <utils/client.h>
 #include <utils/server.h>
 #include <utils/serializacion.h>
+#include <utils/envios.h>
+
 struct args {
     char* nombre;
     char* path_config;
@@ -22,18 +24,20 @@ int conexionKernell (char* ip, char* puerto, char* tipo_interfaz, char* nombre){
     payload->nombre = nombre;
     
     int size_pay;
-    void* buffer = serializar_interfaz_creada(payload, size_pay);
+    void* buffer = serializar_interfaz_creada(payload, &size_pay);
+    enviar_paquete_entre(resultHandshake, IO_INTERFAZ_CREADA, buffer, size_pay);
 
-    t_paquete* paq = crear_paquete();
-    t_paquete_entre* paquete=malloc(sizeof(t_paquete_entre));  
-    paquete->operacion = IO_INTERFAZ_CREADA;
-    paquete->size_payload = size_pay;
-    paquete->payload = buffer;
+    // t_paquete* paq = crear_paquete();
+    // t_paquete_entre* paquete=malloc(sizeof(t_paquete_entre));  
+    // paquete->operacion = IO_INTERFAZ_CREADA;
+    // paquete->size_payload = size_pay;
+    // paquete->payload = buffer;
 
-    agregar_paquete_entre_a_paquete(paq,paquete);
-    enviar_paquete(paquete,resultHandshake);
+    // agregar_paquete_entre_a_paquete(paq,paquete);
+    // enviar_paquete(paquete,resultHandshake);
+
+
     log_info(logger, "PAQUETE CREADO Y ENVIADO A KERNEL");
-    eliminar_paquete(paq);
 
     return resultHandshake;
 }
@@ -166,6 +170,7 @@ void hilo_stdout(void* argumentos){
             break;
         }
 
+        // AGREGAR DESERIALIZACIÓN Y SERIALIZACIÓN
         op_io* operacionRecibida = paquete_dispatch->payload;
 
         switch(operacionRecibida->op_code){
@@ -179,6 +184,7 @@ void hilo_stdout(void* argumentos){
                 // Supongamos que el payload contiene la dirección de memoria a leer
                 uint32_t direccion_memoria = operacionRecibida->direccion;
 
+                // CAMBIAR A enviar_paquete_entre
                 // Enviar solicitud de lectura de memoria
                 t_paquete* paquete = crear_paquete();
                 agregar_a_paquete(paquete, &direccion_memoria, sizeof(direccion_memoria));

@@ -2,6 +2,7 @@
 
 extern t_log *logger;
 
+// EL PAYLOAD TIENE QUE ESTAR SERIALIZADO EN CASO DE TENER UN CHAR* O ALGUNA ESTRUCTURA
 void enviar_paquete_entre(int socket, OP_CODES_ENTRE operacion, void *payload, int size_payload)
 {
     t_paquete *paq = crear_paquete();
