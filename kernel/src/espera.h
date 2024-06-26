@@ -8,7 +8,7 @@
 #include "planificacion.h"
 #include "global.h"
 #include <utils/serializacion.h>
-#include "recursos.h"
+#include <utils/envios.h>#include "recursos.h"
 #include "manejoInterfaces.h"
 // void* conectarse_cpu_interrupt(void*);
 

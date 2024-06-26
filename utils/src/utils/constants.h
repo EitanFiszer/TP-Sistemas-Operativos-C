@@ -44,7 +44,7 @@ typedef enum {
 	EXEC_PROCESO, //ejecuta esta pcb
 	INTERRUMPIR_PROCESO, //DE KERNEL A CPU
 
-  IO_GEN_SLEEP,
+	IO_GEN_SLEEP,
 	IO_FS_TRUNCATE,
 	IO_FS_WRITE,
 	IO_FS_READ,
@@ -71,6 +71,7 @@ typedef enum {
 	CONEXION_IO,
 
 	INSTRUCCION_IO,
+  ESCRIBIR_MEMORIA,
 
 
 	IO_INTERFAZ_CREADA,
@@ -91,21 +92,15 @@ typedef enum {
 	FS_READ,
 } SYSCALL_INSTRUCCIONES;
 
-// typedef struct {
-// 	SYSCALL_INSTRUCCIONES instruccion;
-// 	void* payload;
-// }t_payload_syscall;
 
-// typedef struct {
-// 	OP_CODES_ENTRE operacion;
-// 	void* payload;
-// } t_paquete_entre;
+// GENERALES
 typedef struct {
 	OP_CODES_ENTRE operacion;
 	int size_payload;
 	void* payload;
 } t_paquete_entre;
 
+// CPU - MEMORIA
 typedef struct {
   char* instruccion;
 } t_payload_get_instruccion;
@@ -128,58 +123,23 @@ typedef struct {
 	int marco;
 } t_payload_direccion_fisica;
 
-
 typedef struct {
 	int pid;
 	int tam;
 } t_payload_resize_memoria;
 
+// CPU - KERNEL
 typedef struct {
-	t_PCB pcb;
-	int tam;
-} t_payload_io_stdin_read;//cambie dato PCB ARREGLARLO EN OTROS LUGARES
-
-typedef struct {
-	int direccion;
-	int dato;
-} t_payload_enviar_dato_memoria;
-
-
-//LOS SIGUIENTES PAYLOAD TIENEN UNA SERIALIZACION Y DESERIALIZACION
-typedef struct {
-	void* dato;
-} t_payload_dato_memoria;
-
-
+    int tam;
+    t_PCB* pcb;
+  	char* interfaz;
+  	int dirFisica;
+} t_payload_io_stdin_read; //cambiar en instrucciones
 
 typedef struct {
 	t_PCB* pcb;
 	char* recurso;
 } t_payload_wait_signal;
-
-
-// typedef struct {
-// 	t_PCB* pcb;
-// 	char* recurso;
-// } t_payload_signal;
-//UNI WAIT Y SIGNAL CAMBIARLO EN EL ARCHIVO
-
-
-typedef struct {
-	char* string;
-} t_payload_recibir_string_io_stdin;
-
-typedef struct {
-	op_codes_io interfaz;
-	char* op;
-	int tiempo;
-	//si es con tiempo aca 
-} t_payload_instruccion_io;
-
-typedef struct {
-	char* path;
-	int pid;
-} t_payload_crear_proceso;
 
 typedef struct {
 	SYSCALL_INSTRUCCIONES instruccion;
@@ -188,27 +148,25 @@ typedef struct {
 	char* interfaz;
 } t_payload_io_gen_sleep;
 
-typedef struct {
-	char* nombre;
-	char* tipo_interfaz;
-} t_payload_interfaz_creada;
-
 typedef struct{
 	char* interfaz;
 	char* regDire;
 	char* regTam;
+	t_PCB* pcb;
 }t_payload_io_stdout_write;
 
 typedef struct{
 	char* interfaz;
 	char* nombreArchivo;
-}t_payload_fs_create;
+	t_PCB* pcb;
+}t_payload_fs_create; //hacer serializacion
 
 typedef struct{
 	char* interfaz;
 	char* nombreArchivo;
 	char* regTam;
-}t_payload_fs_truncate;
+	t_PCB* pcb;
+}t_payload_fs_truncate; //hacer serializacion
 
 typedef struct{
 	char* interfaz;
@@ -216,66 +174,48 @@ typedef struct{
 	char* regTam;
 	char* regDire;
 	char* regPuntero;
-}t_payload_fs_writeORread;
+	t_PCB* pcb;
+}t_payload_fs_writeORread; 
 
+// IO - KERNEL
+typedef struct {
+  char* interfaz;
+  int direccionFisica;
+	int tam;
+} t_payload_io_stdin_read_de_kernel_a_io;
 
+typedef struct {
+	char* nombre;
+	char* tipo_interfaz;
+} t_payload_interfaz_creada;
 
-//no se si es un payload
-typedef struct{
-    op_codes_io op_code;
-	  uint32_t direccion;
-	  char* interfaz;
-    int tiempo;
-}t_payload_io_gen_sleep;
-
-
-
-// t_payload_enviar_dato_memoria payload = { .direccion = 1234, .size_dato = 10 };
-// payload.dato = malloc(payload.size_dato);
-// memset(payload.dato, 0, payload.size_dato);  // Ejemplo de dato
-
-// int size_payload;
-// void* serialized_payload = serializar_payload_enviar_dato_memoria(&payload, &size_payload);
-
-// t_paquete_entre paquete = { .operacion = OPERACION_ENVIAR_DATO_MEMORIA, .size_payload = size_payload, .payload = serialized_payload };
-
-// enviar_paquete_entre(&paquete, socket_cliente);
-
-// free(serialized_payload);
-// free(payload.dato);
-
-
-// t_paquete_entre* paquete_recibido = recibir_paquete_entre(socket_cliente);
-// if (paquete_recibido->operacion == OPERACION_ENVIAR_DATO_MEMORIA) {
-//     t_payload_enviar_dato_memoria* payload = deserializar_payload_enviar_dato_memoria(paquete_recibido->payload);
-//     printf("Direccion: %d, Dato: %s\n", payload->direccion, (char*)payload->dato);
-
-//     free(payload->dato);
-//     free(payload);
-// }
-
-// free(paquete_recibido->payload);
-// free(paquete_recibido);
-
-
-/*
+// KERNEL - MEMORIA
 typedef struct {
 	char* path;
 	int pid;
-} payload_crear_proceso;
+} t_payload_crear_proceso;
 
-t_paquete* crear_paquete();
-t_paquete_entre* instruccion;
-instruccion = malloc(sizeof(t_paquete_entre));
-instruccion->operacion = CREAR_PROCESO;
+// CPU/IO - MEMORIA
+typedef struct {
+	int direccion;
+	int dato;
+} t_payload_enviar_dato_memoria;
 
-payload_crear_proceso* payload = malloc(sizeof(payload_crear_proceso));
-payload->path = "test.txt";
-payload->pid = 1;
+typedef struct {
+    int direccion;
+    char* cadena;
+    int size_cadena;
+} t_payload_escribir_memoria;
 
-instruccion->payload = payload;
+typedef struct {
+	int direccion;
+	int tam;
+}t_payload_leer_memoria;
 
-agregar_a_paquete(paquete, instruccion, sizeof(t_paquete_entre));
-*/
+//LOS SIGUIENTES PAYLOAD TIENEN UNA SERIALIZACION Y DESERIALIZACION
+typedef struct {
+	void* dato;
+} t_payload_dato_memoria;
+
 
 #endif /* CONSTANTS_H */

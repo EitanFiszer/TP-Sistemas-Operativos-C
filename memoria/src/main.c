@@ -129,25 +129,3 @@ int main(int argc, char* argv[]) {
 
     return EXIT_SUCCESS;
 }
-
-
-	// while(!seConectoKernel || !seConectoCpu){
-	// 	Handshake res = esperar_cliente(server_fd, logger);
-	// 	int modulo = res.modulo;
-	// 	int socket_cliente = res.socket;
-	// 	log_info(logger, "SOCKET: %d", socket_cliente);
-	// 	switch (modulo) {
-	// 		case CPU:
-	// 			log_info(logger, "Se conecto un CPU");
-	// 			break;
-	// 		case KERNEL:
-	// 			log_info(logger, "Se conecto un Kernel");
-	// 			break;
-	// 		case IO:
-	// 			log_info(logger, "Se conecto un IO");
-	// 			break;
-	// 		default:
-	// 			log_error(logger, "Se conecto un cliente desconocido");
-	// 			break;
-	// 	}
-	// }

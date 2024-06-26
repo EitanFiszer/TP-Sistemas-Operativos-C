@@ -62,7 +62,6 @@ void* solicitar_dato_memoria(int dirFisica) {
     if (paqueteRecibidoEntero == NULL) {
         return NULL;
     }
-//ver esto pq depende del lato la serializacion
     t_payload_dato_memoria* payloadRecibido = paqueteRecibidoEntero->payload;
     void* dato = payloadRecibido->dato;
 
@@ -71,7 +70,6 @@ void* solicitar_dato_memoria(int dirFisica) {
 
 int enviar_dato_memoria(int dirFisica, int dato) {
 
-//depende del dato la serializacion
     t_payload_enviar_dato_memoria* payload = malloc(sizeof(t_payload_enviar_dato_memoria));
     payload->direccion = dirFisica;
     payload->dato = dato;
@@ -111,7 +109,7 @@ int solicitar_resize_memoria(int pid, int tam) {
 
     return resultado;
 }
-//ACA TIENEN QUE ENVIAR TAMBIEN LA PCB
+
 void solicitar_wait(char* recurso, t_PCB* pcb) {
     t_payload_wait_signal* payload = malloc(sizeof(t_payload_wait_signal));
     payload->recurso = recurso;
@@ -119,144 +117,77 @@ void solicitar_wait(char* recurso, t_PCB* pcb) {
     int size_payload;
     void* buffer = serializar_wait_signal(payload,&size_payload);
     enviar_paquete_entre(socketKernel, WAIT, payload, size_payload);
-    //esperando confirmacion del kernel
-    recibir_paquete_entre(socketKernel);
-    
 }
 
-
-//ACA ENVIAR TAMBIEN LA PCB
-void solicitar_signal(char* recurso) {
+void solicitar_signal(char* recurso, t_PCB* pcb) {
      t_payload_wait_signal* payload = malloc(sizeof(t_payload_wait_signal));
     payload->recurso = recurso;
-    // payload->pcb = pcb;
+    payload->pcb = pcb;
     int size_payload;
     void* buffer = serializar_wait_signal(payload,&size_payload);
-
-    t_paquete_entre* paquete = malloc(sizeof(t_paquete_entre));
-    paquete->operacion = SIGNAL;
-    paquete->payload = buffer;
-    paquete->size_payload = size_payload;
-
-    t_paquete* paq = crear_paquete();
-    agregar_paquete_entre_a_paquete(paq, paquete);
-
-    enviar_paquete(paq, socketKernel);
-    eliminar_paquete(paq);
+    enviar_paquete_entre(socketKernel, SIGNAL, payload, size_payload);
 }
-//ACA ENVIAR TAMBIEN PCB
-char* solicitar_io_stdin(int tam) {
+
+void solicitar_io_stdin(int tam, t_PCB* pcb, char* interfaz, char* regTam, int dirFisica) {
     t_payload_io_stdin_read* payload = malloc(sizeof(t_payload_io_stdin_read));
     payload->tam = tam;
-    // payload->pcb = pcb;
+    payload->pcb = pcb;
+    payload->interfaz = interfaz;
+    payload->regTam = regTam;
+    payload->dirFisica = dirFisica;
 
-    t_paquete_entre* paquete = malloc(sizeof(t_paquete_entre));
-    paquete->operacion = IO_STDIN_READ;
-    paquete->payload = payload;
-    
-    paquete->size_payload = sizeof(t_payload_io_stdin_read);
+    int size_payload;
+    void* buffer = serializar_io_stdin_read(payload, &size_payload);
+   enviar_paquete_entre(socketKernel, IO_STDIN_READ, buffer, size_payload);
 
-    t_paquete* paq = crear_paquete();
-    agregar_paquete_entre_a_paquete(paq, paquete);
-
-    enviar_paquete(paq, socketKernel);
-    eliminar_paquete(paq);
-
-
-    t_paquete_entre* paqueteRecibidoEntero = recibir_paquete_entre(socketKernel);
-    if (paqueteRecibidoEntero == NULL) {
-        return NULL;
-    }
-
-    t_payload_recibir_string_io_stdin* payloadRecibido = deserializar_recibir_string_io_stdin(paqueteRecibidoEntero->payload);
-    char* resultado = payloadRecibido->string;
-    return resultado;
 }
-//ACA ENVIAR TAMBIEN PCB
-void solicitar_io_stdout(char* interfaz, char* regDire, char* regTam){
+
+void solicitar_io_stdout(char* interfaz, char* regDire, char* regTam, t_PCB* pcb){
     t_payload_io_stdout_write* payload = malloc(sizeof(t_payload_io_stdout_write));
     payload->interfaz = interfaz;
     payload->regDire = regDire;
     payload->regTam = regTam;
-    // payload->pcb = pcb;
+    payload->pcb = pcb;
     int size_payload;
     void* buffer =serializar_io_stdout_write(payload,&size_payload);
 
-    t_paquete_entre* paquete = malloc(sizeof(t_paquete_entre));
-    paquete->operacion = IO_STDOUT_WRITE;
-    paquete->payload = buffer;
-    paquete->size_payload = size_payload;
-
-    t_paquete* paq = crear_paquete();
-    agregar_paquete_entre_a_paquete(paq, paquete);
-
-    enviar_paquete(paq, socketKernel);
-
-    eliminar_paquete(paquete);
+   enviar_paquete_entre(socketKernel, IO_STDOUT_WRITE, buffer, size_payload);
 }
 
-void solicitar_fs_createORdelete(char* interfaz, char* nombreArchivo, OP_CODES_ENTRE oper){
+void solicitar_fs_createORdelete(char* interfaz, char* nombreArchivo, OP_CODES_ENTRE oper, t_PCB* pcb){
     t_payload_fs_create* payload = malloc(sizeof(t_payload_fs_create));
     payload->interfaz = interfaz;
     payload->nombreArchivo = nombreArchivo;
+    payload->pcb = pcb;
     int size_payload;
     void* buffer = serializar_fs_create(payload,&size_payload);
-
-    t_paquete_entre* paquete = malloc(sizeof(t_paquete_entre));
-    paquete->operacion = oper;
-    paquete->size_payload = size_payload;
-    paquete->payload = buffer;
-
-    t_paquete* paq = crear_paquete();
-    agregar_paquete_entre_a_paquete(paq, paquete);
-
-    enviar_paquete(paq, socketKernel);
-    eliminar_paquete(paq);
+    enviar_paquete_entre(socketKernel, oper, buffer, size_payload);
 }
 
-
-void solicitar_fs_truncate(char* interfaz, char* nombreArchivo, char* regTam){
+void solicitar_fs_truncate(char* interfaz, char* nombreArchivo, char* regTam, t_PCB* pcb){
     t_payload_fs_truncate* payload = malloc(sizeof(t_payload_fs_truncate));
     payload->interfaz = interfaz;
     payload->nombreArchivo = nombreArchivo;
     payload->regTam = regTam;
-
+    payload->pcb = pcb;
     int size_payload;
     void* buffer = serializar_fs_truncate(payload, &size_payload);
-
-
-    t_paquete_entre* paquete = malloc(sizeof(t_paquete_entre));
-    paquete->operacion = IO_FS_TRUNCATE;
-    paquete->size_payload = size_payload;
-    paquete->payload = buffer;
-
-    t_paquete* paq = crear_paquete();
-    agregar_paquete_entre_a_paquete(paq, paquete);
-    enviar_paquete(paq, socketKernel);
-    eliminar_paquete(paq);
+    enviar_paquete_entre(socketKernel, FS_TRUNCATE, buffer, size_payload);
 }
 
-void solicitar_fs_writeORread(char* interfaz, char* nombreArchivo, char* regTam, char* regDire, char* regPuntero, OP_CODES_ENTRE oper){
+void solicitar_fs_writeORread(char* interfaz, char* nombreArchivo, char* regTam, char* regDire, char* regPuntero, OP_CODES_ENTRE oper, t_PCB* pcb){
     t_payload_fs_writeORread* payload = malloc(sizeof(t_payload_fs_writeORread));
     payload->interfaz = interfaz;
     payload->nombreArchivo = nombreArchivo;
     payload->regTam = regTam;
     payload->regDire = regDire;
     payload->regPuntero = regPuntero;
+    payload->pcb = pcb;
 
     int size_payload;
     void* buffer = serializar_fs_writeORread(payload, &size_payload);
 
-    t_paquete_entre* paquete = malloc(sizeof(t_paquete_entre));
-    paquete->operacion = oper;
-    paquete->size_payload =size_payload;
-    paquete->payload = buffer;
-
-    t_paquete* paq = crear_paquete();
-    agregar_paquete_entre_a_paquete(paq, paquete);
-
-    eliminar_paquete(paq);
-    enviar_paquete(paq, socketKernel);
+    enviar_paquete_entre(socketKernel, oper, buffer, size_payload);
 }
 
 

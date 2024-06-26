@@ -4,7 +4,6 @@
 t_dictionary* interfaces_dict;
 
 typedef struct {
-	char* nombre;
 	char* tipo_interfaz;
     int socket_interfaz;
     bool conectada;
@@ -17,7 +16,6 @@ void inicializar_interfaces() {
 
 void agregar_interfaz(char* nombre, char* tipo, int socket){
     datos_interfaz* nueva_interfaz = malloc(sizeof(datos_interfaz));
-    nueva_interfaz->nombre = nombre;
     nueva_interfaz->tipo_interfaz = tipo;
     nueva_interfaz->socket_interfaz = socket;
     nueva_interfaz->conectada = true;

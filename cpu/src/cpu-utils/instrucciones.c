@@ -192,8 +192,8 @@ void instruccionWait(char* recurso, t_PCB* pcb) {
 
 // Esta instrucción solicita al Kernel que se libere una instancia del recurso indicado por parámetro.
 void instruccionSignal(char* recurso, t_PCB* pcb) {
-    solicitar_signal(recurso);
     pcb->program_counter = pcb->program_counter + 1;
+    solicitar_signal(recurso, pcb);
 }
 
 // Esta instrucción solicita al Kernel que mediante la interfaz ingresada se lea desde el STDIN (Teclado) un valor cuyo tamaño está delimitado por el valor del Registro Tamaño y el mismo se guarde a partir de la Dirección Lógica almacenada en el Registro Dirección.
@@ -201,13 +201,13 @@ void instruccionIoSTDInRead(char* interfaz, char* regDire, char* regTam, registr
     int dirLogica = valorDelRegistro(regDire, registros);
     int tam = valorDelRegistro(regTam, registros);
 
-    char* string = solicitar_io_stdin(tam);
+    int dirFisica = calcularDireccionFisica(pcb->PID, dirLogica);
+
+    solicitar_io_stdin(tam, pcb, interfaz, regTam, dirFisica);
 
     if (string == NULL) {
         return;
     }
-
-    int dirFisica = calcularDireccionFisica(pcb->PID, dirLogica);
 
     int ok = enviar_dato_memoria(dirFisica, string);
 
@@ -222,42 +222,42 @@ void instruccionIoSTDInRead(char* interfaz, char* regDire, char* regTam, registr
 indicada por la Dirección Lógica almacenada en el Registro Dirección, un tamaño indicado por el Registro Tamaño 
 y se imprima por pantalla.*/
 void instruccionIoSTDOutWrite(char* interfaz, char* regDire, char* regTam, registros_t* registros, t_PCB* pcb) {
-    solicitar_io_stdout(interfaz, regDire, regTam);
     pcb->program_counter = pcb->program_counter + 1;
+    solicitar_io_stdout(interfaz, regDire, regTam, pcb);
 }
 //Esta instrucción solicita al Kernel que mediante la interfaz seleccionada, se cree un archivo en el FS montado en dicha interfaz.
 void instruccionIoFSCreate(char* interfaz, char* nombreArchivo, t_PCB* pcb) {
-    solicitar_fs_createORdelete(interfaz, nombreArchivo, IO_FS_CREATE);
     pcb->program_counter = pcb->program_counter + 1;
+    solicitar_fs_createORdelete(interfaz, nombreArchivo, IO_FS_CREATE, pcb);
 }
 //Esta instrucción solicita al Kernel que mediante la interfaz seleccionada, 
 //se elimine un archivo en el FS montado en dicha interfaz
-void instruccionIoFSDelete(char* interfaz, char* nombreArchivo, t_PCB* pcb) {
-    solicitar_fs_createORdelete(interfaz, nombreArchivo, IO_FS_DELETE);
+void instruccionIoFSDelete(char* interfaz, char* nombreArchivo, t_PCB* pcb) {    
     pcb->program_counter = pcb->program_counter + 1;
+    solicitar_fs_createORdelete(interfaz, nombreArchivo, IO_FS_DELETE, pcb);
 }
 
 /*Esta instrucción solicita al Kernel que mediante la interfaz seleccionada, se modifique el tamaño del archivo en 
 el FS montado en dicha interfaz, actualizando al valor que se encuentra en el registro indicado por Registro Tamaño.*/
 void instruccionIoFSTruncate(char* interfaz, char* nombreArchivo, char* regTam, registros_t* registros, t_PCB* pcb) {
-    solicitar_fs_truncate(interfaz, nombreArchivo, regTam);
-    pcb->program_counter = pcb->program_counter + 1;
+    pcb->program_counter = pcb->program_counter + 1; 
+    solicitar_fs_truncate(interfaz, nombreArchivo, regTam, pcb);
 }
 
 /*Esta instrucción solicita al Kernel que mediante la interfaz seleccionada, se lea desde Memoria la cantidad de 
 bytes indicadas por el Registro Tamaño a partir de la dirección lógica que se encuentra en el Registro Dirección y 
 se escriban en el archivo a partir del valor del Registro Puntero Archivo.*/
 void instruccionIoFSWrite(char* interfaz, char* nombreArchivo, char* regDire, char* regTam, char* regPuntero, registros_t* registros, t_PCB* pcb) {
-    solicitar_fs_writeORread(interfaz, nombreArchivo, regDire, regTam, regPuntero, IO_FS_WRITE);
     pcb->program_counter = pcb->program_counter + 1;
+    solicitar_fs_writeORread(interfaz, nombreArchivo, regDire, regTam, regPuntero, IO_FS_WRITE, pcb);
 }
 
 /*Esta instrucción solicita al Kernel que mediante la interfaz seleccionada, se lea desde el archivo a partir del 
 valor del Registro Puntero Archivo la cantidad de bytes indicada por Registro Tamaño y se escriban en la Memoria a 
 partir de la dirección lógica indicada en el Registro Dirección*/
 void instruccionIoFSRead(char* interfaz, char* nombreArchivo, char* regDire, char* regTam, char* regPuntero, registros_t* registros, t_PCB* pcb) {
-    solicitar_fs_writeORread(interfaz, nombreArchivo, regDire, regTam, regPuntero, IO_FS_READ);
     pcb->program_counter = pcb->program_counter + 1;
+    solicitar_fs_writeORread(interfaz, nombreArchivo, regDire, regTam, regPuntero, IO_FS_READ, pcb);
 }
 
 /*Esta instrucción representa la syscall de finalización del proceso. Se deberá devolver el 
