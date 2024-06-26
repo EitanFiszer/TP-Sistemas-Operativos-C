@@ -4,15 +4,13 @@
 #include <commons/log.h>
 #include <commons/collections/queue.h>
 #include <pthread.h>
+<<<<<<< HEAD
 #include <commons/config.h>
+=======
+#include <commons/collections/dictionary.h>
+>>>>>>> c96341f660d61b700138a1e02f9b54f64dc1de17
 
 // #define MAX_RECURSOS 10
-// typedef struct{
-//     char* nombre_recurso;
-//     int instancias_recurso;
-//     pthread_mutex_t mutex_recurso;
-//     t_queue* cola_blocked_recurso;
-// }Recurso;
 
 
 extern t_log *logger;
@@ -28,7 +26,12 @@ extern int resultHandshakeInterrupt;
 extern int server_fd;
 extern int64_t quantum;
 extern char *algoritmo_planificacion; 
+<<<<<<< HEAD
 extern t_config* config;
+=======
+extern t_dictionary* diccionario_recursos;
+extern int grado_multiprog;
+>>>>>>> c96341f660d61b700138a1e02f9b54f64dc1de17
 // extern pthread_mutex_t logger_mutex;
 // extern pthread_mutex_t printf_mutex;
 // extern pthread_mutex_t consola_mutex;

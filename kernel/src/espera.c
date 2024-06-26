@@ -2,6 +2,7 @@
 
 void atender_cliente(void *socket) {
     int *socket_cliente_IO = (int *)socket;
+<<<<<<< HEAD
     while (1) {
         t_paquete_entre *unPaquete = recibir_paquete_entre(socket_cliente_IO);
         if (unPaquete == NULL) {
@@ -17,6 +18,27 @@ void atender_cliente(void *socket) {
                 default:
                     log_error(logger, "no se recibio paquete de la memoria, error");
                     break;
+=======
+    while (1)
+    {
+        t_paquete_entre *unPaquete = recibir_paquete_entre(*socket_cliente_IO);
+        if (unPaquete == NULL)
+        {
+            log_error(logger, "Cliente IO desconectado, socket: %d", *socket_cliente_IO);
+        }
+        else
+        {
+            switch (unPaquete->operacion)
+            {
+            case IO_INTERFAZ_CREADA:
+                t_payload_interfaz_creada *datos_interfaz = deserializar_interfaz_creada(unPaquete->payload);
+                agregar_interfaz(datos_interfaz->nombre, datos_interfaz->tipo_interfaz, *socket_cliente_IO);
+                log_info(logger, "NUEVA INTERFAZ %s CONECTADA", datos_interfaz->nombre);
+                break;
+            default:
+                log_error(logger, "no se recibio paquete de la memoria, error");
+                break;
+>>>>>>> c96341f660d61b700138a1e02f9b54f64dc1de17
             }
         }
     }
@@ -39,6 +61,7 @@ void *esperar_paquetes_memoria(void *arg) {
 
     while (1) {
         t_paquete_entre *unPaquete = recibir_paquete_entre(resultHandshakeMemoria);
+<<<<<<< HEAD
         if (unPaquete == NULL) {
             log_error(logger,"Hubo un error al recibir paquete de Memoria, cerrando kernel");
             finalizar_kernel();
@@ -52,6 +75,24 @@ void *esperar_paquetes_memoria(void *arg) {
                 default:
                     log_error(logger, "no se recibio paquete de la memoria, error");
                     break;
+=======
+        if (unPaquete == NULL)
+        {
+            log_error(logger, "Memoria desconectada");
+        }
+        else
+        {
+            switch (unPaquete->operacion)
+            {
+            case INSTRUCCIONES_CARGADAS:
+                int *PID = (int *)unPaquete->payload;
+                log_info(logger, "INSTRUCCIONES CARGADAS del PID: %d", *PID);
+                cargar_ready_por_pid(*PID);
+                break;
+            default:
+                log_error(logger, "no se recibio paquete de la memoria, error");
+                break;
+>>>>>>> c96341f660d61b700138a1e02f9b54f64dc1de17
             }
         }
     }
@@ -61,11 +102,22 @@ void *esperar_paquetes_cpu_dispatch(void *arg) {
     // int *socket_dispatch = (int *)arg;
     while (1) {
         t_paquete_entre *paquete_dispatch = recibir_paquete_entre(resultHandshakeDispatch);
+<<<<<<< HEAD
         switch (paquete_dispatch->operacion) {
             case INTERRUMPIO_PROCESO:
                 int *PID = (int *)paquete_dispatch->payload;
                 cargar_ready_por_pid(*PID);
                 break;
+=======
+        switch (paquete_dispatch->operacion)
+        {
+        case INTERRUMPIO_PROCESO:
+
+            // DEPENDE PORQUE SE INTERRUMPIO EL PROCESO PUDO HABER SIDO DESALOJADO O ELIMINADO ARREGLARLO CON UN BOOL O ALGO DE ESO
+            int *PID = (int *)paquete_dispatch->payload;
+            cargar_ready_por_pid(*PID);
+            break;
+>>>>>>> c96341f660d61b700138a1e02f9b54f64dc1de17
 
             case SYSCALL:
                 desalojar();
