@@ -4,6 +4,7 @@
 #include <commons/log.h>
 #include <commons/collections/queue.h>
 #include <pthread.h>
+#include <commons/config.h>
 
 // #define MAX_RECURSOS 10
 // typedef struct{
@@ -27,6 +28,7 @@ extern int resultHandshakeInterrupt;
 extern int server_fd;
 extern int64_t quantum;
 extern char *algoritmo_planificacion; 
+extern t_config* config;
 // extern pthread_mutex_t logger_mutex;
 // extern pthread_mutex_t printf_mutex;
 // extern pthread_mutex_t consola_mutex;

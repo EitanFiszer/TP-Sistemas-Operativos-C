@@ -56,7 +56,7 @@ t_payload_enviar_dato_memoria* deserializar_enviar_dato_memoria(void* buffer) {
 }
 */
 
-/*
+
 void* serializar_io_stdin_read(t_payload_io_stdin_read* payload, int* size_payload) {
     // Suponiendo que la estructura t_PCB tiene un tamaño fijo conocido como SIZE_T_PCB
     int size_pcb = sizeof(t_PCB);
@@ -66,7 +66,16 @@ void* serializar_io_stdin_read(t_payload_io_stdin_read* payload, int* size_paylo
     memcpy(buffer + size_pcb, &(payload->tam), sizeof(int));
     return buffer;
 }
-*/
+
+t_payload_io_stdin_read* deserializar_io_stdin_read(void* buffer) {
+    t_payload_io_stdin_read* payload = malloc(sizeof(t_payload_io_stdin_read));
+    // Suponiendo que la estructura t_PCB tiene un tamaño fijo conocido como SIZE_T_PCB
+    int size_pcb = sizeof(t_PCB);
+    payload->pcb = malloc(size_pcb);
+    memcpy(payload->pcb, buffer, size_pcb);
+    memcpy(&(payload->tam), buffer + size_pcb, sizeof(int));
+    return payload;
+}
 
 void* serializar_pcb(t_PCB* pcb, int* size_pcb) {
     *size_pcb = sizeof(t_PCB);

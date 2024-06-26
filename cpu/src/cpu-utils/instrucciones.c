@@ -185,8 +185,8 @@ void instruccionCopyString(int tam, registros_t registros, t_PCB* pcb) {
 
 // Esta instrucción solicita al Kernel que se asigne una instancia del recurso indicado por parámetro.
 void instruccionWait(char* recurso, t_PCB* pcb) {
-    solicitar_wait(recurso);
     pcb->program_counter = pcb->program_counter +1;
+    solicitar_wait(recurso, pcb);
 
 }
 

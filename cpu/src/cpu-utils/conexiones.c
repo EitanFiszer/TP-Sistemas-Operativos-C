@@ -1,4 +1,5 @@
 #include "conexiones.h"
+#include <utils/envios.h>
 
 extern t_log* logger;
 extern int socketMemoria;
@@ -68,35 +69,21 @@ void* solicitar_dato_memoria(int dirFisica) {
     return dato;
 }
 
-int enviar_dato_memoria(int dirFisica, void* dato) {
+int enviar_dato_memoria(int dirFisica, int dato) {
 
 //depende del dato la serializacion
-
-
     t_payload_enviar_dato_memoria* payload = malloc(sizeof(t_payload_enviar_dato_memoria));
     payload->direccion = dirFisica;
     payload->dato = dato;
+    
+    enviar_paquete_entre(socketMemoria, ENVIAR_DATO_MEMORIA, payload, sizeof(t_payload_enviar_dato_memoria));
 
-    t_paquete_entre* paquete = malloc(sizeof(t_paquete_entre));
-    paquete->operacion = ENVIAR_DATO_MEMORIA;
-    paquete->payload = payload;
-
-    t_paquete* paq = crear_paquete();
-    agregar_a_paquete(paq, paquete, sizeof(t_paquete_entre));
-
-    enviar_paquete(paq, socketMemoria);
-
-    t_list* paqueteRecibido = recibir_paquete(socketMemoria);
+    t_paquete_entre* paqueteRecibido = recibir_paquete_entre(socketMemoria);
     if (paqueteRecibido == NULL) {
         return -1;
     }
 
-    t_paquete_entre* paqueteRecibidoEntero = list_get(paqueteRecibido, 0);
-    if (paqueteRecibidoEntero == NULL) {
-        return -1;
-    }
-
-    t_payload_dato_memoria* payloadRecibido = paqueteRecibidoEntero->payload;
+    t_payload_dato_memoria* payloadRecibido = (t_payload_dato_memoria*)paqueteRecibidoEntero->payload;
     void* resultado = payloadRecibido->dato;
 
     if (resultado == NULL) {
@@ -112,18 +99,7 @@ int solicitar_resize_memoria(int pid, int tam) {
     payload->pid = pid;
     payload->tam = tam;
 
-
-    t_paquete_entre* paquete = malloc(sizeof(t_paquete_entre));
-    paquete->operacion = RESIZE_MEMORIA;
-    paquete->payload = payload;
-    paquete->size_payload = sizeof(t_payload_resize_memoria);
-
-    t_paquete* paq = crear_paquete();
-    agregar_paquete_entre_a_paquete(paq, paquete);
-
-    enviar_paquete(paq, socketMemoria);
-    eliminar_paquete(paq);
-
+    enviar_paquete_entre(socketMemoria, RESIZE_MEMORIA, payload, sizeof(t_payload_resize_memoria));
     
     t_paquete_entre* paqueteRecibidoEntero = recibir_paquete_entre(socketMemoria);
     if (paqueteRecibidoEntero == NULL) {
@@ -136,25 +112,16 @@ int solicitar_resize_memoria(int pid, int tam) {
     return resultado;
 }
 //ACA TIENEN QUE ENVIAR TAMBIEN LA PCB
-void solicitar_wait(char* recurso) {
+void solicitar_wait(char* recurso, t_PCB* pcb) {
     t_payload_wait_signal* payload = malloc(sizeof(t_payload_wait_signal));
     payload->recurso = recurso;
-    // payload->pcb = pcb;
+    payload->pcb = pcb;
     int size_payload;
     void* buffer = serializar_wait_signal(payload,&size_payload);
-
-    t_paquete_entre* paquete = malloc(sizeof(t_paquete_entre));
-    paquete->operacion = WAIT;
-    paquete->payload = buffer;
-    paquete->size_payload = size_payload;
-
-    t_paquete* paq = crear_paquete();
-    agregar_paquete_entre_a_paquete(paq, paquete);
-
-    enviar_paquete(paq, socketKernel);
-
-    eliminar_paquete(paq);
-    free(payload);
+    enviar_paquete_entre(socketKernel, WAIT, payload, size_payload);
+    //esperando confirmacion del kernel
+    recibir_paquete_entre(socketKernel);
+    
 }
 
 

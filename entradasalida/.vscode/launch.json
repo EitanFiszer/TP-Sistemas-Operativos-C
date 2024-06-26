@@ -8,7 +8,7 @@
       "type": "cppdbg",
       "request": "launch",
       "program": "${workspaceFolder}/bin/${workspaceFolderBasename}",
-      "args": ["Int1","./IntGen.config","Int2","./IntStdin.config","Int3","./IntStdout.config"],
+      "args": ["Int1","IntGen.config","Int2","IntStdin.config","Int3","IntStdout.config"],
       "stopAtEntry": false,
       "cwd": "${workspaceFolder}",
       "environment": [],

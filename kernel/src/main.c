@@ -31,6 +31,7 @@ char *algoritmo_planificacion;
 pthread_mutex_t logger_mutex;
 pthread_mutex_t printf_mutex;
 pthread_mutex_t consola_mutex;
+t_config *config;
 
 void leer_configs(t_config *config)
 {
@@ -92,6 +93,7 @@ void iniciar_mutex()
 //     free(instancias_r);
 // }
 
+
 void esperar_clientes_kernel(void *args)
 {
     while (1)
@@ -119,7 +121,7 @@ int main()
 {
     // decir_hola("Kernel");
     logger = iniciar_logger("kernel.log", "Kernel");
-    t_config *config = iniciar_config("../kernel.config");
+    config = iniciar_config("kernel.config");
     leer_configs(config);
     // inicializar_recursos();
     // leer_recursos(config);

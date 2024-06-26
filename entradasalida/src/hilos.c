@@ -62,25 +62,18 @@ void hilo_generica(void *argumentos) {
     int resultHandshakeKernell = conexionKernell(ip_kernel, puerto_kernel, tipo_interfaz, nombre);
 
     while(1){
-        t_list* paq = recibir_paquete(resultHandshakeKernell);
-        t_paquete_entre* paquete_dispatch = list_get(paq, 0);
-        OP_CODES_ENTRE op = paquete_dispatch->operacion;
+        t_paquete_entre* paquete_entre = recibir_paquete_entre(resultHandshakeKernell);
+        OP_CODES_ENTRE op = paquete_entre->operacion;
 
-        if (op != INSTRUCCION_IO) {
-            log_error(logger, "Operacion no soportada");
-            break;
-        }
-
-        op_io* operacionRecibida = paquete_dispatch->payload;
-
-        switch(operacionRecibida->op_code){
-            case IO_GEN:
+        switch(op){
+            case IO_GEN_SLEEP:
+                t_payload_io_gen_sleep* operacionRecibida = deserializar_io_gen_sleep(paquete_entre->payload);
                 int tiempo_gen=operacionRecibida->tiempo;
                 log_info(logger,"Operacion: <IO_GEN_SLEEP>");
                 sleep(tiempo_unidad_trabajo / 1000 * tiempo_gen);
-            break;
+                break;
             default:
-            log_info(logger,"Operacion: <NO DEFINIDA>");
+              log_info(logger,"Operacion: <NO DEFINIDA>");
         }
     }
 }
@@ -110,7 +103,7 @@ void hilo_stdin(void* argumentos){
             break;
         }
 
-        op_io* operacionRecibida = paquete_dispatch->payload;
+        t_payload_io_gen_sleep* operacionRecibida = paquete_dispatch->payload;
 
         switch(operacionRecibida->op_code){
             case IO_STDIN:
@@ -171,7 +164,7 @@ void hilo_stdout(void* argumentos){
         }
 
         // AGREGAR DESERIALIZACIÓN Y SERIALIZACIÓN
-        op_io* operacionRecibida = paquete_dispatch->payload;
+        t_payload_io_gen_sleep* operacionRecibida = paquete_dispatch->payload;
 
         switch(operacionRecibida->op_code){
             case IO_STDIN:

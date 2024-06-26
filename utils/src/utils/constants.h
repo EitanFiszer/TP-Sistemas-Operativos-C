@@ -44,6 +44,7 @@ typedef enum {
 	EXEC_PROCESO, //ejecuta esta pcb
 	INTERRUMPIR_PROCESO, //DE KERNEL A CPU
 
+  IO_GEN_SLEEP,
 	IO_FS_TRUNCATE,
 	IO_FS_WRITE,
 	IO_FS_READ,
@@ -138,16 +139,17 @@ typedef struct {
 	int tam;
 } t_payload_io_stdin_read;//cambie dato PCB ARREGLARLO EN OTROS LUGARES
 
+typedef struct {
+	int direccion;
+	int dato;
+} t_payload_enviar_dato_memoria;
+
 
 //LOS SIGUIENTES PAYLOAD TIENEN UNA SERIALIZACION Y DESERIALIZACION
 typedef struct {
 	void* dato;
 } t_payload_dato_memoria;
 
-typedef struct {
-	int direccion;
-	void* dato;
-} t_payload_enviar_dato_memoria;
 
 
 typedef struct {
@@ -221,10 +223,10 @@ typedef struct{
 //no se si es un payload
 typedef struct{
     op_codes_io op_code;
-	char* interfaz;
+	  uint32_t direccion;
+	  char* interfaz;
     int tiempo;
-	uint32_t direccion;
-}op_io;
+}t_payload_io_gen_sleep;
 
 
 

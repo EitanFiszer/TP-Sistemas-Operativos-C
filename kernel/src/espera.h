@@ -13,6 +13,7 @@
 
 void atender_cliente(void*);   
 
+void finalizar_kernel();
 void* esperar_paquetes_memoria(void*);
 void* esperar_paquetes_cpu_dispatch(void*);
 

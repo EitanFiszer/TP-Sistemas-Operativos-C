@@ -7,8 +7,8 @@
 #include <commons/config.h>
 #include <commons/string.h>
 #include <utils/constants.h>
+#include <utils/iniciar.h>
 #include <string.h>
-#include <IO-utils/Definitions.h>
 #include <pthread.h>
 #include "hilos.h"
 

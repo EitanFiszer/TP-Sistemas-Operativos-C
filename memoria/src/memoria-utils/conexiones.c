@@ -87,6 +87,7 @@ void esperar_paquetes_cpu()
                 if (instruccion == NULL) {
                     log_info(logger, "Fin de archivo");
                     enviar_paquete_entre(socketCpu, FIN_DE_INSTRUCCIONES, NULL, 0);
+                    break;
                 }
 
                 // Enviar instrucción a CPU
