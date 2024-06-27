@@ -78,18 +78,18 @@ void* serializar_stdin_read_de_kernel_a_io(t_payload_io_stdin_read_de_kernel_a_i
     return buffer;
 }
 
-t_payload_io_stdin_read_de_kernel_a_io deserializar_io_stdin_read_de_kernel_a_io(void* buffer) {
-    t_payload_io_stdin_read_de_kernel_a_io payload;
+t_payload_io_stdin_read_de_kernel_a_io* deserializar_io_stdin_read_de_kernel_a_io(void* buffer) {
+    t_payload_io_stdin_read_de_kernel_a_io* payload = malloc(sizeof(t_payload_io_stdin_read_de_kernel_a_io));
     int desplazamiento = 0;
     int size_interfaz;
     memcpy(&size_interfaz, buffer + desplazamiento, sizeof(int));
     desplazamiento += sizeof(int);
-    payload.interfaz = malloc(size_interfaz);
-    memcpy(payload.interfaz, buffer + desplazamiento, size_interfaz);
+    payload->interfaz = malloc(size_interfaz);
+    memcpy(payload->interfaz, buffer + desplazamiento, size_interfaz);
     desplazamiento += size_interfaz;
-    memcpy(&payload.direccionFisica, buffer + desplazamiento, sizeof(int));
+    memcpy(&payload->direccionFisica, buffer + desplazamiento, sizeof(int));
     desplazamiento += sizeof(int);
-    memcpy(&payload.tam, buffer + desplazamiento, sizeof(int));
+    memcpy(&payload->tam, buffer + desplazamiento, sizeof(int));
     return payload;
 }
 
@@ -307,55 +307,48 @@ t_payload_crear_proceso *deserializar_crear_proceso(void *buffer)
     return payload;
 }
 void *serializar_io_stdout_write(t_payload_io_stdout_write *payload, int *size_payload){
+    /*
+      typedef struct{
+        char* interfaz;
+        int direccionFisica;
+        int tam;
+        t_PCB* pcb;
+      }t_payload_io_stdout_write;
+    */
     int size_interfaz = strlen(payload->interfaz) + 1;
-    int size_regDire = strlen(payload->regDire) + 1;
-    int size_regTam = strlen(payload->regTam) + 1;
-
-    *size_payload = sizeof(int) * 3 + size_interfaz + size_regDire + size_regTam;
-
+    int size_pcb = sizeof(t_PCB);
+    *size_payload = sizeof(int) + size_interfaz + sizeof(int) * 2 + size_pcb;
     void* buffer = malloc(*size_payload);
-    int offset = 0;
-
-    memcpy(buffer + offset, &size_interfaz, sizeof(int));
-    offset += sizeof(int);
-    memcpy(buffer + offset, payload->interfaz, size_interfaz);
-    offset += size_interfaz;
-    memcpy(buffer + offset, &size_regDire, sizeof(int));
-    offset += sizeof(int);
-    memcpy(buffer + offset, payload->regDire, size_regDire);
-    offset += size_regDire;
-    memcpy(buffer + offset, &size_regTam, sizeof(int));
-    offset += sizeof(int);
-    memcpy(buffer + offset, payload->regTam, size_regTam);
-
+    int desplazamiento = 0;
+    memcpy(buffer + desplazamiento, &size_interfaz, sizeof(int));
+    desplazamiento += sizeof(int);
+    memcpy(buffer + desplazamiento, payload->interfaz, size_interfaz);
+    desplazamiento += size_interfaz;
+    memcpy(buffer + desplazamiento, &payload->direccionFisica, sizeof(int));
+    desplazamiento += sizeof(int);
+    memcpy(buffer + desplazamiento, &payload->tam, sizeof(int));
+    desplazamiento += sizeof(int);
+    memcpy(buffer + desplazamiento, payload->pcb, size_pcb);
     return buffer;
+
 }
 
-
 t_payload_io_stdout_write *deserializar_io_stdout_write(void *buffer){
-    t_payload_io_stdout_write* payload = malloc(sizeof(t_payload_io_stdout_write));
-    int offset = 0;
-
+    t_payload_io_stdout_write *payload = malloc(sizeof(t_payload_io_stdout_write));
+    int desplazamiento = 0;
     int size_interfaz;
-    memcpy(&size_interfaz, buffer + offset, sizeof(int));
-    offset += sizeof(int);
+    memcpy(&size_interfaz, buffer + desplazamiento, sizeof(int));
+    desplazamiento += sizeof(int);
     payload->interfaz = malloc(size_interfaz);
-    memcpy(payload->interfaz, buffer + offset, size_interfaz);
-    offset += size_interfaz;
-
-    int size_regDire;
-    memcpy(&size_regDire, buffer + offset, sizeof(int));
-    offset += sizeof(int);
-    payload->regDire = malloc(size_regDire);
-    memcpy(payload->regDire, buffer + offset, size_regDire);
-    offset += size_regDire;
-
-    int size_regTam;
-    memcpy(&size_regTam, buffer + offset, sizeof(int));
-    offset += sizeof(int);
-    payload->regTam = malloc(size_regTam);
-    memcpy(payload->regTam, buffer + offset, size_regTam);
-
+    memcpy(payload->interfaz, buffer + desplazamiento, size_interfaz);
+    desplazamiento += size_interfaz;
+    memcpy(&payload->direccionFisica, buffer + desplazamiento, sizeof(int));
+    desplazamiento += sizeof(int);
+    memcpy(&payload->tam, buffer + desplazamiento, sizeof(int));
+    desplazamiento += sizeof(int);
+    int size_pcb = sizeof(t_PCB);
+    payload->pcb = malloc(size_pcb);
+    memcpy(payload->pcb, buffer + desplazamiento, size_pcb);
     return payload;
 }
 

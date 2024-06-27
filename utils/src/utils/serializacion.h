@@ -11,7 +11,9 @@
 // void* serializar_enviar_dato_memoria(t_payload_enviar_dato_memoria* payload, int* size_payload);
 
 // void* serializar_stdin_read_de_kernel_a_io(t_payload_io_stdin_read_de_kernel_a_io payload, int* size_payload);
-t_payload_io_stdin_read_de_kernel_a_io deserializar_io_stdin_read_de_kernel_a_io(void* buffer);
+t_payload_io_stdin_read_de_kernel_a_io* deserializar_io_stdin_read_de_kernel_a_io(void* buffer);
+
+void* serializar_escribir_memoria(t_payload_escribir_memoria* payload, int* size_payload);
 
 // t_payload_io_stdin_read* deserializar_io_stdin_read(void* buffer);
 // void* serializar_io_stdin_read(t_payload_io_stdin_read* payload, int* size_payload);

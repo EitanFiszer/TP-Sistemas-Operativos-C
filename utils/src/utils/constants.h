@@ -150,8 +150,8 @@ typedef struct {
 
 typedef struct{
 	char* interfaz;
-	char* regDire;
-	char* regTam;
+	int direccionFisica;
+	int tam;
 	t_PCB* pcb;
 }t_payload_io_stdout_write;
 

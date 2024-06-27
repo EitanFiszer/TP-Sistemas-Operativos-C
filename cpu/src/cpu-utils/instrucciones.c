@@ -227,7 +227,12 @@ indicada por la Dirección Lógica almacenada en el Registro Dirección, un tama
 y se imprima por pantalla.*/
 void instruccionIoSTDOutWrite(char* interfaz, char* regDire, char* regTam, registros_t* registros, t_PCB* pcb) {
     pcb->program_counter = pcb->program_counter + 1;
-    solicitar_io_stdout(interfaz, regDire, regTam, pcb);
+    int direccion = valorDelRegistro(regDire, registros);
+    int tam = valorDelRegistro(regTam, registros);
+
+    int direccionFisica = calcularDireccionFisica(pcb->PID, direccion);
+
+    solicitar_io_stdout(interfaz, direccionFisica, tam, pcb);
 }
 //Esta instrucción solicita al Kernel que mediante la interfaz seleccionada, se cree un archivo en el FS montado en dicha interfaz.
 void instruccionIoFSCreate(char* interfaz, char* nombreArchivo, t_PCB* pcb) {

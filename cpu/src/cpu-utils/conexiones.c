@@ -140,11 +140,11 @@ void solicitar_io_stdin(int tam, t_PCB* pcb, char* interfaz, char* regTam, int d
     enviar_paquete_entre(socketKernel, IO_STDIN_READ, buffer, size_payload);
 }
 
-void solicitar_io_stdout(char* interfaz, char* regDire, char* regTam, t_PCB* pcb){
+void solicitar_io_stdout(char* interfaz, int direccionFisica, int tam, t_PCB* pcb){
     t_payload_io_stdout_write* payload = malloc(sizeof(t_payload_io_stdout_write));
     payload->interfaz = interfaz;
-    payload->regDire = regDire;
-    payload->regTam = regTam;
+    payload->direccionFisica = direccionFisica;
+    payload->tam = tam;
     payload->pcb = pcb;
     int size_payload;
     void* buffer =serializar_io_stdout_write(payload,&size_payload);
