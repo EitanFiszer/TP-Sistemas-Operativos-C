@@ -12,10 +12,11 @@ extern sem_t sem_kernel;
 extern sem_t sem_cpu;
 extern int socketKernel;
 extern int socketCpu;
+extern int socketIO;
+extern int server_fd;
 
 
-void esperar_paquetes_kernel()
-{
+void esperar_paquetes_kernel() {
     sem_wait(&sem_kernel);
     printf("Esperando paquetes de KERNEL en el socket %d\n", socketKernel);
 
@@ -45,8 +46,7 @@ void esperar_paquetes_kernel()
     }
 }
 
-void esperar_paquetes_cpu()
-{
+void esperar_paquetes_cpu() {
     log_info(logger, "Esperar_paq_cpu");
     sem_wait(&sem_cpu);    
     log_info(logger,"Esperando paquetes de CPU en el socket %d\n", socketCpu);
@@ -108,4 +108,16 @@ void esperar_paquetes_cpu()
 
         // eliminar_paquete(paquete_cpu);
     }
+}
+
+int esperarClienteIO() {
+  Handshake res = esperar_cliente(server_fd, logger);
+}
+
+void esperar_paquetes_io() {
+  while (1) {
+    pthread_t thread;
+    int *fd_conexion_ptr = malloc(sizeof(int));
+
+  }
 }

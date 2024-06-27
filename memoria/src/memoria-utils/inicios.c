@@ -45,7 +45,7 @@ void iniciarHilos() {
 
     pthread_create(&hiloEsperaCpu, NULL, (void*)esperar_paquetes_cpu, NULL);   
     pthread_create(&hiloEsperaKernel, NULL, (void*)esperar_paquetes_kernel, NULL);
-    // pthread_create(&hiloEsperaIO, NULL, (void*)esperar_paquetes_io, NULL);
+    pthread_create(&hiloEsperaIO, NULL, (void*)esperar_paquetes_io, NULL);
 
     // pthread_detach(hiloEsperaCpu);
     // pthread_detach(hiloEsperaKernel);

@@ -13,6 +13,7 @@
 #include "hilos.h"
 
 t_log* logger;
+int socketMemoria;
 
 void crearHilo(char* nombre, char* path_config) {
 
@@ -64,6 +65,10 @@ int main(int argc, char* argv[]) {
     logger = log_create("entradasalida.log", "Entrada_Salida", 1, LOG_LEVEL_INFO);
     t_config* config = config_create("EntradaSalida.config");
 
+    char* ipMemoria = config_get_string_value(config, "IP_MEMORIA");
+    char* puertoMemoria = config_get_string_value(config, "PUERTO_MEMORIA");
+    socketMemoria = connectAndHandshake(ipMemoria, puertoMemoria, IO, "memoria", logger);
+    
     // Asegúrate de que hay un número par de argumentos
     if ((argc - 1) % 2 != 0) {
         log_error(logger, "Número incorrecto de argumentos.");

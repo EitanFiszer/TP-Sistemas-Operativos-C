@@ -15,6 +15,7 @@ struct args {
 };
 
 extern t_log* logger;
+extern int socketMemoria;
 
 int conexionKernell(char* ip, char* puerto, char* tipo_interfaz, char* nombre) {
     int resultHandshake = connectAndHandshake(ip, puerto, IO, "kernel", logger);
@@ -42,10 +43,10 @@ int conexionKernell(char* ip, char* puerto, char* tipo_interfaz, char* nombre) {
     return resultHandshake;
 }
 
-int conexionMemoria(char* ip, char* puerto) {
-    int resultHandshake = connectAndHandshake(ip, puerto, IO, "memoria", logger);
-    return resultHandshake;
-}
+// int conexionMemoria(char* ip, char* puerto) {
+//     int resultHandshake = connectAndHandshake(ip, puerto, IO, "memoria", logger);
+//     return resultHandshake;
+// }
 
 void hilo_generica(void* argumentos) {
     struct args* nombreYpath = argumentos;
@@ -93,37 +94,34 @@ void hilo_stdin(void* argumentos) {
     int resultHandshakeKernell = conexionKernell(ip_kernel, puerto_kernel, tipo_interfaz, nombre);
 
     while (1) {
-        t_paquete_entre* paquete_dispatch = recibir_paquete_entre(resultHandshakeKernell);
+        t_paquete_entre* paquete_entre = recibir_paquete_entre(resultHandshakeKernell);
         OP_CODES_ENTRE op = paquete_entre->operacion;
+
 
         switch (op) {
             case IO_STDIN_READ:
-                t_payload_io_stdin_read_de_kernel_a_io* operacionRecibida = deserializar_io_stdin_read_de_kernel_a_io(paquete_dispatch->payload);
-                int resultHandshakeMemoria = conexionMemoria(ip_memoria, puerto_memoria);
 
-                if (resultHandshakeMemoria < 0) {
-                    log_error(logger, "Error conectando a memoria");
-                    break;
-                }
+                t_payload_io_stdin_read_de_kernel_a_io* operacionRecibida = deserializar_io_stdin_read_de_kernel_a_io(paquete_entre->payload);
 
-                char input[operacionRecibida->tamaño];
+                int inputSize = operacionRecibida->tam;
+                char* input;
                 printf("Ingrese texto: ");
-                fgets(input, sizeof(input), stdin);
+                fgets(input, inputSize, stdin);
                 input[strcspn(input, "\n")] = 0;  // Elimina el salto de línea
-
+                
                 t_payload_escribir_memoria* payload = malloc(sizeof(t_payload_escribir_memoria));
-                payload->direccion = operacionRecibida->direccion;
+                payload->direccion = operacionRecibida->direccionFisica;
                 payload->cadena = input;
                 payload->size_cadena = strlen(input) + 1;  // +1 para incluir el '\0'
 
                 int size_payload;
                 void* payloadSerializado = serializar_escribir_memoria(payload, &size_payload);
-                enviar_paquete_entre(resultHandshakeMemoria, ESCRIBIR_MEMORIA, payloadSerializado, sizeof(t_payload_escribir_memoria));
+                enviar_paquete_entre(socketMemoria, ESCRIBIR_MEMORIA, payloadSerializado, sizeof(t_payload_escribir_memoria));
 
+                
                 // Cerrar conexión con memoria
-                close(resultHandshakeMemoria);
+                // close(resultHandshakeMemoria);
                 break;
-
             default:
                 log_info(logger, "Operacion: <NO DEFINIDA>");
         }
@@ -139,8 +137,8 @@ void hilo_stdout(void* argumentos) {
 
     char* ip_kernel = config_get_string_value(config, "IP_KERNEL");
     char* puerto_kernel = config_get_string_value(config, "PUERTO_KERNEL");
-    char* ip_memoria = config_get_string_value(config, "IP_MEMORIA");
-    char* puerto_memoria = config_get_string_value(config, "PUERTO_MEMORIA");
+    // char* ip_memoria = config_get_string_value(config, "IP_MEMORIA");
+    // char* puerto_memoria = config_get_string_value(config, "PUERTO_MEMORIA");
     char* tipo_interfaz = config_get_string_value(config, "TIPO_INTERFAZ");
 
     int resultHandshakeKernell = conexionKernell(ip_kernel, puerto_kernel, tipo_interfaz, nombre);
@@ -153,36 +151,25 @@ void hilo_stdout(void* argumentos) {
         // AGREGAR DESERIALIZACIÓN Y SERIALIZACIÓN
         switch (op) {
             case IO_STDOUT_WRITE:
-                t_payload_io_stdout_write* operacionRecibida = paquete_dispatch->payload;
-                int resultHandshakeMemoria = conexionMemoria(ip_memoria, puerto_memoria);
-                
-                if (resultHandshakeMemoria < 0) {
-                    log_error(logger, "Error conectando a memoria");
-                    break;
-                }
+                t_payload_io_stdout_write* operacionRecibida = deserializar_io_stdout_write(paquete_dispatch->payload);
 
-                // Supongamos que el payload contiene la dirección de memoria a leer
-                uint32_t direccion_memoria = operacionRecibida->direccion;
+                t_payload_solicitar_dato_memoria* payloadMandar = malloc(sizeof(t_payload_solicitar_dato_memoria));
+                payloadMandar->direccion = operacionRecibida->direccionFisica;
 
-                // CAMBIAR A enviar_paquete_entre
-                // Enviar solicitud de lectura de memoria
-                t_paquete* paquete = crear_paquete();
-                agregar_a_paquete(paquete, &direccion_memoria, sizeof(direccion_memoria));
-                enviar_paquete(paquete, resultHandshakeMemoria);
-                eliminar_paquete(paquete);
+                enviar_paquete_entre(socketMemoria, SOLICITAR_DATO_MEMORIA, payloadMandar, sizeof(t_payload_solicitar_dato_memoria));
 
                 // Recibir respuesta de la memoria
-                t_paquete_entre* respuesta = recibir_paquete_entre(resultHandshakeMemoria);
+                t_paquete_entre* respuesta = recibir_paquete_entre(socketMemoria);
                 char* valor_leido = (char*)respuesta->payload;
 
                 log_info(logger, "Valor leído de memoria: %s", valor_leido);
 
                 // Mostrar el valor leído en la consola
-                printf("Valor leído de memoria en la dirección %u: %s\n", direccion_memoria, valor_leido);
+                printf("Valor leído de memoria en la dirección %u: %s\n", operacionRecibida->direccionFisica, valor_leido);
 
                 // Limpiar la lista recibida y cerrar conexión
                 list_destroy(respuesta);
-                close(resultHandshakeMemoria);
+                // close(resultHandshakeMemoria);
 
                 break;
             default:

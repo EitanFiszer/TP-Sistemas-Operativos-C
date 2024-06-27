@@ -8,9 +8,11 @@ int server_fd = 0;
 
 int socketCpu;
 int socketKernel;
+int socketIO;
 
 sem_t sem_cpu;
 sem_t sem_kernel;
+sem_t sem_io;
 
 pthread_t hiloEsperaCpu;
 pthread_t hiloEsperaKernel;
@@ -59,6 +61,7 @@ Handshake esperar_cliente_memoria(int socket_servidor, t_log* logger) {
 void iniciarSemaforos() {
     sem_init(&sem_cpu, 0, 0);
     sem_init(&sem_kernel, 0, 0);
+    sem_init(&sem_io, 0, 0);
 }
 
 int main(int argc, char* argv[]) {
@@ -86,22 +89,15 @@ int main(int argc, char* argv[]) {
 
     bool seConectoKernel = false;
     bool seConectoCpu = false;
+    bool seConectoIO = false;
 
-    while(!seConectoKernel || !seConectoCpu) {
+    while(!seConectoKernel || !seConectoCpu || !seConectoIO) {
         Handshake res = esperar_cliente_memoria(server_fd, logger);
         int cliente = res.socket;
         ID modulo = res.modulo;
         
-        if (modulo == KERNEL) {
-            if (seConectoKernel) {
-              log_error(logger, "Ya se conectó un Kernel");
-              break;
-            }
-            log_info(logger, "Se conectó un Kernel en el socket %d", cliente);
-            socketKernel = cliente;
-            sem_post(&sem_kernel);
-            seConectoKernel = true;
-        } else if (modulo == CPU) {
+        switch (modulo) {
+          case CPU:
             if (seConectoCpu) {
               log_error(logger, "Ya se conectó un CPU");
               break;
@@ -110,10 +106,29 @@ int main(int argc, char* argv[]) {
             socketCpu = cliente;
             sem_post(&sem_cpu);
             seConectoCpu = true;
-        } else if (modulo == IO) {
-            log_info(logger, "Se conectó un IO");
-        } else {
-            log_error(logger, "Se conectó un cliente desconocido");
+            break;
+          case KERNEL:
+            if (seConectoKernel) {
+              log_error(logger, "Ya se conectó un Kernel");
+              break;
+            }
+            log_info(logger, "Se conectó un Kernel en el socket %d", cliente);
+            socketKernel = cliente;
+            sem_post(&sem_kernel);
+            seConectoKernel = true;
+            break;
+          case IO:
+            if (seConectoIO) {
+              log_error(logger, "Ya se conectó un IO");
+              break;
+            }
+            log_info(logger, "Se conectó un IO en el socket %d", cliente);
+            socketIO = cliente;
+            sem_post(&sem_io);
+            seConectoIO = true;
+            break;
+          default:
+            log_info(logger, "Operación desconocida de KERNEL");
             break;
         }
     }
@@ -122,8 +137,8 @@ int main(int argc, char* argv[]) {
 
     // esperar a los hilos
     pthread_detach(hiloEsperaKernel);
-    pthread_join(hiloEsperaCpu, NULL);
-    // pthread_join(hiloEsperaIO, NULL);
+    pthread_detach(hiloEsperaCpu);
+    pthread_join(hiloEsperaIO, NULL);
 
     liberarMemoria();
 

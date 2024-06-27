@@ -9,5 +9,6 @@
 
 void esperar_paquetes_kernel();
 void esperar_paquetes_cpu();
+void esperar_paquetes_io();
 
 #endif
