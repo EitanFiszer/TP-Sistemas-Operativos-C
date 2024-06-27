@@ -209,13 +209,24 @@ typedef struct {
 
 typedef struct {
 	int direccion;
-	int tam;
+	int size_cadena;
 }t_payload_leer_memoria;
 
 //LOS SIGUIENTES PAYLOAD TIENEN UNA SERIALIZACION Y DESERIALIZACION
 typedef struct {
 	void* dato;
 } t_payload_dato_memoria;
+
+typedef struct {
+  char* string;
+  int size_string;
+} t_payload_recibir_string_io_stdin;
+
+typedef struct {
+  char* interfaz;
+  char* op;
+  int tiempo;
+} t_payload_instruccion_io;
 
 
 #endif /* CONSTANTS_H */

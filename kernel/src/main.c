@@ -33,12 +33,9 @@ char *algoritmo_planificacion;
 pthread_mutex_t logger_mutex;
 pthread_mutex_t printf_mutex;
 pthread_mutex_t consola_mutex;
-<<<<<<< HEAD
 t_config *config;
-=======
 t_dictionary* diccionario_recursos;
 
->>>>>>> c96341f660d61b700138a1e02f9b54f64dc1de17
 
 void leer_configs(t_config *config)
 {
@@ -88,11 +85,7 @@ int main()
 {
     // decir_hola("Kernel");
     logger = iniciar_logger("kernel.log", "Kernel");
-<<<<<<< HEAD
-    config = iniciar_config("kernel.config");
-=======
-    t_config *config = iniciar_config("kernel.config");
->>>>>>> c96341f660d61b700138a1e02f9b54f64dc1de17
+    config = iniciar_config("../kernel.config");
     leer_configs(config);
     // inicializar_recursos();
     // leer_recursos(config);

@@ -11,5 +11,5 @@ typedef struct {
 
 int fetchInstruccion(t_PCB* pcb, int socketMemoria, char** instruccionRecibida, t_log* logger);
 instruccionCPU_t* dividirInstruccion(char* instruccion);
-void ejecutarInstruccion(instruccionCPU_t* instruccionCPU, t_PCB* pcb, t_log* logger, registros_t registros, int socketKernel);
+void ejecutarInstruccion(instruccionCPU_t* instruccionCPU, t_PCB* pcb, t_log* logger, int socketKernel);
 void ejecutarCicloCompleto(t_PCB* pcb);

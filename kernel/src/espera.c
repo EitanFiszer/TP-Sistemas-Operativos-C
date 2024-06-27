@@ -105,7 +105,7 @@ void enviar_instrucciones_memoria(char *path, int PID) {
     payload->pid = PID;
     int size_crear;
 
-    void *buffer = serializar_crear_proceso(payload, &size_crear, buffer, size_crear);
+    void *buffer = serializar_crear_proceso(payload, &size_crear);
     enviar_paquete_entre(resultHandshakeMemoria, CREAR_PROCESO, buffer, size_crear);
 }
 

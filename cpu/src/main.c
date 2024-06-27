@@ -175,7 +175,7 @@ int main(int argc, char* argv[]) {
                     instruccionCPU_t* instruccion = dividirInstruccion(instruccionRecibida);
 
                     // Ejecuto la instruccion
-                    ejecutarInstruccion(instruccion, pcb, logger, registros, socketKernel);
+                    ejecutarInstruccion(instruccion, pcb, logger, socketKernel);
                 }
                 if (interrupcion) {
                     log_info(logger, "Interrupcion recibida");
@@ -192,58 +192,7 @@ int main(int argc, char* argv[]) {
                 break;
         }
 
-    }  // El kernel se conecta a nosotros (CPU) y recibimos su handshake para poder recibir el pcb de parte del kernel
-    while (socketKernel == -1) {
-        Handshake handshake_res = esperar_cliente(server_dispatch_fd, logger);
-        if (handshake_res.modulo == KERNEL) {
-            socketKernel = handshake_res.socket;
-            log_info(logger, "Se conecto un Kernel");
-            break;
-        } else {
-            log_error(logger, "Se conecto un socket desconocido");
-        }
-    }
-    while (1) {
-        t_paquete_entre* paq = recibir_paquete_entre(socketKernel);
-        if (paq == NULL) {
-            log_error(logger, "No se pudo recibir el paquete de la memoria");
-        }
-        t_PCB* pcb = (t_PCB*)paq->payload;
-
-        switch (paq->operacion) {
-            case EXEC_PROCESO:
-                while (getHayInterrupcion() == false) {
-                    char* instruccionRecibida;
-                    int ok = fetchInstruccion(pcb, socketMemoria, &instruccionRecibida, logger);
-
-                    if (ok == -1) {
-                        log_error(logger, "PROCESO TERMINÓ EJECUCIÓN: PID %d", pcb->PID);
-                        // Devolver el PCB al kernel
-                        enviar_pcb_kernel(pcb, TERMINO_EJECUCION);
-                        break;
-                    }
-
-                    // Decodifico la instruccion en opcode y parametros
-                    instruccionCPU_t* instruccion = dividirInstruccion(instruccionRecibida);
-
-                    // Ejecuto la instruccion
-                    ejecutarInstruccion(instruccion, pcb, logger, registros, socketKernel);
-                }
-                if (interrupcion) {
-                    log_info(logger, "Interrupcion recibida");
-
-                    pthread_mutex_lock(&mutex_interrupcion);
-                    interrupcion = false;
-                    pthread_mutex_unlock(&mutex_interrupcion);
-                    // Interrumpir el proceso
-                    enviar_pcb_kernel(pcb, INTERRUMPIO_PROCESO);
-                }
-                break;
-            default:
-                log_error(logger, "Operacion desconocida");
-                break;
-        }
-    }
+    }  
 
     finalizarCPU(logger, config);
 }

@@ -5,6 +5,7 @@
 #include <utils/serializacion.h>
 
 extern int socketKernel;
+extern registros_t registros;
 
 int fetchInstruccion(t_PCB* pcb, int socketMemoria, char** instruccionRecibida, t_log* logger) {
     // 1. Enviar PID y PC a Memoria
@@ -59,7 +60,7 @@ instruccionCPU_t *dividirInstruccion(char *instruccion) {
     return instruccionCPU;
 }
 
-void ejecutarInstruccion(instruccionCPU_t* instruccion, t_PCB* pcb, t_log* logger, registros_t registros, int socketKernel) {
+void ejecutarInstruccion(instruccionCPU_t* instruccion, t_PCB* pcb, t_log* logger, int socketKernel) {
     char** params = instruccion->parametros;
     char* inst = instruccion->instruccion;
 
@@ -86,51 +87,36 @@ void ejecutarInstruccion(instruccionCPU_t* instruccion, t_PCB* pcb, t_log* logge
         instruccionJNZ(pcb, params[0], (intptr_t)params[1], registros);
     } else if(string_equals_ignore_case(inst, "IO_GEN_SLEEP")) {
         instruccionIoGenSleep(pcb, params[0], (intptr_t)params[1]);
-        return;
     } else if(string_equals_ignore_case(inst, "MOV_IN")) { // MOV_IN EDX ECX
         instruccionMovIn(params[0], params[1], &registros, pcb);
-        return;
     } else if(string_equals_ignore_case(inst, "MOV_OUT")) { // MOV_OUT
         instruccionMovOut(params[0], params[1], &registros, pcb);
-        return;
     } else if(string_equals_ignore_case(inst, "RESIZE")) { // RESIZE 128
         instruccionResize((intptr_t)params[0], pcb);
-        return;
     } else if(string_equals_ignore_case(inst, "COPY_STRING")) { // COPY_STRING 8
         instruccionCopyString((intptr_t)params[0], registros, pcb);
-        return;
     } else if(string_equals_ignore_case(inst, "WAIT")) { // WAIT RECURSO_1
         instruccionWait(params[0], pcb);
-        return;
     } else if(string_equals_ignore_case(inst, "SIGNAL")) { // SIGNAL RECURSO_1
         instruccionSignal(params[0], pcb);
-        return;
     } else if(string_equals_ignore_case(inst, "IO_STDIN_READ")) { // IO_STDIN_READ Int2 EAX AX
         instruccionIoSTDInRead(params[0], params[1], params[2], &registros, pcb);
-        return;
     } else if(string_equals_ignore_case(inst, "IO_STDOUT_WRITE")) { // IO_STDOUT_WRITE Int3 BX EAX 
         instruccionIoSTDOutWrite(params[0], params[1], params[2], &registros, pcb);
-        return;
     } else if(string_equals_ignore_case(inst, "IO_FS_CREATE")) { // IO_FS_CREATE Int4 notas.txt  
         instruccionIoFSCreate(params[0], params[1], pcb);
-        return;
     } else if(string_equals_ignore_case(inst, "IO_FS_DELETE")) { // IO_FS_DELETE Int4 notas.txt
         instruccionIoFSDelete(params[0], params[1], pcb);
-        return;
     } else if(string_equals_ignore_case(inst, "IO_FS_TRUNCATE")) { // IO_FS_TRUNCATE Int4 notas.txt ECX  
         instruccionIoFSTruncate(params[0], params[1], params[2], &registros, pcb);
-        return;
     } else if(string_equals_ignore_case(inst, "IO_FS_WRITE")) { // IO_FS_WRITE Int4 notas.txt AX ECX EDX
         instruccionIoFSWrite(params[0], params[1], params[2], params[3], params[4], &registros, pcb);
-        return;
     } else if(string_equals_ignore_case(inst, "IO_FS_READ")) { // IO_FS_READ Int4 notas.txt BX ECX EDX
         instruccionIoFSRead(params[0], params[1], params[2], params[3], params[4], &registros, pcb);
-        return;
     } else if(string_equals_ignore_case(inst, "EXIT")) { // EXIT
         instruccionExit(&pcb);
-        return;
     } 
-
+    pcb->cpu_registro = registros;
 }
 
 void ejecutarCicloCompleto(t_PCB* pcb) {

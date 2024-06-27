@@ -205,11 +205,15 @@ void instruccionIoSTDInRead(char* interfaz, char* regDire, char* regTam, registr
 
     solicitar_io_stdin(tam, pcb, interfaz, regTam, dirFisica);
 
-    if (string == NULL) {
-        return;
-    }
 
-    int ok = enviar_dato_memoria(dirFisica, string);
+    // TODO: REVISAR
+    // if (string == NULL) {
+    //     return;
+    // }
+
+    // int ok = enviar_dato_memoria(dirFisica, string);
+
+    int ok = 0;
 
     if (ok == -1) {
         return;

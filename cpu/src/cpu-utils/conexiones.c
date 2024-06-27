@@ -81,7 +81,7 @@ int enviar_dato_memoria(int dirFisica, int dato) {
         return -1;
     }
 
-    t_payload_dato_memoria* payloadRecibido = (t_payload_dato_memoria*)paqueteRecibidoEntero->payload;
+    t_payload_dato_memoria* payloadRecibido = (t_payload_dato_memoria*)paqueteRecibido->payload;
     void* resultado = payloadRecibido->dato;
 
     if (resultado == NULL) {
@@ -133,13 +133,11 @@ void solicitar_io_stdin(int tam, t_PCB* pcb, char* interfaz, char* regTam, int d
     payload->tam = tam;
     payload->pcb = pcb;
     payload->interfaz = interfaz;
-    payload->regTam = regTam;
     payload->dirFisica = dirFisica;
 
     int size_payload;
     void* buffer = serializar_io_stdin_read(payload, &size_payload);
-   enviar_paquete_entre(socketKernel, IO_STDIN_READ, buffer, size_payload);
-
+    enviar_paquete_entre(socketKernel, IO_STDIN_READ, buffer, size_payload);
 }
 
 void solicitar_io_stdout(char* interfaz, char* regDire, char* regTam, t_PCB* pcb){

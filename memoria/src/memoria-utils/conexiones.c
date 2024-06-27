@@ -57,15 +57,17 @@ void esperar_paquetes_cpu()
         if (paquete_cpu == NULL) {
             log_error(logger, "No se pudo recibir el paquete de la CPU, cerrando hilo");
             break;
-        } else {
-            log_info(logger,"Paquete recibido de CPU, %d, %d\n", paquete_cpu->operacion, paquete_cpu->size_payload);
-        }
+        } 
+        // else {
+        //     log_info(logger,"Paquete recibido de CPU, %d, %d\n", paquete_cpu->operacion, paquete_cpu->size_payload);
+        // }
 
         if (paquete_cpu->payload == NULL) {
             log_error(logger, "No se pudo recibir el paquete de la CPU");
-        } else {
-            log_info(logger,"Paquete recibido de CPU, %d, %d\n", paquete_cpu->operacion, paquete_cpu->size_payload);
-        }
+        } 
+        // else {
+        //     log_info(logger,"Paquete recibido de CPU, %d, %d\n", paquete_cpu->operacion, paquete_cpu->size_payload);
+        // }
 
         log_info(logger,"%d",paquete_cpu->operacion);
 
