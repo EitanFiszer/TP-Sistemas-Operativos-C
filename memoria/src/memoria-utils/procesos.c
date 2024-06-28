@@ -15,7 +15,6 @@ extern int socketKernel;
 
 Memoria memoria;
 
-
 void inicializarMemoria() {
     memoria.max_procesos = TAM_MEMORIA/TAM_PAGINA;
 
@@ -28,7 +27,7 @@ void inicializarMemoria() {
         memoria.marcos[i] = -1;
     }
 
-    log_info(logger, "Se inicializó la memoria con un tamaño de %d y %d marcos", TAM_MEMORIA, 32);
+    log_info(logger, "Se inicializó la memoria con un tamaño de %d, páginas de %d bytes y %d marcos", TAM_MEMORIA, TAM_PAGINA, memoria.max_procesos);
 }
 
 char* sacar_salto_linea(char* linea) {
@@ -75,10 +74,11 @@ void crearProceso(char* nombre_archivo, int pid) {
     strcpy(path_archivo, path_instrucciones);
     strcat(path_archivo, nombre_archivo);
 
-
     Proceso *proceso = &memoria.procesos[memoria.cant_procesos++];
     proceso->pid = pid;
     proceso->instrucciones = leer_archivo(path_archivo, &proceso->cant_instrucciones);
+    proceso->tabla_de_paginas = dictionary_create();
+
     log_info(logger, "Cantidad instrucciones: %d", proceso->cant_instrucciones);
 
     for(int i = 0; i < proceso->cant_instrucciones; i++) {
@@ -107,7 +107,7 @@ void finalizarProceso(int pid) {
 
     Proceso* proceso = &memoria.procesos[indice];
 
-    for (int i = 0; i < 32; i++) {
+    for (int i = 0; i < memoria.cant_marcos; i++) {
         if (memoria.marcos[i] == pid) {
             memoria.marcos[i] = -1;
         }
@@ -126,28 +126,22 @@ void finalizarProceso(int pid) {
     log_info(logger, "Se finalizó el proceso con ID: %d", pid);
 }
 
-// TODO: REVISAR ESTA FUNCIÓN
 char* obtenerInstruccion(int pid, int n) {
-    int indice = -1;
+    Proceso* proceso = procesoPorPID(pid);
 
-    for (int i = 0; i < memoria.cant_procesos; i++) {
-        if (memoria.procesos[i].pid == pid) {
-            indice = i;
-            break;
-        }
-    }
-
-    printf("Indice: %d, primera instruccion: %s\n", indice, memoria.procesos[indice].instrucciones[0]);
-
-    if (indice == -1) {
-        return NULL;
-    }
-
-    Proceso* proceso = &memoria.procesos[indice];
-
-    if (n < 0 || n >= proceso->cant_instrucciones) {
+    if (n < 0 || proceso == NULL || n >= proceso->cant_instrucciones) {
         return NULL;
     }
 
     return proceso->instrucciones[n];
+}
+
+Proceso* procesoPorPID(int pid) {
+    for (int i = 0; i < memoria.cant_procesos; i++) {
+        if (memoria.procesos[i].pid == pid) {
+            return &memoria.procesos[i];
+        }
+    }
+
+    return NULL;
 }

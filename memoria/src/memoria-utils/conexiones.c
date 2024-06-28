@@ -3,6 +3,7 @@
 #include <utils/serializacion.h>
 #include <utils/envios.h>
 #include <memoria-utils/procesos.h>
+#include <memoria-utils/memoria.h>
 #include <semaphore.h>
 
 extern t_log *logger;
@@ -10,6 +11,7 @@ extern char *path_instrucciones;
 extern int retardo_respuesta;
 extern sem_t sem_kernel;
 extern sem_t sem_cpu;
+extern sem_t sem_io;
 extern int socketKernel;
 extern int socketCpu;
 extern int socketIO;
@@ -47,31 +49,22 @@ void esperar_paquetes_kernel() {
 }
 
 void esperar_paquetes_cpu() {
-    log_info(logger, "Esperar_paq_cpu");
     sem_wait(&sem_cpu);    
     log_info(logger,"Esperando paquetes de CPU en el socket %d\n", socketCpu);
     while (1) {
-        printf("Entró en while\n");
         t_paquete_entre *paquete_cpu = recibir_paquete_entre(socketCpu);
 
         if (paquete_cpu == NULL) {
             log_error(logger, "No se pudo recibir el paquete de la CPU, cerrando hilo");
             break;
         } 
-        // else {
-        //     log_info(logger,"Paquete recibido de CPU, %d, %d\n", paquete_cpu->operacion, paquete_cpu->size_payload);
-        // }
 
         if (paquete_cpu->payload == NULL) {
             log_error(logger, "No se pudo recibir el paquete de la CPU");
         } 
-        // else {
-        //     log_info(logger,"Paquete recibido de CPU, %d, %d\n", paquete_cpu->operacion, paquete_cpu->size_payload);
-        // }
-
-        log_info(logger,"%d",paquete_cpu->operacion);
 
         switch (paquete_cpu->operacion) {
+            #pragma region PC_A_INSTRUCCION
             case PC_A_INSTRUCCION:
                 usleep(retardo_respuesta * 1000);
 
@@ -101,6 +94,44 @@ void esperar_paquetes_cpu() {
                 void* instruccionSerializada = serializar_get_instruccion(payloadGet, &size_instruccion);
                 enviar_paquete_entre(socketCpu, GET_INSTRUCCION, instruccionSerializada, size_instruccion);
                 break;
+                #pragma endregion PC_A_INSTRUCCION
+            
+            #pragma region SOLICITAR_DIRECCION_FISICA
+            case SOLICITAR_DIRECCION_FISICA:
+              t_payload_solicitar_direccion_fisica *payloadSolicitar = paquete_cpu->payload;
+
+              int marco = buscarDireccionFisicaEnTablaDePaginas(payloadSolicitar->pagina, payloadSolicitar->pagina);
+              
+              t_payload_direccion_fisica payloadDireccion = {
+                .marco = marco
+              };
+              enviar_paquete_entre(socketCpu, DIRECCION_FISICA, &payloadDireccion, sizeof(t_payload_direccion_fisica));
+              break;
+            #pragma endregion SOLICITAR_DIRECCION_FISICA
+
+            #pragma region SOLICITAR_DATO_MEMORIA
+            case SOLICITAR_DATO_MEMORIA:
+                t_payload_solicitar_dato_memoria *payloadSolicitarDato = paquete_cpu->payload;
+                int direccion = payloadSolicitarDato->direccion;
+                log_info(logger, "Se llamó a SOLICITAR_DATO_MEMORIA para dirección: %d", direccion);
+
+                // Obtener dato de memoria
+                int dato = obtenerDatoMemoria(direccion);
+                printf("Dato: %s\n", dato);
+
+                if (dato == NULL) {
+                    log_info(logger, "No se pudo obtener el dato de memoria");
+                    break;
+                }
+
+                // Enviar dato a CPU
+                t_payload_dato_memoria payloadDato = {
+                    .dato = dato
+                };
+                enviar_paquete_entre(socketCpu, DATO_MEMORIA, &payloadDato, sizeof(t_payload_dato_memoria));
+
+              break;
+            #pragma endregion SOLICITAR_DATO_MEMORIA
             default:
                 log_info(logger, "Operación desconocida de CPU");
                 break;
@@ -110,14 +141,29 @@ void esperar_paquetes_cpu() {
     }
 }
 
-int esperarClienteIO() {
-  Handshake res = esperar_cliente(server_fd, logger);
-}
-
 void esperar_paquetes_io() {
+  sem_wait(&sem_io);    
+  log_info(logger,"Esperando paquetes de IO en el socket %d\n", socketIO);
   while (1) {
-    pthread_t thread;
-    int *fd_conexion_ptr = malloc(sizeof(int));
+    t_paquete_entre *paquete_io = recibir_paquete_entre(socketIO);
+    OP_CODES_ENTRE op_code = paquete_io->operacion;
+    
+    if (paquete_io == NULL || paquete_io->payload == NULL) {
+        log_error(logger, "No se pudo recibir el paquete de la IO, cerrando hilo");
+        break;
+    } 
 
+    switch (op_code) {
+      case ESCRIBIR_MEMORIA: 
+        t_payload_escribir_memoria *payloadStdin = deserializar_escribir_memoria(paquete_io->payload);
+        int pid = payloadStdin->direccion;
+        char* string = payloadStdin->cadena;
+        int sizeString = payloadStdin->size_cadena;
+
+        break;
+      default:
+        log_info(logger, "Operación desconocida de IO");
+        break;
+    }
   }
 }

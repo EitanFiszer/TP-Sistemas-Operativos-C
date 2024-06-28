@@ -1,17 +1,20 @@
 #include <commons/log.h>
-typedef struct proceso{
+#include <commons/collections/dictionary.h>
+
+typedef struct {
     int pid;
     char **instrucciones;
     int cant_instrucciones;
+    t_dictionary* tabla_de_paginas;
 } Proceso;
 
-typedef struct memoria{
+typedef struct {
+    int *marcos;
     void *memoria;
     int cant_marcos;
-    int *marcos;
+    int max_procesos;
     Proceso *procesos;
     int cant_procesos;
-    int max_procesos;
 } Memoria;
 
 
@@ -20,4 +23,4 @@ char** leer_archivo(const char* nombre_archivo, int* num_lineas);
 void crearProceso(char *nombre_archivo, int pid);
 void finalizarProceso(int pid);
 char* obtenerInstruccion(int pid, int n);
-
+Proceso* procesoPorPID(int pid);

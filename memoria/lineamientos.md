@@ -1,8 +1,8 @@
 # Instrucciones
-- [ ] Devolver a CPU la instruccion indicada por el Program Counter y su PID
-  - [ ] Esperar tiempo determinado a modo de retardo, puesto en el .config
-- [ ] Creación del proceso
-  - [ ] Generar estructuras necesarias para poder devolver de a 1 las instrucciones
+- [x] Devolver a CPU la instruccion indicada por el Program Counter y su PID
+  - [x] Esperar tiempo determinado a modo de retardo, puesto en el .config
+- [x] Creación del proceso
+  - [x] Generar estructuras necesarias para poder devolver de a 1 las instrucciones
 
 # Esquema de memoria y estructuras
 ## Paginación simple

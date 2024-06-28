@@ -76,16 +76,12 @@ int main(int argc, char* argv[]) {
 
     char* string = NULL;
     bitarray = iniciarBitarray(string);
-
     server_fd = iniciar_servidor(puerto_escucha, logger);
-
     iniciarSemaforos();
+    inicializarMemoria();
+    iniciarHilos();
 
     log_info(logger, "[MEMORIA] Escuchando en el puerto: %s", puerto_escucha);
-
-    inicializarMemoria();
-
-    iniciarHilos();
 
     bool seConectoKernel = false;
     bool seConectoCpu = false;
