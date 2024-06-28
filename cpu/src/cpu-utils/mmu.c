@@ -2,6 +2,7 @@
 #include <utils/constants.h>
 #include <utils/client.h>
 #include <utils/server.h>
+#include <utils/envios.h>
 #include <math.h>
 #include "TLB.h"
 
@@ -31,20 +32,17 @@ int buscarEnTLB(int PID, int numeroPagina) {
 //if -1 --> buscarEnTablaDePaginas  else --> direccionFisica
 
 int buscarEnTablaDePaginas(int PID, int numeroPagina) {
-    t_paquete_entre* paquete = malloc(sizeof(t_paquete_entre));
-    paquete->operacion = SOLICITAR_DIRECCION_FISICA;
-
     t_payload_solicitar_direccion_fisica payload = {
         .PID = PID,
         .pagina = numeroPagina
     };
+    enviar_paquete_entre(socketMemoria, SOLICITAR_DIRECCION_FISICA, &payload, sizeof(t_payload_solicitar_direccion_fisica));
+    
+    t_paquete_entre* paqueteRecibido = recibir_paquete_entre(socketMemoria);
 
-    paquete->payload = &payload;
-
-    t_paquete* paq = malloc(sizeof(t_paquete));
-    agregar_a_paquete(paq, paquete, sizeof(t_paquete_entre));
-
-    enviar_paquete(paq, socketMemoria);
+    if (paqueteRecibido == NULL || paqueteRecibido->operacion != DIRECCION_FISICA) {
+        return -1;
+    }
 
     t_list* paqueteInstruccion = recibir_paquete(socketMemoria);
     if (paqueteInstruccion == NULL) {
