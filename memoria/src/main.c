@@ -75,7 +75,7 @@ int main(int argc, char* argv[]) {
     TAM_MEMORIA = config_get_int_value(config, "TAM_MEMORIA");
 
     char* string = NULL;
-    bitarray = iniciarBitarray(string);
+    marcosLibres = iniciarBitarray(string);
     server_fd = iniciar_servidor(puerto_escucha, logger);
     iniciarSemaforos();
     inicializarMemoria();

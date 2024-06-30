@@ -117,7 +117,7 @@ void esperar_paquetes_cpu() {
 
                 // Obtener dato de memoria
                 int dato = obtenerDatoMemoria(direccion);
-                printf("Dato: %s\n", dato);
+                printf("Dato: %d\n", dato);
 
                 if (dato == NULL) {
                     log_info(logger, "No se pudo obtener el dato de memoria");
@@ -126,12 +126,40 @@ void esperar_paquetes_cpu() {
 
                 // Enviar dato a CPU
                 t_payload_dato_memoria payloadDato = {
-                    .dato = dato
+                    .dato = (int*)dato
                 };
                 enviar_paquete_entre(socketCpu, DATO_MEMORIA, &payloadDato, sizeof(t_payload_dato_memoria));
 
               break;
             #pragma endregion SOLICITAR_DATO_MEMORIA
+            
+            #pragma region RESIZE_MEMORIA
+            case RESIZE_MEMORIA:
+                t_payload_resize_memoria *payloadResize = paquete_cpu->payload;
+                int nuevoTam = payloadResize->tam;
+                int pidResize = payloadResize->pid;
+                // log_info(logger, "Se llamó a RESIZE_MEMORIA para nuevo tamaño: %d", nuevoTam);
+
+                int tamActual = obtenerTamanoProceso(pidResize);
+
+                int diff = nuevoTam - tamActual;
+
+                if (diff < 0) {
+                  log_info(logger, "Reducción de Proceso: “PID: %d - Tamaño Actual: %d - Tamaño a Ampliar: %d”", pidResize, tamActual, nuevoTam);
+                } else {
+                  log_info(logger, "Ampliación de Proceso: “PID: %d - Tamaño Actual: %d - Tamaño a Ampliar: %d”", pidResize, tamActual, nuevoTam);
+                }
+
+
+                // Redimensionar memoria
+                int resultado = redimensionarProceso(pidResize, nuevoTam);
+
+                OP_CODES_ENTRE op_code = resultado < 0 ? ERROR_OUT_OF_MEMORY : RESIZE_SUCCESS;
+
+                // Enviar confirmación a CPU
+                enviar_paquete_entre(socketCpu, op_code, NULL, 0);
+              break;
+            #pragma endregion
             default:
                 log_info(logger, "Operación desconocida de CPU");
                 break;

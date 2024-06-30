@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include "procesos.h"
+#include "memoria.h"
 #include <commons/log.h>
+#include <commons/string.h>
 #include <stdlib.h>
 #include <string.h>
 #include <utils/envios.h>
@@ -24,7 +26,7 @@ void inicializarMemoria() {
     memoria.cant_procesos = 0;
 
     for (int i = 0; i < memoria.max_procesos; i++) {
-        memoria.marcos[i] = -1;
+        bitarray_clean_bit(memoria.marcos, i);
     }
 
     log_info(logger, "Se inicializó la memoria con un tamaño de %d, páginas de %d bytes y %d marcos", TAM_MEMORIA, TAM_PAGINA, memoria.max_procesos);
@@ -106,11 +108,11 @@ void finalizarProceso(int pid) {
     }
 
     Proceso* proceso = &memoria.procesos[indice];
+    t_list* marcosProceso = dictionary_elements(proceso->tabla_de_paginas);
 
-    for (int i = 0; i < memoria.cant_marcos; i++) {
-        if (memoria.marcos[i] == pid) {
-            memoria.marcos[i] = -1;
-        }
+    for (int i = 0; i < list_size(marcosProceso); i++) {
+        int* marco = (int*)list_get(marcosProceso, i);
+        bitarray_clean_bit(memoria.marcos, *marco);
     }
 
     for (int i = 0; i < proceso->cant_instrucciones; i++) {
@@ -134,6 +136,57 @@ char* obtenerInstruccion(int pid, int n) {
     }
 
     return proceso->instrucciones[n];
+}
+
+int obtenerTamanoProceso(int pid) {
+    Proceso* proceso = procesoPorPID(pid);
+
+    if (proceso == NULL) {
+        return -1;
+    }
+
+    return dictionary_size(proceso->tabla_de_paginas) * TAM_PAGINA;
+}
+
+int redimensionarProceso(int pid, int nuevoTam) {
+    Proceso* proceso = procesoPorPID(pid);
+
+    if (proceso == NULL) {
+        return -1;
+    }
+
+    int cantPaginas = nuevoTam / TAM_PAGINA;
+    int cantPaginasActuales = dictionary_size(proceso->tabla_de_paginas);
+
+    if (cantPaginasActuales == cantPaginas) {
+        return 0;
+    }
+
+    int cantPaginasLibres = cantidadMarcosLibres();
+    int diff = cantPaginas - cantPaginasActuales;
+    
+    if (diff > cantPaginasLibres) {
+        return -1;
+    }
+
+    if (diff > 0) {
+        for (int i = 0; i < diff; i++) {
+            int marco = buscarMarcoLibre();
+            if (marco == -1) {
+                return -1;
+            }
+
+            dictionary_put(proceso->tabla_de_paginas, string_itoa(cantPaginasActuales + i), marco);
+            bitarray_set_bit(memoria.marcos, marco);
+        }
+    } else {
+        for (int i = 0; i < -diff; i++) {
+            int* marco = (int*)list_remove(dictionary_elements(proceso->tabla_de_paginas), 0);
+            bitarray_clean_bit(memoria.marcos, *marco);
+        }
+    }
+    return RESIZE_SUCCESS;
+
 }
 
 Proceso* procesoPorPID(int pid) {
