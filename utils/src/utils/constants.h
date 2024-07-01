@@ -32,6 +32,8 @@ typedef struct {
 typedef enum {
 	//kernel memoria
 	CREAR_PROCESO,
+  ARCHIVO_NO_ENCONTRADO, // DE Memoria A Kernel
+
 	FINALIZAR_PROCESO,
 	AMPLIAR_PROCESO,
 	REDUCIR_PROCESO,
@@ -145,10 +147,9 @@ typedef struct {
 } t_payload_wait_signal;
 
 typedef struct {
-	SYSCALL_INSTRUCCIONES instruccion;
+	char* interfaz;
 	int tiempo;
 	t_PCB* pcb;
-	char* interfaz;
 } t_payload_io_gen_sleep;
 
 typedef struct{

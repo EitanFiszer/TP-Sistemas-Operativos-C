@@ -94,26 +94,17 @@ void instruccionJNZ(t_PCB* pcb, char* reg, int instruccionASaltar, registros_t r
 }
 
 // Esta instrucción solicita al Kernel que se envíe a una interfaz de I/O a que realice un sleep por una cantidad de unidades de trabajo
-void instruccionIoGenSleep(t_PCB* pcb, char* interfaz, int tiempo) {
-    t_paquete* paq = crear_paquete();
-    t_paquete_entre *paquete = malloc(sizeof(t_paquete_entre));
-    paquete->operacion = SYSCALL;
-    
-    pcb->program_counter = pcb->program_counter + 1;
-
+void instruccionIoGenSleep(t_PCB* pcb, char* interfaz, int tiempo) {    
     t_payload_io_gen_sleep* nuestroPayload = malloc(sizeof(t_payload_io_gen_sleep));
     nuestroPayload->tiempo = tiempo;
     nuestroPayload->interfaz = interfaz; 
-    nuestroPayload->instruccion = GEN_SLEEP;
     nuestroPayload->pcb = pcb;
-    
-    paquete->payload = nuestroPayload;
-    
-    agregar_a_paquete(paq, paquete, sizeof(t_paquete_entre));
 
-    enviar_paquete(paq, socketKernel);
+    int size_payload;
+    void* payloadSerializado = serializar_io_gen_sleep(nuestroPayload, &size_payload);
 
-    free(paq);
+    enviar_paquete_entre(socketKernel, IO_GEN_SLEEP, payloadSerializado, size_payload);
+
     pcb->program_counter = pcb->program_counter + 1;
 }
 
@@ -272,5 +263,10 @@ void instruccionIoFSRead(char* interfaz, char* nombreArchivo, char* regDire, cha
 /*Esta instrucción representa la syscall de finalización del proceso. Se deberá devolver el 
 Contexto de Ejecución actualizado al Kernel para su finalización.*/
 void instruccionExit(t_PCB* pcb) {
-    enviar_pcb_kernel(pcb, TERMINO_EJECUCION);
+    printf("Llamado a exit %d-%d\n", pcb->PID, pcb->program_counter);
+    pcb->program_counter = pcb->program_counter + 1;
+
+    printf("Finalizando proceso %d en PC: %d\n", pcb->PID, pcb->program_counter);
+
+    // enviar_pcb_kernel(pcb, TERMINO_EJECUCION);
 }

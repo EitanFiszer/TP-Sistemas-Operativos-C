@@ -73,8 +73,7 @@ void esperar_paquetes_cpu() {
                 int pid = payload->PID;
                 int pc = payload->program_counter;
                 log_info(logger, "Se llamó a PC_A_INSTRUCCION para PID: %d con PC: %d", pid, pc);
-
-
+                
                 // Obtener instrucción
                 char *instruccion = obtenerInstruccion(pid, pc);
 

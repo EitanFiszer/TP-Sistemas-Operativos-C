@@ -429,11 +429,16 @@ void *serializar_instruccion_io(t_payload_instruccion_io *payload, int *size_pay
 }
 
 t_payload_io_gen_sleep *deserializar_io_gen_sleep(void *buffer){
-    t_payload_io_gen_sleep* payload = malloc(sizeof(t_payload_io_gen_sleep));
-    int offset = 0;
+    /*
+    typedef struct {
+      char* interfaz;
+      int tiempo;
+      t_PCB* pcb;
+    } t_payload_io_gen_sleep;
+    */
 
-    memcpy(&payload->instruccion, buffer + offset, sizeof(int));
-    offset += sizeof(int);
+    t_payload_io_gen_sleep *payload = malloc(sizeof(t_payload_io_gen_sleep));
+    int offset = 0;
 
     int size_interfaz = strlen(buffer + offset) + 1;
     payload->interfaz = malloc(size_interfaz);
@@ -443,25 +448,27 @@ t_payload_io_gen_sleep *deserializar_io_gen_sleep(void *buffer){
     memcpy(&payload->tiempo, buffer + offset, sizeof(int));
     offset += sizeof(int);
 
-    payload->pcb = malloc(sizeof(t_PCB));  // Ajusta según el contenido real
-    memcpy(payload->pcb, buffer + offset, sizeof(t_PCB));
-    offset += sizeof(t_PCB);
+    int size_pcb = sizeof(t_PCB);
+    payload->pcb = malloc(size_pcb);
+    memcpy(payload->pcb, buffer + offset, size_pcb);
 
     return payload;
 }
 
 void *serializar_io_gen_sleep(t_payload_io_gen_sleep *payload, int *size_payload){
+    /*
+    typedef struct {
+      char* interfaz;
+      int tiempo;
+      t_PCB* pcb;
+    } t_payload_io_gen_sleep;
+    */
     int size_interfaz = strlen(payload->interfaz) + 1;
-    // Aquí debes calcular el tamaño del contenido de t_PCB también
-    int size_pcb = sizeof(t_PCB);  // Ajusta según el contenido real
-
-    *size_payload = sizeof(int) + size_interfaz + sizeof(int) + size_pcb;
-
+    int size_pcb = sizeof(t_PCB);
+    *size_payload = size_interfaz + sizeof(int) + size_pcb;
+    
     void* buffer = malloc(*size_payload);
     int offset = 0;
-
-    memcpy(buffer + offset, &payload->instruccion, sizeof(int));
-    offset += sizeof(int);
 
     memcpy(buffer + offset, payload->interfaz, size_interfaz);
     offset += size_interfaz;

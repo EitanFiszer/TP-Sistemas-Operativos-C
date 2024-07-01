@@ -114,7 +114,7 @@ void ejecutarInstruccion(instruccionCPU_t* instruccion, t_PCB* pcb, t_log* logge
     } else if(string_equals_ignore_case(inst, "IO_FS_READ")) { // IO_FS_READ Int4 notas.txt BX ECX EDX
         instruccionIoFSRead(params[0], params[1], params[2], params[3], params[4], &registros, pcb);
     } else if(string_equals_ignore_case(inst, "EXIT")) { // EXIT
-        instruccionExit(&pcb);
+        instruccionExit(pcb);
     } 
     pcb->cpu_registro = registros;
 }

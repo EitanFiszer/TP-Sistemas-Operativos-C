@@ -72,6 +72,13 @@ void crearProceso(char* nombre_archivo, int pid) {
     strcpy(path_archivo, path_instrucciones);
     strcat(path_archivo, nombre_archivo);
 
+    int existeArchivo = access(path_archivo, F_OK);
+    if (existeArchivo == -1) {
+        log_error(logger, "No se encontró el archivo %s", path_archivo);
+        enviar_paquete_entre(socketKernel, ARCHIVO_NO_ENCONTRADO, &pid, sizeof(int));
+        return;
+    }
+
     Proceso *proceso = &memoria.procesos[memoria.cant_procesos++];
     proceso->pid = pid;
     proceso->instrucciones = leer_archivo(path_archivo, &proceso->cant_instrucciones);
