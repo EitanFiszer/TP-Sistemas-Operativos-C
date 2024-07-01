@@ -92,19 +92,21 @@ int enviar_dato_memoria(int dirFisica, int dato) {
 }
 
 int solicitar_resize_memoria(int pid, int tam) {
-
     t_payload_resize_memoria* payload = malloc(sizeof(t_payload_resize_memoria));
     payload->pid = pid;
     payload->tam = tam;
 
-    enviar_paquete_entre(socketMemoria, RESIZE_MEMORIA, payload, sizeof(t_payload_resize_memoria));
+    int size_payload;
+    void *buffer = serializar_resize_memoria(payload, &size_payload);
+
+    enviar_paquete_entre(socketMemoria, RESIZE_MEMORIA, buffer, sizeof(t_payload_resize_memoria));
     
     t_paquete_entre* paqueteRecibidoEntero = recibir_paquete_entre(socketMemoria);
-    if (paqueteRecibidoEntero == NULL) {
+    if (paqueteRecibidoEntero == NULL || paqueteRecibidoEntero->operacion != RESIZE_SUCCESS) {
         return -1;
     }
 
-    t_payload_resize_memoria* payloadRecibido = (t_payload_resize_memoria*)paqueteRecibidoEntero->payload;
+    t_payload_resize_memoria* payloadRecibido = deserializar_resize_memoria(paqueteRecibidoEntero->payload);
     int resultado = payloadRecibido->tam;
 
     return resultado;

@@ -272,5 +272,5 @@ void instruccionIoFSRead(char* interfaz, char* nombreArchivo, char* regDire, cha
 /*Esta instrucción representa la syscall de finalización del proceso. Se deberá devolver el 
 Contexto de Ejecución actualizado al Kernel para su finalización.*/
 void instruccionExit(t_PCB* pcb) {
-    enviar_pcb_kernel(pcb, EXIT_PROCESS);
+    enviar_pcb_kernel(pcb, TERMINO_EJECUCION);
 }

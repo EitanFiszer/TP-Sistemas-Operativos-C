@@ -34,7 +34,7 @@ int obtenerDatoMemoria(int direccion) {
 
 int cantidadMarcosLibres() {
     int cant = 0;
-    for (int i = 0; i < memoria.cant_marcos; i++) {
+    for (int i = 0; i < bitarray_get_max_bit(marcosLibres); i++) {
         if (bitarray_test_bit(marcosLibres, i)) {
             cant++;
         }
@@ -43,7 +43,7 @@ int cantidadMarcosLibres() {
 }
 
 int buscarMarcoLibre() {
-    for (int i = 0; i < memoria.cant_marcos; i++) {
+    for (int i = 0; i < bitarray_get_max_bit(marcosLibres); i++) {
         if (bitarray_test_bit(marcosLibres, i)) {
             return i;
         }

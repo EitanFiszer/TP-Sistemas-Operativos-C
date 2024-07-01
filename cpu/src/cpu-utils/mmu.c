@@ -44,16 +44,6 @@ int buscarEnTablaDePaginas(int PID, int numeroPagina) {
         return -1;
     }
 
-    t_list* paqueteInstruccion = recibir_paquete(socketMemoria);
-    if (paqueteInstruccion == NULL) {
-        return -1;
-    }
-
-    t_paquete_entre* paqueteRecibido = list_get(paqueteInstruccion, 0);
-    if (paqueteRecibido == NULL) {
-        return -1;
-    }
-
     t_payload_direccion_fisica* payloadRecibido = paqueteRecibido->payload;
 
     return payloadRecibido->marco;

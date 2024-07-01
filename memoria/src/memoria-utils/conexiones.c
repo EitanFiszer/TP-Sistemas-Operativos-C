@@ -135,7 +135,7 @@ void esperar_paquetes_cpu() {
             
             #pragma region RESIZE_MEMORIA
             case RESIZE_MEMORIA:
-                t_payload_resize_memoria *payloadResize = paquete_cpu->payload;
+                t_payload_resize_memoria *payloadResize = deserializar_resize_memoria(paquete_cpu->payload);
                 int nuevoTam = payloadResize->tam;
                 int pidResize = payloadResize->pid;
                 // log_info(logger, "Se llamó a RESIZE_MEMORIA para nuevo tamaño: %d", nuevoTam);

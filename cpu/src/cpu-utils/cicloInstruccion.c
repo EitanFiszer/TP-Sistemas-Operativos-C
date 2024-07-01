@@ -92,7 +92,7 @@ void ejecutarInstruccion(instruccionCPU_t* instruccion, t_PCB* pcb, t_log* logge
     } else if(string_equals_ignore_case(inst, "MOV_OUT")) { // MOV_OUT
         instruccionMovOut(params[0], params[1], &registros, pcb);
     } else if(string_equals_ignore_case(inst, "RESIZE")) { // RESIZE 128
-        instruccionResize((intptr_t)params[0], pcb);
+        instruccionResize(atoi(params[0]), pcb);
     } else if(string_equals_ignore_case(inst, "COPY_STRING")) { // COPY_STRING 8
         instruccionCopyString((intptr_t)params[0], registros, pcb);
     } else if(string_equals_ignore_case(inst, "WAIT")) { // WAIT RECURSO_1
