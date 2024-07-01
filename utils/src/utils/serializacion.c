@@ -1,6 +1,25 @@
 #include "serializacion.h"
 #include <string.h>
 
+void* serializar_resize_memoria(t_payload_resize_memoria* payload, int* size_payload) {
+    *size_payload = sizeof(int) * 2;
+    void* buffer = malloc(*size_payload);
+    int desplazamiento = 0;
+    memcpy(buffer + desplazamiento, &(payload->pid), sizeof(int));
+    desplazamiento += sizeof(int);
+    memcpy(buffer + desplazamiento, &(payload->tam), sizeof(int));
+    return buffer;
+}
+
+t_payload_resize_memoria* deserializar_resize_memoria(void* buffer) {
+    t_payload_resize_memoria* payload = malloc(sizeof(t_payload_resize_memoria));
+    int desplazamiento = 0;
+    memcpy(&(payload->pid), buffer + desplazamiento, sizeof(int));
+    desplazamiento += sizeof(int);
+    memcpy(&(payload->tam), buffer + desplazamiento, sizeof(int));
+    return payload;
+}
+
 /*
 void* serializar_dato_memoria(t_payload_dato_memoria* payload, int* size_payload) {
     int desplazamiento = 0;
