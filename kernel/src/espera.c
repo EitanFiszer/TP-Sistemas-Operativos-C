@@ -75,7 +75,7 @@ void *esperar_paquetes_cpu_dispatch(void *arg) {
             case TERMINO_EJECUCION:
                 desalojar();
                 t_PCB *pcb_dispatch = (t_PCB *)paquete_dispatch->payload;
-                printf("TERMINO EJECUCION PID: %d", pcb_dispatch->PID);
+                log_info(logger,"Finaliza el proceso %d - Motivo: SUCCESS", pcb_dispatch->PID);
                 lts_ex(pcb_dispatch);
                 /// PROCESO TERMINADO SE DESALOJA Y SE ENVIA A EXIT
                 break;
