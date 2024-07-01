@@ -52,7 +52,7 @@ void *esperar_paquetes_cpu_dispatch(void *arg) {
     while (1) {
         t_paquete_entre *paquete_dispatch = recibir_paquete_entre(resultHandshakeDispatch);
         switch (paquete_dispatch->operacion) {
-            case INTERRUMPIO_PROCESO:
+                        case INTERRUMPIO_PROCESO:
                 int *PID = (int *)paquete_dispatch->payload;
                 cargar_ready_por_pid(*PID);
                 break;
@@ -117,7 +117,6 @@ void enviar_paquete_memoria(OP_CODES_ENTRE operacion, void *payload, int size_pa
     paquete->payload = payload;
     agregar_paquete_entre_a_paquete(paq, paquete);
     enviar_paquete(paq, resultHandshakeMemoria);
-    log_info(logger, "PAQUETE CREADO Y ENVIADO A MEMORIA");
     eliminar_paquete(paq);
     free(paquete);
 }
@@ -130,7 +129,6 @@ void enviar_paquete_cpu_dispatch(OP_CODES_ENTRE operacion, void *payload, int si
     paquete->payload = payload;
     agregar_paquete_entre_a_paquete(paq, paquete);
     enviar_paquete(paq, resultHandshakeDispatch);
-    log_info(logger, "PAQUETE CREADO Y ENVIADO A CPU DISPATCH");
     eliminar_paquete(paq);
     free(paquete);
 }

@@ -38,8 +38,6 @@ int conexionKernell(char* ip, char* puerto, char* tipo_interfaz, char* nombre) {
     // agregar_paquete_entre_a_paquete(paq,paquete);
     // enviar_paquete(paquete,resultHandshake);
 
-    log_info(logger, "PAQUETE CREADO Y ENVIADO A KERNEL");
-
     return resultHandshake;
 }
 

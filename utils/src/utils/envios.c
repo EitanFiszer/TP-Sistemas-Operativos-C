@@ -12,7 +12,6 @@ void enviar_paquete_entre(int socket, OP_CODES_ENTRE operacion, void *payload, i
     paquete->payload = payload;
     agregar_paquete_entre_a_paquete(paq, paquete);
     enviar_paquete(paq, socket);
-    log_info(logger, "PAQUETE CREADO Y ENVIADO");
     eliminar_paquete(paq);
     free(paquete);
 }
