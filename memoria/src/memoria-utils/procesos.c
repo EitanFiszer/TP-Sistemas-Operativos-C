@@ -14,6 +14,7 @@ extern int TAM_MEMORIA;
 extern t_log* logger;
 extern char* path_instrucciones;
 extern int socketKernel;
+extern t_bitarray *marcosLibres;
 
 Memoria memoria;
 
@@ -21,13 +22,8 @@ void inicializarMemoria() {
     memoria.max_procesos = TAM_MEMORIA/TAM_PAGINA;
 
     memoria.memoria = malloc(TAM_MEMORIA);
-    memoria.marcos = malloc(memoria.max_procesos * sizeof(int));
     memoria.procesos = malloc(memoria.max_procesos * sizeof(Proceso));
     memoria.cant_procesos = 0;
-
-    for (int i = 0; i < memoria.max_procesos; i++) {
-        bitarray_clean_bit(memoria.marcos, i);
-    }
 
     log_info(logger, "Se inicializó la memoria con un tamaño de %d, páginas de %d bytes y %d marcos", TAM_MEMORIA, TAM_PAGINA, memoria.max_procesos);
 }
@@ -81,11 +77,11 @@ void crearProceso(char* nombre_archivo, int pid) {
     proceso->instrucciones = leer_archivo(path_archivo, &proceso->cant_instrucciones);
     proceso->tabla_de_paginas = dictionary_create();
 
-    log_info(logger, "Cantidad instrucciones: %d", proceso->cant_instrucciones);
+    // log_info(logger, "Cantidad instrucciones: %d", proceso->cant_instrucciones);
 
-    for(int i = 0; i < proceso->cant_instrucciones; i++) {
-        log_info(logger, "Instruccion %d: %s", i, proceso->instrucciones[i]);
-    }
+    // for(int i = 0; i < proceso->cant_instrucciones; i++) {
+    //     log_info(logger, "Instruccion %d: %s", i, proceso->instrucciones[i]);
+    // }
 
     log_info(logger, "Se creó el proceso con ID: %d", pid);
 
@@ -108,11 +104,11 @@ void finalizarProceso(int pid) {
     }
 
     Proceso* proceso = &memoria.procesos[indice];
-    t_list* marcosProceso = dictionary_elements(proceso->tabla_de_paginas);
+t_list* marcosProceso = dictionary_elements(proceso->tabla_de_paginas);
 
     for (int i = 0; i < list_size(marcosProceso); i++) {
         int* marco = (int*)list_get(marcosProceso, i);
-        bitarray_clean_bit(memoria.marcos, *marco);
+        bitarray_set_bit(marcosLibres, *marco);
     }
 
     for (int i = 0; i < proceso->cant_instrucciones; i++) {
@@ -177,12 +173,12 @@ int redimensionarProceso(int pid, int nuevoTam) {
             }
 
             dictionary_put(proceso->tabla_de_paginas, string_itoa(cantPaginasActuales + i), marco);
-            bitarray_set_bit(memoria.marcos, marco);
+            bitarray_clean_bit(marcosLibres, marco);
         }
     } else {
         for (int i = 0; i < -diff; i++) {
             int* marco = (int*)list_remove(dictionary_elements(proceso->tabla_de_paginas), 0);
-            bitarray_clean_bit(memoria.marcos, *marco);
+            bitarray_set_bit(marcosLibres, *marco);
         }
     }
     return RESIZE_SUCCESS;

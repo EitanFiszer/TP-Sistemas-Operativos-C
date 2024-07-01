@@ -15,6 +15,8 @@ int buscarDireccionFisicaEnTablaDePaginas(int pid, int pagina) {
         return -1;
     }
 
+    // TODO: POR QUE MIERDA FALLA ACÁ
+
     char* key = string_itoa(pagina);
     int* marco = dictionary_get(proceso->tabla_de_paginas, key);
     free(key);

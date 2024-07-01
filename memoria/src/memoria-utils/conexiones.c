@@ -77,7 +77,6 @@ void esperar_paquetes_cpu() {
 
                 // Obtener instrucción
                 char *instruccion = obtenerInstruccion(pid, pc);
-                printf("Instruccion: %s\n", instruccion);
 
                 if (instruccion == NULL) {
                     log_info(logger, "Fin de archivo");
@@ -88,7 +87,6 @@ void esperar_paquetes_cpu() {
                 // Enviar instrucción a CPU
                 t_payload_get_instruccion* payloadGet = malloc(sizeof(t_payload_get_instruccion));
                 payloadGet->instruccion = instruccion;
-                printf("InstruccionGet: %s\n", payloadGet->instruccion);
 
                 int size_instruccion;
                 void* instruccionSerializada = serializar_get_instruccion(payloadGet, &size_instruccion);
@@ -100,7 +98,7 @@ void esperar_paquetes_cpu() {
             case SOLICITAR_DIRECCION_FISICA:
               t_payload_solicitar_direccion_fisica *payloadSolicitar = paquete_cpu->payload;
 
-              int marco = buscarDireccionFisicaEnTablaDePaginas(payloadSolicitar->pagina, payloadSolicitar->pagina);
+              int marco = buscarDireccionFisicaEnTablaDePaginas(payloadSolicitar->PID, payloadSolicitar->pagina);
               
               t_payload_direccion_fisica payloadDireccion = {
                 .marco = marco
@@ -136,8 +134,8 @@ void esperar_paquetes_cpu() {
             #pragma region RESIZE_MEMORIA
             case RESIZE_MEMORIA:
                 t_payload_resize_memoria *payloadResize = deserializar_resize_memoria(paquete_cpu->payload);
-                int nuevoTam = payloadResize->tam;
                 int pidResize = payloadResize->pid;
+                int nuevoTam = payloadResize->tam;
                 // log_info(logger, "Se llamó a RESIZE_MEMORIA para nuevo tamaño: %d", nuevoTam);
 
                 int tamActual = obtenerTamanoProceso(pidResize);
@@ -150,14 +148,13 @@ void esperar_paquetes_cpu() {
                   log_info(logger, "Ampliación de Proceso: “PID: %d - Tamaño Actual: %d - Tamaño a Ampliar: %d”", pidResize, tamActual, nuevoTam);
                 }
 
-
                 // Redimensionar memoria
                 int resultado = redimensionarProceso(pidResize, nuevoTam);
 
                 OP_CODES_ENTRE op_code = resultado < 0 ? ERROR_OUT_OF_MEMORY : RESIZE_SUCCESS;
 
                 // Enviar confirmación a CPU
-                enviar_paquete_entre(socketCpu, op_code, NULL, 0);
+                enviar_paquete_entre(socketCpu, op_code, paquete_cpu->payload, sizeof(paquete_cpu->payload));
               break;
             #pragma endregion
             default:

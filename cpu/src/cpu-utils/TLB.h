@@ -6,8 +6,8 @@
 
 typedef struct {
     int pid;     // identificador de proceso
-    int pagina; // número de página
-    int marco; // dirección física, -1 si no está en memoria
+    int pagina;  // número de página
+    int marco;   // dirección física, -1 si no está en memoria
 } tlb_entry;
 
 typedef struct {
@@ -26,5 +26,6 @@ bool tlbLlena();
 void TLBagregarFIFO(int pid, int pagina, int marco);
 void TLBagregarLRU(int pid, int pagina, int marco);
 void actualizarTimestampOAgregarAPeticiones(int pid, int pagina);
+void agregarEntradaTLB(int pid, int pagina, int marco);
 
-#endif // TLB_H
+#endif  // TLB_H

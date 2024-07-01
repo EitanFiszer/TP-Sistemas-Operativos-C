@@ -38,6 +38,8 @@ int buscarEnTablaDePaginas(int PID, int numeroPagina) {
     };
     enviar_paquete_entre(socketMemoria, SOLICITAR_DIRECCION_FISICA, &payload, sizeof(t_payload_solicitar_direccion_fisica));
     
+    printf("Esperando respuesta de la memoria\n");
+
     t_paquete_entre* paqueteRecibido = recibir_paquete_entre(socketMemoria);
 
     if (paqueteRecibido == NULL || paqueteRecibido->operacion != DIRECCION_FISICA) {
@@ -56,6 +58,7 @@ int calcularDireccionFisica(int PID, int direccionLogica) {
     int marco = buscarEnTLB(PID, numeroPagina);
     if (marco == -1) {
         marco = buscarEnTablaDePaginas(PID, numeroPagina);
+        agregarEntradaTLB(PID, numeroPagina, marco);
     }
 
     if (marco == -1) {
