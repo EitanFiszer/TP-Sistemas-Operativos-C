@@ -52,9 +52,10 @@ void *esperar_paquetes_cpu_dispatch(void *arg) {
     while (1) {
         t_paquete_entre *paquete_dispatch = recibir_paquete_entre(resultHandshakeDispatch);
         switch (paquete_dispatch->operacion) {
-                        case INTERRUMPIO_PROCESO:
-                int *PID = (int *)paquete_dispatch->payload;
-                cargar_ready_por_pid(*PID);
+            case INTERRUMPIO_PROCESO:
+                t_PCB *PCB = (t_PCB *)paquete_dispatch->payload;
+                desalojar();
+                cargar_ready(PCB);
                 break;
 
             case SYSCALL:
@@ -145,6 +146,7 @@ void interrumpir() {
     enviar_paquete(paquete_fin_de_q, resultHandshakeInterrupt);
     eliminar_paquete(paquete_fin_de_q);
     free(fin_q);
+    log_info(logger, "Se interrumpio el proceso");
 }
 void finalizar_kernel() {
     printf("Finalizando KERNEL\n");

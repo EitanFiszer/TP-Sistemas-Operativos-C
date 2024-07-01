@@ -125,7 +125,7 @@ void iniciar_proceso(char *path) // PLANIFICADOR A LARGO PLAZO
 
     // semaforo cola new
     pthread_mutex_lock(&sem_q_new);
-    list_add_in_index(lista_new, PID, new_PCB);
+    list_add_in_index(lista_new, PID /*0*/, new_PCB);
     pthread_mutex_unlock(&sem_q_new);
 
     // Incremento identificador de proceso
@@ -159,7 +159,7 @@ void cargar_ready_por_pid(int num_pid) // PLANIFICADOR A LARGO PLAZO
 
     // semaforo cola new
     pthread_mutex_lock(&sem_q_new);
-    t_PCB *retirar_PCB = list_remove(lista_new, num_pid);
+    t_PCB *retirar_PCB = list_remove(lista_new, num_pid /*0*/);
     pthread_mutex_unlock(&sem_q_new);
 
     if (retirar_PCB == NULL)
@@ -236,7 +236,7 @@ void stl_RR()
         pthread_mutex_unlock(&sem_q_exec);
         log_info(logger, "PID:%d - Estado Anterior: READY - Estado Actual: EXEC", retirar_ready->PID);
 
-        if (quantum < 0)
+        if (retirar_ready->quantum < 0)
         {
             // replanifico FIN DE QUANTUM
             retirar_ready->estado = READY;
@@ -271,8 +271,8 @@ void *manejar_quantum(void *arg)
 
     // pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
     // pthread_setcanceltype(PTHREAD_CANCEL_DEFERRED, NULL);
-    sleep((unsigned int)(pcb->quantum));
-    interrumpir(resultHandshakeInterrupt);
+    sleep(((unsigned int)(pcb->quantum))/1000);
+    interrumpir();
     temporal_destroy(tempo_quantum);
     return NULL;
 }
@@ -309,9 +309,12 @@ void stl_VRR()
 
         // si hay elemenetos en cola ready && la cpu esta libre
         sem_wait(&sem_cont_ready);
+        log_info(logger, "Hay procesos en ready");
         pthread_mutex_lock(&sem_CPU_libre);
-
+        log_info(logger, "La CPU está libre");
         pthread_mutex_lock(&sem_q_ready_priori);
+
+
         int largo_priori = queue_size(cola_ready_priori);
         pthread_mutex_unlock(&sem_q_ready_priori);
         t_PCB *retirar_ready;
@@ -381,8 +384,9 @@ void desalojar()
     t_PCB *retirar_PCB = queue_pop(cola_exec);
     pthread_mutex_unlock(&sem_q_exec);
     // CPU LIBRE
-    free(retirar_PCB);
     pthread_mutex_unlock(&sem_CPU_libre);
+    log_info(logger, "CPU_LIBRE, PID SACADO: %d", retirar_PCB->PID);
+    free(retirar_PCB);
 }
 
 

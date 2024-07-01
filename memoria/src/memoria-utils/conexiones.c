@@ -67,7 +67,6 @@ void esperar_paquetes_cpu() {
             #pragma region PC_A_INSTRUCCION
             case PC_A_INSTRUCCION:
                 usleep(retardo_respuesta * 1000);
-
                 // Recibir PID y PC
                 t_payload_pc_a_instruccion *payload = (t_payload_pc_a_instruccion *)paquete_cpu->payload;
                 int pid = payload->PID;
