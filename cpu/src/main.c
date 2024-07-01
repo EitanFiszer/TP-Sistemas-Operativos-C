@@ -98,7 +98,7 @@ void testConnMem() {
 int main(int argc, char* argv[]) {
     // creamos logs y configs
     logger = iniciar_logger("cpu.log", "CPU");
-    t_config* config = iniciar_config("../cpu.config");
+    t_config* config = iniciar_config("cpu.config");
 
     // leemos las configs
     char* ip_memoria = config_get_string_value(config, "IP_MEMORIA");

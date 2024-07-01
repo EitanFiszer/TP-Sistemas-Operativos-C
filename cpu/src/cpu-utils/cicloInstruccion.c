@@ -80,9 +80,9 @@ void ejecutarInstruccion(instruccionCPU_t* instruccion, t_PCB* pcb, t_log* logge
         instruccionSet(params[0], atoi(params[1]), &registros);
         pcb->program_counter++;
     } else if(string_equals_ignore_case(inst, "SUM")){
-        instruccionSum(pcb, params[0], params[1], registros);
+        instruccionSum(pcb, params[0], params[1], &registros);
     } else if(string_equals_ignore_case(inst, "SUB")) {
-        instruccionSub(pcb, params[0], params[1], registros);
+        instruccionSub(pcb, params[0], params[1], &registros);
     } else if(string_equals_ignore_case(inst, "JNZ")) {
         instruccionJNZ(pcb, params[0], (intptr_t)params[1], registros);
     } else if(string_equals_ignore_case(inst, "IO_GEN_SLEEP")) {

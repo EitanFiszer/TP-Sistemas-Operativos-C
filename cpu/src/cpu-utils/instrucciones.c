@@ -59,26 +59,20 @@ void instruccionSet(char* reg, int valor, registros_t* registros) {
 }
 
 // Suma al Registro Destino el Registro Origen y deja el resultado en el Registro Destino
-void instruccionSum(t_PCB* pcb, char* regDest, char* regOrig, registros_t registros) {
-    int valor1 = 0;
-    int valor2 = 0;
+void instruccionSum(t_PCB* pcb, char* regDest, char* regOrig, registros_t* registros) {
+    int valor1 = valorDelRegistro(regDest, registros);
+    int valor2 = valorDelRegistro(regOrig, registros);
 
-    valor1 = valorDelRegistro(regDest, &registros);
-    valor2 = valorDelRegistro(regOrig, &registros);
-
-    instruccionSet(regDest, valor1 + valor2, &registros);
+    instruccionSet(regDest, valor1 + valor2, registros);
     pcb->program_counter = pcb->program_counter + 1;
 }
 
 // Resta al Registro Destino el Registro Origen y deja el resultado en el Registro Destino
-void instruccionSub(t_PCB* pcb, char* regDest, char* regOrig, registros_t registros) {
-    int valor1 = 0;
-    int valor2 = 0;
+void instruccionSub(t_PCB* pcb, char* regDest, char* regOrig, registros_t* registros) {
+    int valor1 = valorDelRegistro(regDest, registros);
+    int valor2 = valorDelRegistro(regOrig, registros);
 
-    valor1 = valorDelRegistro(regDest, &registros);
-    valor2 = valorDelRegistro(regOrig, &registros);
-
-    instruccionSet(regDest, valor1 - valor2, &registros);
+    instruccionSet(regDest, valor1 - valor2, registros);
     pcb->program_counter = pcb->program_counter + 1;
 }
 
