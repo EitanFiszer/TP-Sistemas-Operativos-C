@@ -36,8 +36,8 @@ void atender_wait(t_PCB *pcb, char *nombre_recurso)
         //NO EXISTE RECURSO
         log_info(logger , "Recurso %s no encontrado, se desaloja el proceso con PID: %d", nombre_recurso,pcb->PID);
         desalojar();
-        log_info(logger, "PID:%d - Estado Anterior: EXEC - Estado Actual: EXIT", pcb->PID);
-        lts_ex(pcb);
+        // log_info(logger, "PID:%d - Estado Anterior: EXEC - Estado Actual: EXIT", pcb->PID);
+        lts_ex(pcb,EXEC);
     }else{
         pthread_mutex_lock(recurso_encontrado->mutex_recurso);
 
@@ -68,8 +68,7 @@ void atender_signal(t_PCB *pcb, char *nombre_recurso)
         //NO EXISTE RECURSO
         log_info(logger , "Recurso %s no encontrado, se desaloja el proceso con PID: %d", nombre_recurso,pcb->PID);
         desalojar();
-        log_info(logger, "PID:%d - Estado Anterior: EXEC - Estado Actual: EXIT", pcb->PID);
-        lts_ex(pcb);
+        lts_ex(pcb,EXEC);
     }else{
 
         pthread_mutex_lock(recurso_encontrado->mutex_recurso);
@@ -82,8 +81,8 @@ void atender_signal(t_PCB *pcb, char *nombre_recurso)
             if(queue_size(recurso_encontrado->cola_blocked_recurso)>0){
                 t_PCB* retirar_bloqueo = queue_pop(recurso_encontrado->cola_blocked_recurso);
                 //DEPENDE EL ALGORITMO VER TEMA QUANTUM
-                cargar_ready(retirar_bloqueo);
-                log_info(logger, "PID:%d - Estado Anterior: BLOCKED - Estado Actual: READY", pcb->PID);
+                cargar_ready(retirar_bloqueo, BLOCKED);
+               
             }
         }
 

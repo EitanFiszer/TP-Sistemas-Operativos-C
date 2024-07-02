@@ -1,7 +1,7 @@
 #include "espera.h"
 
 void atender_cliente(void *socket) {
-    int *socket_cliente_IO = (int *)socket;
+    int socket_cliente_IO = *(int *)socket;
     while (1) {
         t_paquete_entre *unPaquete = recibir_paquete_entre(socket_cliente_IO);
         if (unPaquete == NULL) {
@@ -33,11 +33,18 @@ void *esperar_paquetes_memoria(void *arg) {
             log_error(logger,"Hubo un error al recibir paquete de Memoria, cerrando kernel");
             finalizar_kernel();
         } else {
+            int PID_recibido;
             switch (unPaquete->operacion) {
                 case INSTRUCCIONES_CARGADAS:
-                    int *PID = (int *)unPaquete->payload;
-                    log_info(logger, "INSTRUCCIONES CARGADAS del PID: %d", *PID);
-                    cargar_ready_por_pid(*PID);
+                    PID_recibido = *(int *)unPaquete->payload;
+                    log_info(logger, "INSTRUCCIONES CARGADAS del PID: %d", PID_recibido);
+                    cargar_ready_por_pid(PID_recibido);
+                    break;
+                case ARCHIVO_NO_ENCONTRADO:
+                    PID_recibido = *(int *)unPaquete->payload;
+                    log_info(logger, "INSTRUCCIONES NO ENCONTRADAS del PID: %d", PID_recibido);
+                    enviar_new_exit(PID_recibido);
+                    // ELIMINAR PROCESO SACAR DE COLA NEW ENVIAR A EXIT -
                     break;
                 default:
                     log_error(logger, "no se recibio paquete de la memoria, error");
@@ -53,9 +60,10 @@ void *esperar_paquetes_cpu_dispatch(void *arg) {
         t_paquete_entre *paquete_dispatch = recibir_paquete_entre(resultHandshakeDispatch);
         switch (paquete_dispatch->operacion) {
             case INTERRUMPIO_PROCESO:
+                // if(no hubo syscall)
                 t_PCB *PCB = (t_PCB *)paquete_dispatch->payload;
                 desalojar();
-                cargar_ready(PCB);
+                cargar_ready(PCB, EXEC);
                 break;
 
             case SYSCALL:
@@ -77,7 +85,7 @@ void *esperar_paquetes_cpu_dispatch(void *arg) {
                 desalojar();
                 t_PCB *pcb_dispatch = (t_PCB *)paquete_dispatch->payload;
                 log_info(logger,"Finaliza el proceso %d - Motivo: SUCCESS", pcb_dispatch->PID);
-                lts_ex(pcb_dispatch);
+                lts_ex(pcb_dispatch, EXEC);
                 /// PROCESO TERMINADO SE DESALOJA Y SE ENVIA A EXIT
                 break;
             case IO_GEN_SLEEP:
