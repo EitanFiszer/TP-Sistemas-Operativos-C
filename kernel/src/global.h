@@ -6,6 +6,7 @@
 #include <pthread.h>
 #include <commons/config.h>
 #include <commons/collections/dictionary.h>
+#include <semaphore.h>
 
 // #define MAX_RECURSOS 10
 
@@ -26,6 +27,20 @@ extern char *algoritmo_planificacion;
 extern t_config* config;
 extern t_dictionary* diccionario_recursos;
 extern int grado_multiprog;
+extern pthread_mutex_t interrupcion_syscall;
+extern bool interrumpio_syscall;
+
+extern pthread_mutex_t sem_q_ready_priori;
+extern t_queue* cola_ready_priori;
+extern sem_t sem_cont_ready;
+
+
+
+typedef enum {
+    SYSCALL,
+    FIN_QUANTUM
+}t_motivo_interrupcion;
+
 // extern pthread_mutex_t logger_mutex;
 // extern pthread_mutex_t printf_mutex;
 // extern pthread_mutex_t consola_mutex;

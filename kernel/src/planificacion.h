@@ -43,9 +43,12 @@
 bool condition_pcb_find(void*);
 t_PCB* get_and_remove_pcb(int);
 void desalojar();
-void atender_syscall(void*);
+// void atender_syscall(void*);
 void *manejar_quantum(void*);
 // int buscar_recurso(char*);
+void hubo_syscall(t_PCB *);
+
+void modificar_quantum(t_PCB*);
 
 void iniciar_proceso(char*);
 void iniciar_colas();

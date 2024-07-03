@@ -32,17 +32,17 @@
 
 void *consola_interactiva()
 {
-    // pthread_mutex_lock(&logger_mutex);
+    // pthread_mutex_trylock(&logger_mutex);
     log_info(logger, "Iniciando consola");
     // pthread_mutex_unlock(&logger_mutex);
 
     while (1)
     {
-        // pthread_mutex_lock(&printf_mutex);
+        // pthread_mutex_trylock(&printf_mutex);
         printf("Ingrese un comando: \n");
         // pthread_mutex_unlock(&printf_mutex);
 
-        // pthread_mutex_lock(&consola_mutex);
+        // pthread_mutex_trylock(&consola_mutex);
         char *leido = readline(">");
 
         char **split = string_split(leido, " ");
@@ -75,7 +75,7 @@ void *consola_interactiva()
         }
         else
         {
-            // pthread_mutex_lock(&printf_mutex);
+            // pthread_mutex_trylock(&printf_mutex);
             printf("Escribio un comando incorrecto, los comandos existentes son: \n EJECUTAR_SCRIPT \n INICIAR_PROCESO \n FINALIZAR_PROCESO \n DETENER_PLANIFICACION \n INICIAR_PLANIFICACION \nMULTIPROGRAMACION  \n PROCESO_ESTADO \n ");
             // pthread_mutex_unlock(&printf_mutex);
 

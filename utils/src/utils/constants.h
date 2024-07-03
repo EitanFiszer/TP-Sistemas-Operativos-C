@@ -65,7 +65,7 @@ typedef enum {
   DIRECCION_FISICA,
   DATO_MEMORIA,
 	
-	SYSCALL,
+
 	WAIT,
 	SIGNAL,
 	INTERRUMPIO_PROCESO, // DE CPU A KERNEL, replanificar por interrupcion //PAYLOAD PCB
