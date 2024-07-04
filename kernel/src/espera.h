@@ -8,7 +8,8 @@
 #include "planificacion.h"
 #include "global.h"
 #include <utils/serializacion.h>
-#include <utils/envios.h>#include "recursos.h"
+#include <utils/envios.h>
+#include "recursos.h"
 #include "manejoInterfaces.h"
 // void* conectarse_cpu_interrupt(void*);
 
@@ -19,7 +20,7 @@ void* esperar_paquetes_memoria(void*);
 void* esperar_paquetes_cpu_dispatch(void*);
 
 // void esperar_paquetes_cpu_dispatch(int);
-void interrumpir();
+void interrumpir(t_motivo_interrupcion);
 void enviar_instrucciones_memoria(char*,int);
 void enviar_paquete_cpu_dispatch (OP_CODES_ENTRE,void*,int);
 void enviar_paquete_memoria(OP_CODES_ENTRE , void*,int);

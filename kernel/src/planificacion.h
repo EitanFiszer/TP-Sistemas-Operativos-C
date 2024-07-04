@@ -40,21 +40,27 @@
 // pthread_t hilo_quantum;
 
 // int PID;
-
+bool condition_pcb_find(void*);
+t_PCB* get_and_remove_pcb(int);
 void desalojar();
-void atender_syscall(void*);
+// void atender_syscall(void*);
 void *manejar_quantum(void*);
 // int buscar_recurso(char*);
+void hubo_syscall(t_PCB *);
+
+void modificar_quantum(t_PCB*);
 
 void iniciar_proceso(char*);
 void iniciar_colas();
 void iniciar_semaforos();
-void cargar_ready(t_PCB*);
+void cargar_ready(t_PCB*, t_proceso_estado);
 void cargar_ready_por_pid(int);
 void stl_FIFO();
 void stl_RR();
 void stl_VRR();
-void lts_ex(t_PCB*);
+
+void enviar_new_exit(int);
+void lts_ex(t_PCB*,t_proceso_estado);
 t_PCB *crear_PCB(int);
 // void atender_wait(t_PCB*, char*);
 // void atender_signal(t_PCB*, char*);

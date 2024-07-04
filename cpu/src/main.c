@@ -58,7 +58,7 @@ void conexion_interrupt(void* argumentos) {
 
         switch (paquete->operacion) {
             case INTERRUMPIR_PROCESO:
-                pthread_mutex_lock(&mutex_interrupcion);
+                pthread_mutex_trylock(&mutex_interrupcion);
                 interrupcion = true;
                 pthread_mutex_unlock(&mutex_interrupcion);
                 break;
@@ -70,7 +70,7 @@ void conexion_interrupt(void* argumentos) {
 }
 
 int getHayInterrupcion() {
-    pthread_mutex_lock(&mutex_interrupcion);
+    pthread_mutex_trylock(&mutex_interrupcion);
     int hayInterrupcion = interrupcion;
     pthread_mutex_unlock(&mutex_interrupcion);
     return hayInterrupcion;
@@ -180,7 +180,7 @@ int main(int argc, char* argv[]) {
                 if (interrupcion) {
                     log_info(logger, "Interrupcion recibida");
 
-                    pthread_mutex_lock(&mutex_interrupcion);
+                    pthread_mutex_trylock(&mutex_interrupcion);
                     interrupcion = false;
                     pthread_mutex_unlock(&mutex_interrupcion);
                     // Interrumpir el proceso
