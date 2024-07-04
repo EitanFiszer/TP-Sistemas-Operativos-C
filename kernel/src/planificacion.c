@@ -101,7 +101,7 @@ void iniciar_proceso(char *path) // PLANIFICADOR A LARGO PLAZO
     t_PCB *new_PCB = crear_PCB(PID);
 
     // semaforo cola new
-    pthread_mutex_trylock(&sem_q_new);
+    pthread_mutex_lock(&sem_q_new);
     list_add(lista_new, new_PCB);
     pthread_mutex_unlock(&sem_q_new);
 
@@ -170,7 +170,7 @@ void cargar_ready(t_PCB *pcb, t_proceso_estado estado_anterior)
 {
     pcb->estado = READY;
 
-    pthread_mutex_trylock(&sem_q_ready);
+    pthread_mutex_lock(&sem_q_ready);
     queue_push(cola_ready, pcb);
     pthread_mutex_unlock(&sem_q_ready);
 
@@ -198,15 +198,15 @@ void stl_FIFO()
     {
         // si hay elemenetos en cola ready && la cpu esta libre
         sem_wait(&sem_cont_ready);
-        pthread_mutex_trylock(&sem_CPU_libre);
+        pthread_mutex_lock(&sem_CPU_libre);
 
-        pthread_mutex_trylock(&sem_q_ready);
+        pthread_mutex_lock(&sem_q_ready);
         t_PCB *retirar_ready = queue_pop(cola_ready);
         pthread_mutex_unlock(&sem_q_ready);
 
         retirar_ready->estado = EXEC;
 
-        pthread_mutex_trylock(&sem_q_exec);
+        pthread_mutex_lock(&sem_q_exec);
         queue_push(cola_exec, retirar_ready);
         pthread_mutex_unlock(&sem_q_exec);
         log_info(logger, "PID:%d - Estado Anterior: READY - Estado Actual: EXEC", retirar_ready->PID);
@@ -220,25 +220,25 @@ void stl_FIFO()
 
 void stl_RR()
 {
+    log_info(logger,"INICIANDO PLANIFICACION POR RR");
     while (1)
     {
         // si hay elemenetos en cola ready && la cpu esta libre
-       
-        pthread_mutex_trylock(&sem_CPU_libre);
-        log_info(logger, "CPU OCUPADA");
-
         sem_wait(&sem_cont_ready);
         log_info(logger, "HAY ELEMENTOS EN LA COLA READY");
 
-        pthread_mutex_trylock(&sem_q_ready);
+        pthread_mutex_trylock(&sem_CPU_libre);
+        log_info(logger, "bloqueando CPU");
+
+        pthread_mutex_lock(&sem_q_ready);
         t_PCB *retirar_ready = queue_pop(cola_ready);
         pthread_mutex_unlock(&sem_q_ready);
 
         retirar_ready->estado = EXEC;
 
-        pthread_mutex_trylock(&sem_q_exec);
+        pthread_mutex_lock(&sem_q_exec);
         queue_push(cola_exec, retirar_ready);
-        pthread_mutex_unlock(&sem_q_exec);
+        pthread_mutex_lock(&sem_q_exec);
         log_info(logger, "PID:%d - Estado Anterior: READY - Estado Actual: EXEC", retirar_ready->PID);
         log_info(logger, "QUANTUM PROCESO A EJECUTAR: %d", retirar_ready->quantum);
 
@@ -248,9 +248,9 @@ void stl_RR()
             retirar_ready->estado = READY;
             retirar_ready->quantum = quantum;
 
-            pthread_mutex_trylock(&sem_q_ready);
+            pthread_mutex_lock(&sem_q_ready);
             queue_push(cola_ready, retirar_ready);
-            pthread_mutex_unlock(&sem_q_ready);
+            pthread_mutex_lock(&sem_q_ready);
             log_info(logger, "PID:%d - Estado Anterior: EXEC - Estado Actual: READY, FIN DE QUANTUM", retirar_ready->PID);
         }
         else
@@ -293,14 +293,14 @@ void hubo_syscall(t_PCB *pcb)
     // si es VRR el algoritmo agrego a cola ready priori
     if (strcmp(algoritmo_planificacion, "VRR") == 0)
     {
-        pthread_mutex_trylock(&sem_q_ready_priori);
+        pthread_mutex_lock(&sem_q_ready_priori);
         queue_push(cola_ready_priori, pcb);
         pthread_mutex_unlock(&sem_q_ready_priori);
         sem_post(&sem_cont_ready);
     }
     else
     {
-        pthread_mutex_trylock(&sem_q_ready);
+        pthread_mutex_lock(&sem_q_ready);
         queue_push(cola_ready, pcb);
         pthread_mutex_unlock(&sem_q_ready);
         sem_post(&sem_cont_ready);
@@ -315,30 +315,29 @@ void stl_VRR()
 
         // si hay elemenetos en cola ready && la cpu esta libre
         sem_wait(&sem_cont_ready);
-        log_info(logger, "Hay procesos en ready");
-        pthread_mutex_trylock(&sem_CPU_libre);
-        log_info(logger, "La CPU está libre");
-        pthread_mutex_trylock(&sem_q_ready_priori);
 
+        pthread_mutex_trylock(&sem_CPU_libre);
+
+        pthread_mutex_lock(&sem_q_ready_priori);
         int largo_priori = queue_size(cola_ready_priori);
         pthread_mutex_unlock(&sem_q_ready_priori);
         t_PCB *retirar_ready;
         if (largo_priori > 0)
         {
-            pthread_mutex_trylock(&sem_q_ready_priori);
+            pthread_mutex_lock(&sem_q_ready_priori);
             retirar_ready = queue_pop(cola_ready_priori);
             pthread_mutex_unlock(&sem_q_ready_priori);
         }
         else
         {
-            pthread_mutex_trylock(&sem_q_ready);
+            pthread_mutex_lock(&sem_q_ready);
             retirar_ready = queue_pop(cola_ready);
             pthread_mutex_unlock(&sem_q_ready);
         }
 
         retirar_ready->estado = EXEC;
 
-        pthread_mutex_trylock(&sem_q_exec);
+        pthread_mutex_lock(&sem_q_exec);
         queue_push(cola_exec, retirar_ready);
         pthread_mutex_unlock(&sem_q_exec);
         log_info(logger, "PID:%d - Estado Anterior: READY - Estado Actual: EXEC", retirar_ready->PID);
@@ -349,7 +348,7 @@ void stl_VRR()
             retirar_ready->estado = READY;
             retirar_ready->quantum = quantum;
 
-            pthread_mutex_trylock(&sem_q_ready);
+            pthread_mutex_lock(&sem_q_ready);
             queue_push(cola_ready, retirar_ready);
             pthread_mutex_unlock(&sem_q_ready);
             log_info(logger, "PID:%d - Estado Anterior: EXEC - Estado Actual: READY, FIN DE QUANTUM", retirar_ready->PID);
@@ -373,7 +372,7 @@ void stl_VRR()
 }
 void enviar_new_exit(int pid)
 {
-    pthread_mutex_trylock(&sem_q_new);
+    pthread_mutex_lock(&sem_q_new);
     t_PCB *retirar_PCB = get_and_remove_pcb(pid);
     pthread_mutex_unlock(&sem_q_new);
     lts_ex(retirar_PCB, NEW);
@@ -383,7 +382,7 @@ void lts_ex(t_PCB *pcb, t_proceso_estado estado_anterior)
 
     sem_post(&sem_gm_actual);
     pcb->estado = EXIT;
-    pthread_mutex_trylock(&sem_q_exit);
+    pthread_mutex_lock(&sem_q_exit);
     queue_push(cola_exit, pcb);
     pthread_mutex_unlock(&sem_q_exit);
 
@@ -411,7 +410,7 @@ void lts_ex(t_PCB *pcb, t_proceso_estado estado_anterior)
 
 void desalojar()
 {
-    pthread_mutex_trylock(&sem_q_exec);
+    pthread_mutex_lock(&sem_q_exec);
     t_PCB *retirar_PCB = queue_pop(cola_exec);
     pthread_mutex_unlock(&sem_q_exec);
     // CPU LIBRE

@@ -172,7 +172,7 @@ void interrumpir(t_motivo_interrupcion motivo)
 {
     if (motivo == SYSCALL)
     {
-        pthread_mutex_trylock(&interrupcion_syscall);
+        pthread_mutex_lock(&interrupcion_syscall);
         interrumpio_syscall = true;
         pthread_mutex_unlock(&interrupcion_syscall);
     }

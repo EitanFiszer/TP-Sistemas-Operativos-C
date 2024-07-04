@@ -41,7 +41,7 @@ void atender_wait(t_PCB *pcb, char *nombre_recurso)
     }
     else
     {
-        pthread_mutex_trylock(recurso_encontrado->mutex_recurso);
+        pthread_mutex_lock(recurso_encontrado->mutex_recurso);
 
         recurso_encontrado->instancias_recurso--;
 
@@ -87,7 +87,7 @@ void atender_signal(t_PCB *pcb, char *nombre_recurso)
     else
     {
 
-        pthread_mutex_trylock(recurso_encontrado->mutex_recurso);
+        pthread_mutex_lock(recurso_encontrado->mutex_recurso);
 
         recurso_encontrado->instancias_recurso++;
 
