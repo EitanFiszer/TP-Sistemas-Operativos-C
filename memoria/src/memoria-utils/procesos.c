@@ -67,9 +67,13 @@ void crearProceso(char* nombre_archivo, int pid) {
         log_info(logger, "Se alcanzó la cantidad máxima de procesos");
         return;
     }
+    
+    char cwd[256];
+    getcwd(cwd, sizeof(cwd));
 
-    char* path_archivo = malloc(strlen(path_instrucciones) + strlen(nombre_archivo) + 1);
-    strcpy(path_archivo, path_instrucciones);
+    char* path_archivo = malloc(strlen(cwd) + strlen(path_instrucciones) + strlen(nombre_archivo) + 1);
+    strcpy(path_archivo, cwd);
+    strcat(path_archivo, path_instrucciones);
     strcat(path_archivo, nombre_archivo);
 
     int existeArchivo = access(path_archivo, F_OK);
