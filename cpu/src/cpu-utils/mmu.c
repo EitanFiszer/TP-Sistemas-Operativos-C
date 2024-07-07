@@ -38,8 +38,6 @@ int buscarEnTablaDePaginas(int PID, int numeroPagina) {
     };
     enviar_paquete_entre(socketMemoria, SOLICITAR_DIRECCION_FISICA, &payload, sizeof(t_payload_solicitar_direccion_fisica));
     
-    printf("Esperando respuesta de la memoria\n");
-
     t_paquete_entre* paqueteRecibido = recibir_paquete_entre(socketMemoria);
 
     if (paqueteRecibido == NULL || paqueteRecibido->operacion != DIRECCION_FISICA) {

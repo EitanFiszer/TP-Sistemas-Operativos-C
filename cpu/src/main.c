@@ -14,7 +14,7 @@ int server_interrupt_fd;
 
 t_list* TLB;
 int TLB_MAX_SIZE;
-tlb_reemplazo TLB_ALGORITMO_REEMPLAZO;
+char* TLB_ALGORITMO_REEMPLAZO;
 
 pthread_mutex_t mutex_interrupcion;
 
@@ -108,7 +108,7 @@ int main(int argc, char* argv[]) {
     char* puerto_escucha_interrupt = config_get_string_value(config, "PUERTO_ESCUCHA_INTERRUPT");
 
     TLB_MAX_SIZE = config_get_int_value(config, "CANTIDAD_ENTRADAS_TLB");
-    TLB_ALGORITMO_REEMPLAZO = (tlb_reemplazo)config_get_string_value(config, "ALGORITMO_TLB");
+    TLB_ALGORITMO_REEMPLAZO = config_get_string_value(config, "ALGORITMO_TLB");
 
     log_debug(logger, "Configuraciones leidas %s, %s, %s, %s", ip_memoria, puerto_memoria, puerto_escucha_dispatch, puerto_escucha_interrupt);
 

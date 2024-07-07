@@ -1,9 +1,10 @@
 #include "TLB.h"
-#include <commons/string.h>
+
 #include <commons/log.h>
+#include <commons/string.h>
 #include <stdlib.h>
 
-extern tlb_reemplazo TLB_ALGORITMO_REEMPLAZO;
+extern char* TLB_ALGORITMO_REEMPLAZO;
 extern int TLB_MAX_SIZE;
 extern t_list* TLB;
 extern t_log* logger;
@@ -31,9 +32,9 @@ bool tlbLlena() {
 void agregarEntradaTLB(int pid, int pagina, int marco) {
     if (tlbLlena()) {
         // ver por algoritmo de reemplazo
-        if (string_equals_ignore_case((char*)TLB_ALGORITMO_REEMPLAZO, "FIFO")) {
+        if (string_equals_ignore_case(TLB_ALGORITMO_REEMPLAZO, "FIFO")) {
             TLBagregarFIFO(pid, pagina, marco);
-        } else if (string_equals_ignore_case((char*)TLB_ALGORITMO_REEMPLAZO, "LRU")) {
+        } else if (string_equals_ignore_case(TLB_ALGORITMO_REEMPLAZO, "LRU")) {
             TLBagregarLRU(pid, pagina, marco);
         } else {
             // no debería llegar acá
@@ -49,8 +50,8 @@ void agregarEntradaTLB(int pid, int pagina, int marco) {
     }
 
     // crear lista de peticiones y actualizarla
-    if (string_equals_ignore_case((char*)TLB_ALGORITMO_REEMPLAZO, "LRU")){
-        if(lru_peticiones == NULL) {
+    if (string_equals_ignore_case(TLB_ALGORITMO_REEMPLAZO, "LRU")) {
+        if (lru_peticiones == NULL) {
             lru_peticiones = list_create();
         }
         actualizarTimestampOAgregarAPeticiones(pid, pagina);
@@ -67,7 +68,7 @@ void TLBagregarFIFO(int pid, int pagina, int marco) {
     entrada->pid = pid;
     entrada->pagina = pagina;
     entrada->marco = marco;
-    
+
     list_remove(TLB, punteroFifo);
     list_add(TLB, entrada);
 
@@ -139,7 +140,7 @@ void TLBagregarLRU(int pid, int pagina, int marco) {
             break;
         }
     }
-    
+
     for (int i = 0; i < list_size(TLB); i++) {
         tlb_entry* entradaTLB = list_get(TLB, i);
         if (entradaTLB->pid == entrada_a_reemplazar->pid && entradaTLB->pagina == entrada_a_reemplazar->pagina) {

@@ -19,7 +19,7 @@ int socketMemoria;
 
 t_list* tlb;
 int TLB_MAX_SIZE;
-tlb_reemplazo TLB_ALGORITMO_REEMPLAZO;
+char* TLB_ALGORITMO_REEMPLAZO;
 
 typedef struct {
     char* puerto;
