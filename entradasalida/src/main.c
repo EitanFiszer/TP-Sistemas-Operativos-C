@@ -13,7 +13,6 @@
 #include "hilos.h"
 
 t_log* logger;
-pthread_mutex_t mutex_read_args;
 int socketMemoria;
 
 void crearHilo(char* nombre, char* path_config, char* ultimo_path) {
@@ -68,8 +67,7 @@ void crearHilo(char* nombre, char* path_config, char* ultimo_path) {
 int main(int argc, char* argv[]) {
     logger = log_create("entradasalida.log", "Entrada_Salida", 1, LOG_LEVEL_INFO);
     t_config* config = config_create("EntradaSalida.config");
-    pthread_mutex_init(&mutex_read_args, NULL);
-
+    
     char* ipMemoria = config_get_string_value(config, "IP_MEMORIA");
     char* puertoMemoria = config_get_string_value(config, "PUERTO_MEMORIA");
     socketMemoria = connectAndHandshake(ipMemoria, puertoMemoria, IO, "memoria", logger);
