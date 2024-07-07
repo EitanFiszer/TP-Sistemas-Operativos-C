@@ -76,6 +76,7 @@ int main(int argc, char* argv[]) {
     }
 
     for (int i = 1; i < argc; i += 2) {
+        log_info(logger, "Creando hilo %s", argv[i]);
         crearHilo(argv[i], argv[i+1]);
     }
 

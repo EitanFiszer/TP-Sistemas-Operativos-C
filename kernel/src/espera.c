@@ -20,7 +20,7 @@ void atender_cliente(void *socket)
                 log_info(logger, "NUEVA INTERFAZ %s CONECTADA", datos_interfaz->nombre);
                 break;
             default:
-                log_error(logger, "no se recibio paquete de la memoria, error");
+                log_error(logger, "no se recibio paquete de la IO, error");
                 break;
             }
         }

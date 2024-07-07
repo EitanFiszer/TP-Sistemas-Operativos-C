@@ -92,6 +92,7 @@ int main()
     log_info(logger, "[KERNEL] Escuchando en el puerto: %s", puerto_escucha);
 
     guardar_dictionary_recursos(config);
+    inicializar_interfaces();
 
 
     //probando recursos
