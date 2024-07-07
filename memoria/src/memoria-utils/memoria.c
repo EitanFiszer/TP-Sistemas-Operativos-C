@@ -63,3 +63,7 @@ int buscarMarcoLibre() {
     }
     return -1;
 }
+
+void escribirMemoria(int direccionFisica, void* dato, int tamDato) {
+    memcpy(memoria.memoria + direccionFisica, dato, tamDato);
+}

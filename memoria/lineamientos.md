@@ -15,10 +15,10 @@ El tamaño de la memoria siempre será un múltiplo del tamaño de página.
 # Comunicación con Kernel, CPU e Interfaces de I/O
 
 ## Creación de proceso
-- [ ] Viene del kernel, se le pasa archivo de texto con instrucciones
+- [x] Viene del kernel, se le pasa archivo de texto con instrucciones
 
 ## Finalización de proceso
-- [ ] Viene del kernel, debe liberar el espacio de memoria. Marcar los frames como libres, no sobreescribirlos.
+- [x] Viene del kernel, debe liberar el espacio de memoria. Marcar los frames como libres, no sobreescribirlos.
 
 ## Acceso a tabla de páginas
 - [ ]  Deberá responder el número de marco correspondiente a la página consultada

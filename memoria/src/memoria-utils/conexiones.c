@@ -151,8 +151,18 @@ void esperar_paquetes_cpu() {
                 enviar_paquete_entre(socketCpu, op_code, paquete_cpu->payload, sizeof(paquete_cpu->payload));
               break;
             #pragma endregion
+            #pragma region ENVIAR_DATO_MEMORIA
+            case ENVIAR_DATO_MEMORIA:
+              t_payload_enviar_dato_memoria *payloadEnviar = deserializar_enviar_dato_memoria(paquete_cpu->payload);
+              int direccionEnviar = payloadEnviar->direccion;
+              void* datoEnviar = payloadEnviar->dato;
+              int tamDatoEnviar = payloadEnviar->tamDato;
+
+              escribirMemoria(direccionEnviar, datoEnviar, tamDatoEnviar);
+              break;
+            #pragma endregion
             default:
-                log_info(logger, "Operación desconocida de CPU");
+                log_info(logger, "Operación desconocida de CPU: %d", paquete_cpu->operacion);
                 break;
         }
 
