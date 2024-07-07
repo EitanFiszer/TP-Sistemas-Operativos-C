@@ -419,3 +419,9 @@ void desalojar()
     log_info(logger, "CPU_LIBRE, PID SACADO: %d", retirar_PCB->PID);
     free(retirar_PCB);
 }
+
+void finalizar_proceso(int){}
+void detener_planificacion(){}
+void iniciar_planificacion(){}
+void modificar_multiprogramacion(int){}
+void listar_procesos_por_estado(){}

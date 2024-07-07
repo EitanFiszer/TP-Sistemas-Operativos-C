@@ -65,5 +65,11 @@ t_PCB *crear_PCB(int);
 // void atender_wait(t_PCB*, char*);
 // void atender_signal(t_PCB*, char*);
 
+void finalizar_proceso(int);
+void detener_planificacion();
+void iniciar_planificacion();
+void modificar_multiprogramacion(int);
+void listar_procesos_por_estado();
+
 void* planificacion (void*);
 #endif // PLANIFICACION_H

@@ -11,6 +11,7 @@
 #include <utils/envios.h>
 #include "recursos.h"
 #include "manejoInterfaces.h"
+#include <string.h>
 // void* conectarse_cpu_interrupt(void*);
 
 void atender_cliente(void*);   

@@ -2,6 +2,7 @@
 
 void atender_cliente(void *socket)
 {
+    char* nombre_io_hilo = NULL;
     int socket_cliente_IO = *(int *)socket;
     while (1)
     {
@@ -21,6 +22,8 @@ void atender_cliente(void *socket)
             {
             case IO_INTERFAZ_CREADA:
                 t_payload_interfaz_creada *datos_interfaz = deserializar_interfaz_creada(unPaquete->payload);
+                nombre_io_hilo = malloc(strlen(datos_interfaz->nombre)+1);
+                strcpy(nombre_io_hilo, datos_interfaz->nombre);
                 agregar_interfaz(datos_interfaz->nombre, datos_interfaz->tipo_interfaz, socket_cliente_IO);
                 log_info(logger, "NUEVA INTERFAZ %s CONECTADA", datos_interfaz->nombre);
                 break;
@@ -28,6 +31,8 @@ void atender_cliente(void *socket)
                 log_error(logger, "no se recibio paquete de la IO, error");
                 break;
             }
+            // CUANDO SE DESCONECTE
+            // free(nombre_io_hilo)
         }
     }
 }
