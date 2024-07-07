@@ -21,6 +21,12 @@
         "kind": "none"
       },
       "problemMatcher": []
+    },
+    {
+      "label": "delay",
+      "command": "sleep 3",
+      "type": "shell",
+      "group": "none",
     }
   ]
 }

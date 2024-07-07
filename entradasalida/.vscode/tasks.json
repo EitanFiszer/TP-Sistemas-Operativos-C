@@ -5,7 +5,7 @@
   "tasks": [
     {
       "label": "build",
-      "command": "make all",
+      "command": "sleep 9 && make all",
       "type": "shell",
       "group": {
         "kind": "build",
