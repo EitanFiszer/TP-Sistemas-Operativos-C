@@ -51,7 +51,7 @@ char** leer_archivo(const char *path_archivo, int* num_lineas) {
             lineas[contador] = malloc(strlen(lineaLeida) + 1);
             strcpy(lineas[contador], lineaLeida);
 
-            printf("Linea %d: %s\n", contador, lineas[contador]);
+            // printf("Linea %d: %s\n", contador, lineas[contador]);
             contador++;
             if (contador >= 1000 || feof(archivo)) { break; }
         }
@@ -100,37 +100,25 @@ void crearProceso(char* nombre_archivo, int pid) {
 }
 
 void finalizarProceso(int pid) {
-    int indice = -1;
+    Proceso* proceso = procesoPorPID(pid);
 
-    for (int i = 0; i < memoria.cant_procesos; i++) {
-        if (memoria.procesos[i].pid == pid) {
-            indice = i;
-            break;
-        }
-    }
-
-    if (indice == -1) {
-        log_info(logger, "No se encontró el proceso con pid %d", pid);
+    if (proceso == NULL) {
+        log_error(logger, "No se encontró el proceso con ID: %d", pid);
         return;
     }
 
-    Proceso* proceso = &memoria.procesos[indice];
-t_list* marcosProceso = dictionary_elements(proceso->tabla_de_paginas);
+    t_dictionary* tabla_de_paginas = proceso->tabla_de_paginas;
+    void* marcos = dictionary_elements(tabla_de_paginas);
 
-    for (int i = 0; i < list_size(marcosProceso); i++) {
-        int* marco = (int*)list_get(marcosProceso, i);
+    for (int i = 0; i < dictionary_size(tabla_de_paginas); i++) {
+        int* marco = (int*)list_remove(marcos, 0);
         bitarray_set_bit(marcosLibres, *marco);
     }
 
-    for (int i = 0; i < proceso->cant_instrucciones; i++) {
-        free(proceso->instrucciones[i]);
-    }
+    dictionary_destroy_and_destroy_elements(tabla_de_paginas, free);
     free(proceso->instrucciones);
-
-    for (int i = indice; i < memoria.cant_procesos - 1; i++) {
-        memoria.procesos[i] = memoria.procesos[i + 1];
-    }
-    memoria.cant_procesos--;
+    free(proceso->tabla_de_paginas);
+    free(proceso);    
 
     log_info(logger, "Se finalizó el proceso con ID: %d", pid);
 }

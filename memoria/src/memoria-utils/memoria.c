@@ -9,7 +9,10 @@ extern Memoria memoria;
 extern t_bitarray* marcosLibres;
 extern int TAM_PAGINA;
 
+
 int buscarDireccionFisicaEnTablaDePaginas(int pid, int pagina) {
+    printf("Buscando dirección física en tabla de páginas del proceso %d, pagina %d\n", pid, pagina);
+
     Proceso* proceso = procesoPorPID(pid);
     if (proceso == NULL) {
         return -1;
@@ -18,14 +21,22 @@ int buscarDireccionFisicaEnTablaDePaginas(int pid, int pagina) {
     // TODO: POR QUE MIERDA FALLA ACÁ
 
     char* key = string_itoa(pagina);
-    int* marco = dictionary_get(proceso->tabla_de_paginas, key);
-    free(key);
+    bool encontrarKey(void* keyToFind) {
+      return strcmp(key, keyToFind) == 0;
+    };
 
-    if (marco == NULL) {
+    t_list* dict_keys = dictionary_keys(proceso->tabla_de_paginas);
+
+    char* dict_key = list_find(dict_keys, (void*)encontrarKey);
+
+    if (!dict_key) {
         return -1;
     }
 
-    return *marco;
+    int marco = dictionary_get(proceso->tabla_de_paginas, key);
+    free(key);
+
+    return marco;
 }
 
 int obtenerDatoMemoria(int direccion) {

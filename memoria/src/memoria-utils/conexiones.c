@@ -36,15 +36,12 @@ void esperar_paquetes_kernel() {
             case FINALIZAR_PROCESO: 
                 int *payloadFin = (int*) paquete->payload;
                 int pidFin = *payloadFin;
-                log_info(logger, "Se llamó a FINALIZAR_PROCESO con PID: %d", pidFin);
                 finalizarProceso(pidFin);
                 break;
             default:
                 log_info(logger, "Operación desconocida de KERNEL");
                 break;
         }
-
-        // eliminar_paquete(paquete_kernel);
     }
 }
 
