@@ -57,12 +57,10 @@ void *consola_interactiva()
         }
         else if (string_equals_ignore_case(split[0], "EJECUTAR_SCRIPT"))
         {
-            if (/*split[1]!= NULL && */strcmp(split[1], "") != 0 && strcmp(split[1], " ") != 0)
-            {
+            if (/*split[1]!= NULL && */strcmp(split[1], "") != 0 && strcmp(split[1], " ") != 0){
                 ejecutar_script(split[1]);
                 free(split[1]);
             }
-
             free(leido);
         }
         else if (string_equals_ignore_case(split[0], "FINALIZAR_PROCESO"))
