@@ -127,7 +127,7 @@ void instruccionMovOut(char* regDire, char* regDato, registros_t* registros, t_P
         return;
     }
 
-    enviar_dato_memoria(dirFisica, &dato);
+    enviar_dato_memoria(dirFisica, dato, sizeof(int));
     pcb->program_counter = pcb->program_counter + 1;
 }
 
@@ -159,7 +159,7 @@ void instruccionCopyString(int tam, registros_t registros, t_PCB* pcb) {
     char* stringCortada = malloc(tam);
     strncpy(stringCortada, string, tam);
 
-    int ok = enviar_dato_memoria(dirFisicaDI, stringCortada);
+    int ok = enviar_dato_memoria(dirFisicaDI, stringCortada, tam);
 
     if (ok == -1) {
         return;

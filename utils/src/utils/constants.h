@@ -202,7 +202,8 @@ typedef struct {
 // CPU/IO - MEMORIA
 typedef struct {
 	int direccion;
-	int dato;
+	void* dato;
+  int tamDato;
 } t_payload_enviar_dato_memoria;
 
 typedef struct {

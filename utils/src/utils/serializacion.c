@@ -679,3 +679,40 @@ t_payload_leer_memoria* deserializar_leer_memoria(void* buffer) {
 
     return payload;
 }
+
+void* serializar_enviar_dato_memoria(t_payload_enviar_dato_memoria* payload, int* size_payload) {
+    /*
+    typedef struct {
+      int direccion;
+      void* dato;
+      int tamDato;
+    } t_payload_enviar_dato_memoria;
+    */
+    *size_payload = sizeof(int) * 2 + payload->tamDato;
+    void* buffer = malloc(*size_payload);
+    int desplazamiento = 0;
+    memcpy(buffer + desplazamiento, &(payload->direccion), sizeof(int));
+    desplazamiento += sizeof(int);
+    memcpy(buffer + desplazamiento, &(payload->tamDato), sizeof(int));
+    desplazamiento += sizeof(int);
+    
+    if (payload->dato != NULL) {
+        memcpy(buffer + desplazamiento, payload->dato, payload->tamDato);
+    } else {
+        // Si dato es NULL, llenamos con ceros el espacio correspondiente
+        memset(buffer + desplazamiento, 0, payload->tamDato);
+    }
+    return buffer;
+}
+
+t_payload_enviar_dato_memoria* deserializar_enviar_dato_memoria(void* buffer) {
+    t_payload_enviar_dato_memoria* payload = malloc(sizeof(t_payload_enviar_dato_memoria));
+    int desplazamiento = 0;
+    memcpy(&(payload->direccion), buffer + desplazamiento, sizeof(int));
+    desplazamiento += sizeof(int);
+    memcpy(&(payload->tamDato), buffer + desplazamiento, sizeof(int));
+    desplazamiento += sizeof(int);
+    payload->dato = malloc(payload->tamDato);
+    memcpy(payload->dato, buffer + desplazamiento, payload->tamDato);
+    return payload;
+}
