@@ -15,7 +15,7 @@
 t_log* logger;
 int socketMemoria;
 
-void crearHilo(char* nombre, char* path_config) {
+void crearHilo(char* nombre, char* path_config, char* ultimo_path) {
 
     t_config* config = iniciar_config(path_config);
     if (config == NULL) {
@@ -36,7 +36,7 @@ void crearHilo(char* nombre, char* path_config) {
         funcion = hilo_generica;
     } else if (strcmp(interfaz, "IO_STDIN") == 0) {
         funcion = hilo_stdin;
-    } else if (strcmp(interfaz, "STDOUT") == 0) {
+    } else if (strcmp(interfaz, "IO_STDOUT") == 0) {
         funcion = hilo_stdout;
     } else if (strcmp(interfaz, "DIALFS") == 0) {
         // funcion = hilo_dialfs; // Define esta función si es necesario
@@ -53,7 +53,11 @@ void crearHilo(char* nombre, char* path_config) {
         argumentos_interrupt.path_config = path_config;
 
         pthread_create(&hilo, NULL, funcion, (void*)&argumentos_interrupt);
-        pthread_join(hilo,NULL);
+        if(strcmp(path_config, ultimo_path)==0){
+            pthread_join(hilo,NULL);
+        }else{
+            pthread_detach(hilo);
+        }
     }else{
         log_error(logger, "funcion no encontrada");
     }
