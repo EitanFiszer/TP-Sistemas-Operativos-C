@@ -5,6 +5,11 @@ void atender_cliente(void *socket)
     int socket_cliente_IO = *(int *)socket;
     while (1)
     {
+        if (socket_cliente_IO == -1)
+        {
+            log_error(logger, "Cliente IO desconectado, socket: %d", socket_cliente_IO);
+            break;
+        }
         t_paquete_entre *unPaquete = recibir_paquete_entre(socket_cliente_IO);
         if (unPaquete == NULL)
         {

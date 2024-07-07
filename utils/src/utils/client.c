@@ -54,6 +54,7 @@ int crear_conexion(char *ip, char *puerto) {
 
     freeaddrinfo(server_info);
     if (err < 0) {
+        printf("ERROR al conectarse con IP %s:%s: %d\n", ip, puerto, err);
         perror("OCURRIO UN ERROR AL INTENTAR CONECTARSE");
         exit(EXIT_FAILURE);
     }

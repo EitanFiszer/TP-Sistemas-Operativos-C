@@ -58,7 +58,7 @@ void iniciar_mutex()
 
 
 
-void esperar_clientes_kernel(void *args)
+void esperar_clientes_io(void *args)
 {
     while (1)
     {
@@ -127,7 +127,7 @@ int main()
 
     // HILO PARA ATENDER CLIENTES -- ESPERAR QUE SE CONECTEN IO
     pthread_t hilo_esperar_clientes;
-    int err = pthread_create(&hilo_esperar_clientes, NULL, (void *)esperar_clientes_kernel, NULL);
+    int err = pthread_create(&hilo_esperar_clientes, NULL, (void *)esperar_clientes_io, NULL);
     pthread_detach(hilo_esperar_clientes);
     if (err != 0)
     {

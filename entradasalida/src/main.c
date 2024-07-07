@@ -1,4 +1,4 @@
-#include <stdlib.h>
+#include <stdlib.h> 
 #include <stdio.h>
 #include <utils/hello.h>
 #include <utils/server.h>
@@ -13,10 +13,10 @@
 #include "hilos.h"
 
 t_log* logger;
+pthread_mutex_t mutex_read_args;
 int socketMemoria;
 
 void crearHilo(char* nombre, char* path_config, char* ultimo_path) {
-
     t_config* config = iniciar_config(path_config);
     if (config == NULL) {
         log_error(logger, "No se pudo cargar el archivo de configuración: %s", path_config);
@@ -48,11 +48,11 @@ void crearHilo(char* nombre, char* path_config, char* ultimo_path) {
 
     if (funcion != NULL) {
         pthread_t hilo;
-        args argumentos_interrupt;
-        argumentos_interrupt.nombre = nombre;
-        argumentos_interrupt.path_config = path_config;
+        args* argumentos_interrupt = malloc(sizeof(args));
+        argumentos_interrupt->nombre = nombre;
+        argumentos_interrupt->path_config = path_config;
 
-        pthread_create(&hilo, NULL, funcion, (void*)&argumentos_interrupt);
+        pthread_create(&hilo, NULL, funcion, (void*)argumentos_interrupt);
         if(strcmp(path_config, ultimo_path)==0){
             pthread_join(hilo,NULL);
         }else{
@@ -68,6 +68,7 @@ void crearHilo(char* nombre, char* path_config, char* ultimo_path) {
 int main(int argc, char* argv[]) {
     logger = log_create("entradasalida.log", "Entrada_Salida", 1, LOG_LEVEL_INFO);
     t_config* config = config_create("EntradaSalida.config");
+    pthread_mutex_init(&mutex_read_args, NULL);
 
     char* ipMemoria = config_get_string_value(config, "IP_MEMORIA");
     char* puertoMemoria = config_get_string_value(config, "PUERTO_MEMORIA");
@@ -81,7 +82,7 @@ int main(int argc, char* argv[]) {
 
     for (int i = 1; i < argc; i += 2) {
         log_info(logger, "Creando hilo %s", argv[i]);
-        crearHilo(argv[i], argv[i+1]);
+        crearHilo(argv[i], argv[i+1], argv[argc-1]);
     }
 
     log_destroy(logger);
