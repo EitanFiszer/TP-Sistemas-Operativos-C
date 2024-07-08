@@ -46,13 +46,14 @@ typedef enum {
 	EXEC_PROCESO, //ejecuta esta pcb
 	INTERRUMPIR_PROCESO, //DE KERNEL A CPU
 
+// SYSCAL IO 
+// DE CPU A KERNEL
 	IO_GEN_SLEEP,
 	IO_FS_TRUNCATE,
 	IO_FS_WRITE,
 	IO_FS_READ,
 	IO_FS_CREATE,
 	IO_FS_DELETE,
-
 	IO_STDOUT_WRITE,
 	IO_STDIN_READ,
 
@@ -84,18 +85,6 @@ typedef enum {
 	EXIT_PROCESS
 
 } OP_CODES_ENTRE;
-
-typedef enum {
-	GEN_SLEEP,
-	STDIN_READ,
-	STDOUT_READ,
-	STDOUT_WRITE,
-	FS_CREATE,
-	FS_DELETE,
-	FS_TRUNCATE,
-	FS_WRITE,
-	FS_READ,
-} SYSCALL_INSTRUCCIONES;
 
 
 // GENERALES
@@ -139,7 +128,7 @@ typedef struct {
     t_PCB* pcb;
   	char* interfaz;
   	int dirFisica;
-} t_payload_io_stdin_read; //cambiar en instrucciones
+} t_payload_io_stdin_read; 
 
 typedef struct {
 	t_PCB* pcb;
@@ -186,7 +175,7 @@ typedef struct {
   char* interfaz;
   int direccionFisica;
 	int tam;
-} t_payload_io_stdin_read_de_kernel_a_io;
+} t_payload_io_stdin_read_de_kernel_a_io;//FALTA SERIALIZACION
 
 typedef struct {
 	char* nombre;

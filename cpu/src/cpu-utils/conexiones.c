@@ -163,7 +163,7 @@ void solicitar_fs_truncate(char* interfaz, char* nombreArchivo, char* regTam, t_
     payload->pcb = pcb;
     int size_payload;
     void* buffer = serializar_fs_truncate(payload, &size_payload);
-    enviar_paquete_entre(socketKernel, FS_TRUNCATE, buffer, size_payload);
+    enviar_paquete_entre(socketKernel, IO_FS_TRUNCATE, buffer, size_payload);
 }
 
 void solicitar_fs_writeORread(char* interfaz, char* nombreArchivo, char* regTam, char* regDire, char* regPuntero, OP_CODES_ENTRE oper, t_PCB* pcb){
