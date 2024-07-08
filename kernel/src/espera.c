@@ -37,6 +37,9 @@ void atender_cliente(void *socket)
                 agregar_interfaz(datos_interfaz->nombre, datos_interfaz->tipo_interfaz, socket_cliente_IO);
                 log_info(logger, "NUEVA INTERFAZ %s CONECTADA", datos_interfaz->nombre);
                 break;
+            case TERMINE_OPERACION:
+                desocupar_io(nombre_io_hilo);
+                break;
             default:
                 log_error(logger, "no se recibio paquete de la IO, error");
                 break;
@@ -133,43 +136,51 @@ void *esperar_paquetes_cpu_dispatch(void *arg)
         case IO_STDIN_READ:
             interrumpir(SYSCALL);
             desalojar();
-            t_payload_io_stdin_read *payload = deserializar_io_stdin_read(paquete_dispatch->payload);
-            atender_io_stdin_read(payload);
+            t_payload_io_stdin_read *payload_stdin_read= deserializar_io_stdin_read(paquete_dispatch->payload);
+            atender_io_stdin_read(payload_stdin_read);
             break;
         case IO_STDOUT_WRITE:
             interrumpir(SYSCALL);
             desalojar();
-            t_payload_io_stdout_write *payload = deserializar_io_stdout_write(paquete_dispatch->payload);
+            t_payload_io_stdout_write *payload_stdout_write = deserializar_io_stdout_write(paquete_dispatch->payload);
+            atender_io_stdout_write(payload_stdout_write);
+
             break;
         case IO_FS_CREATE:
             interrumpir(SYSCALL);
             desalojar();
-            t_payload_fs_create *payload = deserializar_fs_create(paquete_dispatch->payload);
+            t_payload_fs_create *payload_fs_create = deserializar_fs_create(paquete_dispatch->payload);
+            atender_fs_createOrDelate(payload_fs_create, IO_FS_CREATE);
             break;
         case IO_FS_DELETE:
             interrumpir(SYSCALL);
             desalojar();
-            t_payload_fs_create *payload = deserializar_fs_create(paquete_dispatch->payload);
+            t_payload_fs_create *payload_fs_del = deserializar_fs_create(paquete_dispatch->payload);
+            atender_fs_createOrDelate(payload_fs_del,IO_FS_DELETE);
             break;
         case IO_FS_TRUNCATE:
             interrumpir(SYSCALL);
             desalojar();
-            t_payload_fs_truncate *payload = deserializar_fs_truncate(paquete_dispatch->payload);
+            t_payload_fs_truncate *payload_truncate = deserializar_fs_truncate(paquete_dispatch->payload);
+            atender_fs_truncate(payload_truncate);
             break;
         case IO_FS_WRITE:
             interrumpir(SYSCALL);
             desalojar();
-            t_payload_fs_writeORread *payload = deserializar_fs_writeORread(paquete_dispatch->payload);
+            t_payload_fs_writeORread *payload_fs_wOr = deserializar_fs_writeORread(paquete_dispatch->payload);
+            atender_fs_writeOrRead(payload_fs_wOr,IO_FS_WRITE);
             break;
         case IO_FS_READ:
             interrumpir(SYSCALL);
             desalojar();
-            t_payload_fs_writeORread *payload = deserializar_fs_writeORread(paquete_dispatch->payload);
+            t_payload_fs_writeORread *payloadRoW = deserializar_fs_writeORread(paquete_dispatch->payload);
+            atender_fs_writeOrRead(payloadRoW,IO_FS_READ);
             break;
         case IO_GEN_SLEEP:
             interrumpir(SYSCALL);
             desalojar();
-            t_payload_io_gen_sleep *payload = deserializar_io_gen_sleep(paquete_dispatch->payload);
+            t_payload_io_gen_sleep *payload_gen_sleep = deserializar_io_gen_sleep(paquete_dispatch->payload);
+            atender_io_gen_sleep(payload_gen_sleep);
             break;
         default:
             log_error(logger, "no se recibio paquete de la memoria, error");

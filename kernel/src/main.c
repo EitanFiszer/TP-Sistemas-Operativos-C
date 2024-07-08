@@ -93,7 +93,7 @@ int main()
 
     guardar_dictionary_recursos(config);
     inicializar_interfaces();
-
+    inicializar_operaciones_en_espera();
 
     //probando recursos
     // t_recurso* unRecurso = dictionary_get(diccionario_recursos,"RA");
@@ -112,18 +112,7 @@ int main()
     // // creamos el servidor
     server_fd = iniciar_servidor(puerto_escucha, logger);
 
-    // Handshake res = esperar_cliente(server_fd, logger);
-    // int modulo = res.modulo;
-    // // int socket_cliente = res.socket;
-    // switch (modulo)
-    // {
-    // case IO:
-    //     log_info(logger, "Se conecto un I/O");
-    //     break;
-    // default:
-    //     log_error(logger, "Se conecto un cliente desconocido");
-    //     break;
-    // }
+   
 
     // HILO PARA ATENDER CLIENTES -- ESPERAR QUE SE CONECTEN IO
     pthread_t hilo_esperar_clientes;
