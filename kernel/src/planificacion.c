@@ -220,7 +220,7 @@ void stl_FIFO()
 
 void stl_RR()
 {
-    log_info(logger,"INICIANDO PLANIFICACION POR RR");
+    log_info(logger, "INICIANDO PLANIFICACION POR RR");
     while (1)
     {
         // si hay elemenetos en cola ready && la cpu esta libre
@@ -420,8 +420,151 @@ void desalojar()
     free(retirar_PCB);
 }
 
-void finalizar_proceso(int){}
-void detener_planificacion(){}
-void iniciar_planificacion(){}
-void modificar_multiprogramacion(int){}
-void listar_procesos_por_estado(){}
+void finalizar_proceso(int) {}
+void detener_planificacion() {}
+void iniciar_planificacion() {}
+void modificar_multiprogramacion(int) {}
+
+void listar_procesos_por_estado()
+{
+    t_PCB *pcb = malloc(sizeof(t_PCB));
+    // MUESTRO NEW
+    pthread_mutex_lock(&sem_q_new);
+    if (list_is_empty(lista_new))
+    {
+        printf("No hay procesos en estado: NEW \n");
+    }
+    else
+    {
+        printf("Procesos en estado: NEW \n");
+        t_list_iterator *iterador = list_iterator_create(lista_new);
+
+        while (list_iterator_has_next(iterador))
+        {
+            pcb = list_iterator_next(iterador);
+            printf("PID: <%d> \n", pcb->PID);
+        }
+        list_iterator_remove(iterador);
+    }
+    pthread_mutex_unlock(&sem_q_new);
+    // MUESTRO READY
+    pthread_mutex_lock(&sem_q_ready);
+    if (!queue_is_empty(cola_ready))
+    {
+        printf("Procesos en estado: READY \n");
+        int tam_cola = queue_size(cola_ready);
+        for (int i = 0; i < tam_cola; i++)
+        {
+            pcb = queue_pop(cola_ready);
+            printf("PID: <%d> \n", pcb->PID);
+            queue_push(cola_ready, pcb);
+        }
+    }
+    else
+    {
+        printf("No hay procesos en estado: READY \n");
+    }
+    pthread_mutex_unlock(&sem_q_ready);
+    if (strcmp(algoritmo_planificacion, "VRR") == 0)
+    {
+        pthread_mutex_lock(&sem_q_ready_priori);
+        if (!queue_is_empty(cola_ready_priori))
+        {
+            printf("Procesos en estado: READY PRIORIDAD \n");
+            int tam_cola = queue_size(cola_ready_priori);
+            for (int i = 0; i < tam_cola; i++)
+            {
+                pcb = queue_pop(cola_ready_priori);
+                printf("PID: <%d> \n", pcb->PID);
+                queue_push(cola_ready_priori, pcb);
+            }
+        }
+        pthread_mutex_unlock(&sem_q_ready_priori);
+    }
+
+    // MUESTRO BLOCKED
+    pthread_mutex_lock(&sem_q_blocked);
+    if (!queue_is_empty(cola_blocked))
+    {
+        printf("Procesos en estado: EXECUTE \n");
+        int tam_cola = queue_size(cola_blocked);
+        int *pid = NULL;
+        for (int i = 0; i < tam_cola; i++)
+        {
+            pid = queue_pop(cola_blocked);
+            printf("PID: <%d> \n", *pid);
+            queue_push(cola_blocked, pid);
+        }
+    }
+    else
+    {
+        printf("No hay procesos en estado: EXECUTE \n");
+    }
+    pthread_mutex_unlock(&sem_q_blocked);
+    // MUESTRO EXEC
+    pthread_mutex_lock(&sem_q_exec);
+    if (!queue_is_empty(cola_exec))
+    {
+        printf("Procesos en estado: EXECUTE \n");
+        int tam_cola = queue_size(cola_exec);
+        for (int i = 0; i < tam_cola; i++)
+        {
+            pcb = queue_pop(cola_exec);
+            printf("PID: <%d> \n", pcb->PID);
+            queue_push(cola_exec, pcb);
+        }
+    }
+    else
+    {
+        printf("No hay procesos en estado: EXECUTE \n");
+    }
+    pthread_mutex_unlock(&sem_q_exec);
+    // MUESTRO EXIT
+    pthread_mutex_lock(&sem_q_exit);
+    if (!queue_is_empty(cola_exit))
+    {
+        printf("Procesos en estado: EXIT \n");
+        int tam_cola = queue_size(cola_exit);
+        for (int i = 0; i < tam_cola; i++)
+        {
+            pcb = queue_pop(cola_exit);
+            printf("PID: <%d> \n", pcb->PID);
+            queue_push(cola_exit, pcb);
+        }
+    }
+    else
+    {
+        printf("No hay procesos en estado: EXIT \n");
+    }
+    pthread_mutex_unlock(&sem_q_exit);
+}
+
+void add_queue_blocked(int pid)
+{
+    pthread_mutex_lock(&sem_q_blocked);
+    queue_push(cola_blocked, &pid);
+    pthread_mutex_unlock(&sem_q_blocked);
+}
+
+void delete_queue_blocked(int pid)
+{
+    pthread_mutex_lock(&sem_q_blocked);
+
+    int tam_cola = queue_size(cola_blocked);
+    int *pid_retirado = NULL;
+
+    for (int i = 0; i < tam_cola; i++)
+    {
+        pid_retirado = queue_pop(cola_blocked);
+        if (*pid_retirado != pid)
+        {
+            queue_push(cola_blocked, pid_retirado);
+        }
+        else
+        {
+            free(pid_retirado);
+        }
+    }
+
+    pthread_mutex_unlock(&sem_q_blocked);
+}

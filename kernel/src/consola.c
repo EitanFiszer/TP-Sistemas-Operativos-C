@@ -65,25 +65,35 @@ void *consola_interactiva()
         }
         else if (string_equals_ignore_case(split[0], "FINALIZAR_PROCESO"))
         {
+            finalizar_proceso(atoi(split[1]));
+            free(leido);
         }
         else if (string_equals_ignore_case(split[0], "DETENER_PLANIFICACION"))
         {
+            detener_planificacion();
+            free(leido);
         }
         else if (string_equals_ignore_case(split[0], "INICIAR_PLANIFICACION"))
         {
+            iniciar_planificacion();
+        free(leido);
         }
         else if (string_equals_ignore_case(split[0], "MULTIPROGRAMACION"))
         {
+            modificar_multiprogramacion(atoi(split[1]));
+            free(leido);
         }
         else if (string_equals_ignore_case(split[0], "PROCESO_ESTADO"))
         {
+             listar_procesos_por_estado();
+            free(leido);
         }
         else
         {
             // pthread_mutex_trylock(&printf_mutex);
             printf("Escribio un comando incorrecto, los comandos existentes son: \n EJECUTAR_SCRIPT \n INICIAR_PROCESO \n FINALIZAR_PROCESO \n DETENER_PLANIFICACION \n INICIAR_PLANIFICACION \nMULTIPROGRAMACION  \n PROCESO_ESTADO \n ");
             // pthread_mutex_unlock(&printf_mutex);
-
+            free(leido);
             // printf("Escribio un comando incorrecto, los comandos existentes son: \n EJECUTAR_SCRIPT \n INICIAR_PROCESO \n FINALIZAR_PROCESO \n DETENER_PLANIFICACION \n INICIAR_PLANIFICACION \nMULTIPROGRAMACION  \n PROCESO_ESTADO \n ");
         }
     }

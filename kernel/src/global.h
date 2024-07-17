@@ -26,6 +26,7 @@ extern int64_t quantum;
 extern char *algoritmo_planificacion; 
 extern t_config* config;
 extern t_dictionary* diccionario_recursos;
+extern t_dictionary* rec_por_pid_dic;
 extern int grado_multiprog;
 extern pthread_mutex_t interrupcion_syscall;
 extern bool interrumpio_syscall;

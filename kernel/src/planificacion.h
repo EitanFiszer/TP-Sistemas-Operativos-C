@@ -65,6 +65,9 @@ t_PCB *crear_PCB(int);
 // void atender_wait(t_PCB*, char*);
 // void atender_signal(t_PCB*, char*);
 
+void add_queue_blocked(int );
+void delete_queue_blocked(int );
+
 void finalizar_proceso(int);
 void detener_planificacion();
 void iniciar_planificacion();

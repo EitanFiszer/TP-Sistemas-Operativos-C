@@ -18,6 +18,7 @@ typedef struct
     t_queue *cola_blocked_interfaz;
     t_PCB *pcb_usando_interfaz;
     bool libre;
+    
 } datos_interfaz;
 
 typedef struct
