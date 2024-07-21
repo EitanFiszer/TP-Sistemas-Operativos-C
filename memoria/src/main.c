@@ -18,6 +18,8 @@ pthread_t hiloEsperaCpu;
 pthread_t hiloEsperaKernel;
 pthread_t hiloEsperaIO;
 
+Memoria memoria;
+
 void liberarMemoria() {
     log_destroy(logger);
     config_destroy(config);

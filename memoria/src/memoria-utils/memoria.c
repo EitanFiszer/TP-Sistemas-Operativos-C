@@ -3,7 +3,9 @@
 #include <commons/string.h>
 #include <commons/collections/dictionary.h>
 #include <commons/bitarray.h>
+#include <commons/memory.h>
 #include <string.h>
+
 
 extern Memoria memoria; 
 extern t_bitarray* marcosLibres;
@@ -61,17 +63,13 @@ int buscarMarcoLibre() {
 }
 
 void escribirMemoria(int direccionFisica, void* dato, int tamDato) {
-    int tamDatoRestante = tamDato;
-    while (tamDatoRestante > 0) {
-        int tamEscritura = tamDatoRestante > TAM_PAGINA ? TAM_PAGINA : tamDatoRestante;
-        memcpy(memoria.memoria + direccionFisica, dato, tamEscritura);
-        tamDatoRestante -= tamEscritura;
-    }
+    printf("Primera dirección de memoria: %p, dirección deseada: %p\n", memoria.memoria, memoria.memoria + direccionFisica);
+    memcpy(memoria.memoria + direccionFisica, dato, tamDato);
+    mem_hexdump(memoria.memoria + direccionFisica, tamDato);
 }
 
 int obtenerDatoMemoria(int direccion) {
     int dato;
     memcpy(&dato, memoria.memoria + direccion, sizeof(int));
-    printf("Dato obtenido de direccion %d: %d\n",direccion, dato);
     return dato;
 }

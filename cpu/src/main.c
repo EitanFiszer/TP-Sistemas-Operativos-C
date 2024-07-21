@@ -7,6 +7,7 @@ int socketKernel;
 int socketMemoria;
 int TAM_PAGINA;
 t_log* logger;
+t_config* config;
 int interrupcion;
 
 int server_dispatch_fd;
@@ -23,7 +24,7 @@ struct args {
     t_log* logger;
 };
 
-void finalizarCPU(t_log* logger, t_config* config) {
+void finalizarCPU() {
     printf("Finalizando CPU\n");
     log_destroy(logger);
     config_destroy(config);
@@ -55,7 +56,10 @@ void conexion_interrupt(void* argumentos) {
 
     while (1) {
         t_paquete_entre* paquete = recibir_paquete_entre(socket_cliente);
-
+        if(paquete==NULL){
+            log_error(logger,"Error al recibir paquete de kernel interrupt, finalizando conexiones");
+            finalizarCPU();
+        }
         switch (paquete->operacion) {
             case INTERRUMPIR_PROCESO:
                 pthread_mutex_lock(&mutex_interrupcion);
@@ -98,7 +102,7 @@ void testConnMem() {
 int main(int argc, char* argv[]) {
     // creamos logs y configs
     logger = iniciar_logger("cpu.log", "CPU");
-    t_config* config = iniciar_config("cpu.config");
+    config = iniciar_config("cpu.config");
 
     // leemos las configs
     char* ip_memoria = config_get_string_value(config, "IP_MEMORIA");
@@ -132,7 +136,7 @@ int main(int argc, char* argv[]) {
     TAM_PAGINA = handshakeMemoria.tam_pagina;
     if (socketMemoria == -1) {
         log_error(logger, "No se pudo conectar con la memoria");
-        finalizarCPU(logger, config);
+        finalizarCPU();
     }
     printf("Handshake socket: %d, TAM_PAG: %d\n", socketMemoria, TAM_PAGINA);
 
@@ -155,7 +159,8 @@ int main(int argc, char* argv[]) {
         // Recibo el paquete del kernel
         t_paquete_entre* paq = recibir_paquete_entre(socketKernel);
         if (paq == NULL) {
-            log_error(logger, "No se pudo recibir el paquete de la memoria");
+            log_error(logger, "No se pudo recibir el paquete kernel");
+            finalizarCPU();
         }
         t_PCB* pcb = (t_PCB*)paq->payload;
         switch (paq->operacion) {
@@ -194,5 +199,5 @@ int main(int argc, char* argv[]) {
 
     }  
 
-    finalizarCPU(logger, config);
+    finalizarCPU();
 }

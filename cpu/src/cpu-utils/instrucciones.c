@@ -127,7 +127,7 @@ void instruccionMovOut(char* regDire, char* regDato, registros_t* registros, t_P
     if (dirFisica == -1) {
         return;
     }
-    enviar_dato_memoria(dirFisica, dato, sizeof(int));
+    enviar_dato_memoria(dirFisica, (void*)dato, sizeof(int));
     pcb->program_counter = pcb->program_counter + 1;
 }
 

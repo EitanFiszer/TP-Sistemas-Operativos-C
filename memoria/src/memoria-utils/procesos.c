@@ -16,7 +16,7 @@ extern char* path_instrucciones;
 extern int socketKernel;
 extern t_bitarray *marcosLibres;
 
-Memoria memoria;
+extern Memoria memoria;
 
 void inicializarMemoria() {
     memoria.max_procesos = TAM_MEMORIA/TAM_PAGINA;

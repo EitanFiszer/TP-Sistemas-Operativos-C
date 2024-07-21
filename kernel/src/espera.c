@@ -93,6 +93,10 @@ void *esperar_paquetes_cpu_dispatch(void *arg)
     while (1)
     {
         t_paquete_entre *paquete_dispatch = recibir_paquete_entre(resultHandshakeDispatch);
+        if(paquete_dispatch==NULL){
+            log_error(logger, "Hubo un error al recibir paquete de CPU, cerrando kernel");
+            finalizar_kernel();
+        }
         switch (paquete_dispatch->operacion)
         {
         case INTERRUMPIO_PROCESO:

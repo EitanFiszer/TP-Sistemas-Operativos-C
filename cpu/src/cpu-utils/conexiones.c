@@ -55,7 +55,7 @@ int enviar_dato_memoria(int dirFisica, void* dato, int tamDato) {
     int size_payload;
     void* buffer = serializar_enviar_dato_memoria(payload, &size_payload);
 
-    printf("Enviando dato void %p a direccion %d", payload->dato, dirFisica);
+    printf("Enviando dato void %p a direccion %d", dato, dirFisica);
     
     enviar_paquete_entre(socketMemoria, ENVIAR_DATO_MEMORIA, buffer, size_payload);
 

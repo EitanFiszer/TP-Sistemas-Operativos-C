@@ -8,6 +8,7 @@
 
 
 t_log *iniciar_logger(char*, char*);
+t_log *iniciar_logger_kernel(char *, char *);
 t_config *iniciar_config(char *);
 void terminar_programa(t_log*, t_config*);
 

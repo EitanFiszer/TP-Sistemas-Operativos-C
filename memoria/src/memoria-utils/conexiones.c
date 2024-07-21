@@ -43,6 +43,7 @@ void esperar_paquetes_kernel() {
                 break;
         }
     }
+    liberarMemoria();
 }
 
 void esperar_paquetes_cpu() {
@@ -53,11 +54,13 @@ void esperar_paquetes_cpu() {
 
         if (paquete_cpu == NULL) {
             log_error(logger, "No se pudo recibir el paquete de la CPU, cerrando hilo");
+            liberarMemoria();
             break;
         } 
 
         if (paquete_cpu->payload == NULL) {
             log_error(logger, "No se pudo recibir el paquete de la CPU");
+            liberarMemoria();
         } 
 
         switch (paquete_cpu->operacion) {
@@ -172,6 +175,7 @@ void esperar_paquetes_cpu() {
 
         // eliminar_paquete(paquete_cpu);
     }
+    liberarMemoria();
 }
 
 void esperar_paquetes_io() {

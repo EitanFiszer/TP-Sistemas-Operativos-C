@@ -84,7 +84,7 @@ void esperar_clientes_io(void *args)
 int main()
 {
     // decir_hola("Kernel");
-    logger = iniciar_logger("kernel.log", "Kernel");
+    logger = iniciar_logger_kernel("kernel.log", "Kernel");
     config = iniciar_config("kernel.config");
     leer_configs(config);
     // inicializar_recursos();

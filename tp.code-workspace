@@ -2,11 +2,14 @@
 	"settings": {
 		"debug.onTaskErrors": "abort",
 		"files.associations": {
-			"*.h": "c",
-			"TLB.C": "cpp",
-			"cmath": "c",
-			"*.tcc": "c"
-		},
+      "*.css": "css",
+      "*.h": "c",
+      "TLB.C": "cpp",
+      "cmath": "c",
+      "*.tcc": "c",
+      "operacionesFS.H": "cpp",
+      "type_traits": "c"
+    },
 		"C_Cpp.errorSquiggles": "disabled",
 	},
 	"folders": [
