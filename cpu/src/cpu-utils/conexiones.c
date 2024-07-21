@@ -34,18 +34,8 @@ handshake_cpu_memoria handshake_memoria(char* ip_memoria, char* puerto_memoria) 
 void* solicitar_dato_memoria(int dirFisica) {
     t_payload_solicitar_dato_memoria* payload = malloc(sizeof(t_payload_solicitar_dato_memoria));
     payload->direccion = dirFisica;
+    enviar_paquete_entre(socketMemoria, SOLICITAR_DATO_MEMORIA, payload, sizeof(t_payload_solicitar_dato_memoria));   
 
-    t_paquete_entre* paquete = malloc(sizeof(t_paquete_entre));
-    paquete->operacion = SOLICITAR_DATO_MEMORIA;
-    paquete->payload = payload;
-    paquete->size_payload = sizeof(t_payload_solicitar_dato_memoria);
-
-    t_paquete* paq = crear_paquete();
-    agregar_paquete_entre_a_paquete(paq, paquete);
-
-    enviar_paquete(paq, socketMemoria);
-
-   
     t_paquete_entre* paqueteRecibidoEntero = recibir_paquete_entre(socketMemoria);
     if (paqueteRecibidoEntero == NULL) {
         return NULL;
@@ -64,6 +54,8 @@ int enviar_dato_memoria(int dirFisica, void* dato, int tamDato) {
 
     int size_payload;
     void* buffer = serializar_enviar_dato_memoria(payload, &size_payload);
+
+    printf("Enviando dato void %p a direccion %d", payload->dato, dirFisica);
     
     enviar_paquete_entre(socketMemoria, ENVIAR_DATO_MEMORIA, buffer, size_payload);
 

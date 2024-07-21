@@ -111,10 +111,10 @@ void esperar_paquetes_cpu() {
                 int dato = obtenerDatoMemoria(direccion);
                 printf("Dato: %d\n", dato);
 
-                if (dato == NULL) {
-                    log_info(logger, "No se pudo obtener el dato de memoria");
-                    break;
-                }
+                // if (dato == NULL) {
+                //     log_info(logger, "No se pudo obtener el dato de memoria");
+                //     break;
+                // }
 
                 // Enviar dato a CPU
                 t_payload_dato_memoria payloadDato = {
@@ -157,8 +157,12 @@ void esperar_paquetes_cpu() {
               int direccionEnviar = payloadEnviar->direccion;
               void* datoEnviar = payloadEnviar->dato;
               int tamDatoEnviar = payloadEnviar->tamDato;
-
+              printf("Escribiendo dato %p en dirección %d\n", datoEnviar, direccionEnviar);
               escribirMemoria(direccionEnviar, datoEnviar, tamDatoEnviar);
+
+              t_payload_dato_memoria* payloadDatoEnviar = malloc(sizeof(t_payload_dato_memoria));
+              payloadDatoEnviar->dato = datoEnviar;
+              enviar_paquete_entre(socketCpu, DATO_MEMORIA, payloadDatoEnviar, sizeof(t_payload_dato_memoria));
               break;
             #pragma endregion
             default:

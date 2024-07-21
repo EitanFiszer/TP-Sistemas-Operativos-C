@@ -681,38 +681,63 @@ t_payload_leer_memoria* deserializar_leer_memoria(void* buffer) {
 }
 
 void* serializar_enviar_dato_memoria(t_payload_enviar_dato_memoria* payload, int* size_payload) {
-    /*
-    typedef struct {
-      int direccion;
-      void* dato;
-      int tamDato;
-    } t_payload_enviar_dato_memoria;
-    */
-    *size_payload = sizeof(int) * 2 + payload->tamDato;
+    // Calcular el tamaño total del payload serializado
+    *size_payload = sizeof(int) + sizeof(int) + payload->tamDato;
+
+    // Reservar memoria para el payload serializado
     void* buffer = malloc(*size_payload);
-    int desplazamiento = 0;
-    memcpy(buffer + desplazamiento, &(payload->direccion), sizeof(int));
-    desplazamiento += sizeof(int);
-    memcpy(buffer + desplazamiento, &(payload->tamDato), sizeof(int));
-    desplazamiento += sizeof(int);
-    
-    if (payload->dato != NULL) {
-        memcpy(buffer + desplazamiento, payload->dato, payload->tamDato);
-    } else {
-        // Si dato es NULL, llenamos con ceros el espacio correspondiente
-        memset(buffer + desplazamiento, 0, payload->tamDato);
+    if (buffer == NULL) {
+        return NULL; // Error al reservar memoria
     }
+
+    // Puntero temporal para ir copiando los datos al buffer
+    void* ptr = buffer;
+
+    // Copiar la dirección
+    memcpy(ptr, &(payload->direccion), sizeof(int));
+    ptr += sizeof(int);
+
+    // Copiar el tamaño del dato
+    memcpy(ptr, &(payload->tamDato), sizeof(int));
+    ptr += sizeof(int);
+
+    // Copiar el dato si tamDato es mayor que 0
+    if (payload->tamDato > 0 && payload->dato != NULL) {
+        memcpy(ptr, payload->dato, payload->tamDato);
+    }
+
     return buffer;
 }
 
 t_payload_enviar_dato_memoria* deserializar_enviar_dato_memoria(void* buffer) {
-    t_payload_enviar_dato_memoria* payload = malloc(sizeof(t_payload_enviar_dato_memoria));
-    int desplazamiento = 0;
-    memcpy(&(payload->direccion), buffer + desplazamiento, sizeof(int));
-    desplazamiento += sizeof(int);
-    memcpy(&(payload->tamDato), buffer + desplazamiento, sizeof(int));
-    desplazamiento += sizeof(int);
-    payload->dato = malloc(payload->tamDato);
-    memcpy(payload->dato, buffer + desplazamiento, payload->tamDato);
+    // Crear una nueva estructura para almacenar los datos deserializados
+    t_payload_enviar_dato_memoria* payload = (t_payload_enviar_dato_memoria*) malloc(sizeof(t_payload_enviar_dato_memoria));
+    if (payload == NULL) {
+        return NULL; // Error al reservar memoria
+    }
+
+    // Puntero temporal para leer los datos del buffer
+    void* ptr = buffer;
+
+    // Leer la dirección
+    memcpy(&(payload->direccion), ptr, sizeof(int));
+    ptr += sizeof(int);
+
+    // Leer el tamaño del dato
+    memcpy(&(payload->tamDato), ptr, sizeof(int));
+    ptr += sizeof(int);
+
+    // Reservar memoria para el dato y copiarlo si tamDato es mayor que 0
+    if (payload->tamDato > 0) {
+        payload->dato = malloc(payload->tamDato);
+        if (payload->dato == NULL) {
+            free(payload);
+            return NULL; // Error al reservar memoria
+        }
+        memcpy(payload->dato, ptr, payload->tamDato);
+    } else {
+        payload->dato = NULL;
+    }
+
     return payload;
 }

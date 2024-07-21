@@ -1,7 +1,7 @@
 #include <utils/PCB.h>
 
 int valorDelRegistro(char* reg, registros_t* registros);
-void instruccionSet(char* reg, int valor, registros_t* registros);
+void instruccionSet(char* reg, void* valor, registros_t* registros);
 void instruccionSum(t_PCB* pcb, char* regDest, char* regOrig, registros_t* registros);
 void instruccionSub(t_PCB* pcb, char* regDest, char* regOrig, registros_t* registros);
 void instruccionJNZ(t_PCB* pcb, char* regDato, int instruccionASaltar, registros_t registros);

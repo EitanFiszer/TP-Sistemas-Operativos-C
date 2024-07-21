@@ -117,7 +117,7 @@ void finalizarProceso(int pid) {
 
     dictionary_destroy_and_destroy_elements(tabla_de_paginas, free);
     free(proceso->instrucciones);
-    free(proceso->tabla_de_paginas);
+    // free(proceso->tabla_de_paginas);
     free(proceso);    
 
     log_info(logger, "Se finalizó el proceso con ID: %d", pid);

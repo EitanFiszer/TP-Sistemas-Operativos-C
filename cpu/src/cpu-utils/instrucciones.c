@@ -34,7 +34,7 @@ int valorDelRegistro(char* reg, registros_t* registros) {
 }
 
 // Asigna al registro el valor pasado como parámetro
-void instruccionSet(char* reg, int valor, registros_t* registros) {
+void instruccionSet(char* reg, void* valor, registros_t* registros) {
     if(string_equals_ignore_case(reg, "AX")){
         registros->AX = (uint8_t)valor;
     } else if (string_equals_ignore_case(reg, "BX")) {
@@ -107,13 +107,13 @@ void instruccionMovIn(char* regDato, char* regDire, registros_t* registros, t_PC
     int dirLogica = valorDelRegistro(regDire, registros);
     int dirFisica = calcularDireccionFisica(pcb->PID, dirLogica);
 
-    int* dato = (int*)solicitar_dato_memoria(dirFisica);
+    void* dato = solicitar_dato_memoria(dirFisica);
 
-    if (dato == NULL) {
-        return;
-    }
+    // if (dato == NULL) {
+    //     return;
+    // }
 
-    instruccionSet(regDato, *dato, registros);
+    instruccionSet(regDato, dato, registros);
     pcb->program_counter = pcb->program_counter + 1;
 }
 
@@ -123,10 +123,10 @@ void instruccionMovOut(char* regDire, char* regDato, registros_t* registros, t_P
     int dirLogica = valorDelRegistro(regDire, registros);
 
     int dirFisica = calcularDireccionFisica(pcb->PID, dirLogica);
+    printf("Direccion fisica: %d\n", dirFisica);
     if (dirFisica == -1) {
         return;
     }
-
     enviar_dato_memoria(dirFisica, dato, sizeof(int));
     pcb->program_counter = pcb->program_counter + 1;
 }
