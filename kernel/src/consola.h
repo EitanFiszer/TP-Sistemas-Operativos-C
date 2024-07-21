@@ -7,5 +7,5 @@
 #include <commons/string.h>
 
 void* consola_interactiva();
-
+int ejecutar_script(char* path);
 #endif // CONSOLA_H

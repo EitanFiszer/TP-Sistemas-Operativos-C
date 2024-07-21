@@ -28,6 +28,8 @@
         "stdint.h": "c",
         "netdb.h": "c",
         "manejointerfaces.h": "c",
-        "cicloinstruccion.h": "c"
+        "cicloinstruccion.h": "c",
+        "dictionary.h": "c",
+        "recursos.h": "c"
     }
 }

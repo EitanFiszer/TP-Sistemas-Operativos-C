@@ -15,12 +15,30 @@ typedef struct{
     t_queue* cola_blocked_recurso;
 }t_recurso;
 
+typedef struct{
+    char* nombre_recurso;
+    int instancias_recurso;
+}t_rec_list;
+
+
+
+
+
+
+int buscar_recurso(t_list*, char*);
+void recorrer_liberar_rec(t_list*);
+
+void modificar_wait_dic_rec(int,char*);
+void modificar_signal_dic_rec(int,char*);
+void modificar_fin_proc_dic_rec(int,char*); 
 
 void guardar_dictionary_recursos(t_config* );
 
 void atender_wait(t_PCB* , char*);
 
 void atender_signal(t_PCB*, char*);
+
+
 
 
 

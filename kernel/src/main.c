@@ -91,12 +91,13 @@ int main()
     // leer_recursos(config);
     log_info(logger, "[KERNEL] Escuchando en el puerto: %s", puerto_escucha);
 
+    // inicializar_rec_pid();
     guardar_dictionary_recursos(config);
     inicializar_interfaces();
-
+    inicializar_operaciones_en_espera();
 
     //probando recursos
-    // t_recurso* unRecurso = dictionary_get(diccionario_recursos,"RA");
+    // t_recurso_reg* unRecurso = dictionary_get(diccionario_recursos,"RA");
     // log_info(logger,"Un nombre del diccionario : %s, con instancias: %d",unRecurso->nombre_recurso, unRecurso->instancias_recurso);
 
 
@@ -112,18 +113,7 @@ int main()
     // // creamos el servidor
     server_fd = iniciar_servidor(puerto_escucha, logger);
 
-    // Handshake res = esperar_cliente(server_fd, logger);
-    // int modulo = res.modulo;
-    // // int socket_cliente = res.socket;
-    // switch (modulo)
-    // {
-    // case IO:
-    //     log_info(logger, "Se conecto un I/O");
-    //     break;
-    // default:
-    //     log_error(logger, "Se conecto un cliente desconocido");
-    //     break;
-    // }
+   
 
     // HILO PARA ATENDER CLIENTES -- ESPERAR QUE SE CONECTEN IO
     pthread_t hilo_esperar_clientes;

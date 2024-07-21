@@ -2,18 +2,29 @@
 
 void atender_cliente(void *socket)
 {
+    char *nombre_io_hilo = NULL;
     int socket_cliente_IO = *(int *)socket;
+    // bool salir = true;
     while (1)
     {
         if (socket_cliente_IO == -1)
         {
             log_error(logger, "Cliente IO desconectado, socket: %d", socket_cliente_IO);
+            if (nombre_io_hilo != NULL)
+            {
+                desconectar_IO(nombre_io_hilo);
+            }
             break;
         }
         t_paquete_entre *unPaquete = recibir_paquete_entre(socket_cliente_IO);
         if (unPaquete == NULL)
         {
-            log_error(logger, "Cliente IO desconectado, socket: %d", socket_cliente_IO);
+            log_error(logger, "Cliente IO desconectado, socket: %d  nombre %s", socket_cliente_IO, nombre_io_hilo);
+            if (nombre_io_hilo != NULL)
+            {
+                desconectar_IO(nombre_io_hilo);
+            }
+            break;
         }
         else
         {
@@ -21,13 +32,20 @@ void atender_cliente(void *socket)
             {
             case IO_INTERFAZ_CREADA:
                 t_payload_interfaz_creada *datos_interfaz = deserializar_interfaz_creada(unPaquete->payload);
+                nombre_io_hilo = malloc(strlen(datos_interfaz->nombre) + 1);
+                strcpy(nombre_io_hilo, datos_interfaz->nombre);
                 agregar_interfaz(datos_interfaz->nombre, datos_interfaz->tipo_interfaz, socket_cliente_IO);
                 log_info(logger, "NUEVA INTERFAZ %s CONECTADA", datos_interfaz->nombre);
+                break;
+            case TERMINE_OPERACION:
+                desocupar_io(nombre_io_hilo);
                 break;
             default:
                 log_error(logger, "no se recibio paquete de la IO, error");
                 break;
             }
+            // CUANDO SE DESCONECTE
+            // free(nombre_io_hilo)
         }
     }
 }
@@ -78,27 +96,25 @@ void *esperar_paquetes_cpu_dispatch(void *arg)
         switch (paquete_dispatch->operacion)
         {
         case INTERRUMPIO_PROCESO:
-        log_info(logger,"RECIBIENDO PROCESO DESALOJADO");
+            log_info(logger, "RECIBIENDO PROCESO DESALOJADO");
             // if(no hubo syscall)
             // pthread_mutex_trylock(&interrupcion_syscall);
             // if (interrumpio_syscall)
             // {
             //     log_info(logger, "PROCESO DESALOJADO POR SYSCALL");
             //     interrumpio_syscall = false;
-                    // break;
+            // break;
             // }
             // else
             // {
-                t_PCB *PCB = (t_PCB *)paquete_dispatch->payload;
-                desalojar();
-                cargar_ready(PCB, EXEC);
-                break;
+            t_PCB *PCB = (t_PCB *)paquete_dispatch->payload;
+            desalojar();
+            cargar_ready(PCB, EXEC);
+            break;
             // }
             pthread_mutex_unlock(&interrupcion_syscall);
 
-
         case WAIT:
-
             t_payload_wait_signal *paquete_wait = deserializar_wait_signal(paquete_dispatch->payload);
             interrumpir(SYSCALL);
             atender_wait(paquete_wait->pcb, paquete_wait->recurso);
@@ -108,6 +124,7 @@ void *esperar_paquetes_cpu_dispatch(void *arg)
             t_payload_wait_signal *paquete_signal = deserializar_wait_signal(paquete_dispatch->payload);
             atender_signal(paquete_signal->pcb, paquete_signal->recurso);
             break;
+
         case TERMINO_EJECUCION:
             desalojar();
             t_PCB *pcb_dispatch = (t_PCB *)paquete_dispatch->payload;
@@ -115,17 +132,55 @@ void *esperar_paquetes_cpu_dispatch(void *arg)
             lts_ex(pcb_dispatch, EXEC);
             /// PROCESO TERMINADO SE DESALOJA Y SE ENVIA A EXIT
             break;
-        case IO_GEN_SLEEP:
+
+        case IO_STDIN_READ:
+            interrumpir(SYSCALL);
+            desalojar();
+            t_payload_io_stdin_read *payload_stdin_read= deserializar_io_stdin_read(paquete_dispatch->payload);
+            atender_io_stdin_read(payload_stdin_read);
             break;
-        case IO_FS_TRUNCATE:
-            break;
-        case IO_FS_WRITE:
-            break;
-        case IO_FS_READ:
+        case IO_STDOUT_WRITE:
+            interrumpir(SYSCALL);
+            desalojar();
+            t_payload_io_stdout_write *payload_stdout_write = deserializar_io_stdout_write(paquete_dispatch->payload);
+            atender_io_stdout_write(payload_stdout_write);
+
             break;
         case IO_FS_CREATE:
+            interrumpir(SYSCALL);
+            desalojar();
+            t_payload_fs_create *payload_fs_create = deserializar_fs_create(paquete_dispatch->payload);
+            atender_fs_createOrDelate(payload_fs_create, IO_FS_CREATE);
             break;
         case IO_FS_DELETE:
+            interrumpir(SYSCALL);
+            desalojar();
+            t_payload_fs_create *payload_fs_del = deserializar_fs_create(paquete_dispatch->payload);
+            atender_fs_createOrDelate(payload_fs_del,IO_FS_DELETE);
+            break;
+        case IO_FS_TRUNCATE:
+            interrumpir(SYSCALL);
+            desalojar();
+            t_payload_fs_truncate *payload_truncate = deserializar_fs_truncate(paquete_dispatch->payload);
+            atender_fs_truncate(payload_truncate);
+            break;
+        case IO_FS_WRITE:
+            interrumpir(SYSCALL);
+            desalojar();
+            t_payload_fs_writeORread *payload_fs_wOr = deserializar_fs_writeORread(paquete_dispatch->payload);
+            atender_fs_writeOrRead(payload_fs_wOr,IO_FS_WRITE);
+            break;
+        case IO_FS_READ:
+            interrumpir(SYSCALL);
+            desalojar();
+            t_payload_fs_writeORread *payloadRoW = deserializar_fs_writeORread(paquete_dispatch->payload);
+            atender_fs_writeOrRead(payloadRoW,IO_FS_READ);
+            break;
+        case IO_GEN_SLEEP:
+            interrumpir(SYSCALL);
+            desalojar();
+            t_payload_io_gen_sleep *payload_gen_sleep = deserializar_io_gen_sleep(paquete_dispatch->payload);
+            atender_io_gen_sleep(payload_gen_sleep);
             break;
         default:
             log_error(logger, "no se recibio paquete de la memoria, error");
@@ -180,6 +235,9 @@ void interrumpir(t_motivo_interrupcion motivo)
         pthread_mutex_lock(&interrupcion_syscall);
         interrumpio_syscall = true;
         pthread_mutex_unlock(&interrupcion_syscall);
+        log_info(logger, "INTERRUMPIENDO PROCESO POR SYSCALL");
+    }else if(motivo == FIN_QUANTUM){
+        log_info(logger, "INTERRUMPIENDO PROCESO POR FIN DE QUANTUM");
     }
     t_paquete *paquete_fin_de_q = crear_paquete();
     t_paquete_entre *fin_q = malloc(sizeof(t_paquete_entre));
