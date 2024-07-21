@@ -1,5 +1,4 @@
 #include "hilos.h"
-
 #include <commons/config.h>
 #include <semaphore.h>
 #include <unistd.h>
@@ -8,6 +7,7 @@
 #include <utils/envios.h>
 #include <utils/serializacion.h>
 #include <utils/server.h>
+#include "operacionesFS.h"
 
 struct args {
     char* nombre;
@@ -16,6 +16,22 @@ struct args {
 
 extern t_log* logger;
 extern int socketMemoria;
+
+void crearFS(int block_count, int block_size){
+
+    size_t tamano_total = block_size * block_count;
+
+    FILE *archivo = fopen("bloques.dat", "wb");
+    if (!archivo) {
+        log_error(logger, "Error al abrir el archivo de bloques");
+        exit(EXIT_FAILURE);
+    }
+    fclose(archivo);
+
+
+}
+
+
 
 int conexionKernell(char* ip, char* puerto, char* tipo_interfaz, char* nombre) {
     int resultHandshake = connectAndHandshake(ip, puerto, IO, "kernel", logger);
@@ -29,22 +45,9 @@ int conexionKernell(char* ip, char* puerto, char* tipo_interfaz, char* nombre) {
     void* buffer = serializar_interfaz_creada(payload, &size_pay);
     enviar_paquete_entre(resultHandshake, IO_INTERFAZ_CREADA, buffer, size_pay);
 
-    // t_paquete* paq = crear_paquete();
-    // t_paquete_entre* paquete=malloc(sizeof(t_paquete_entre));
-    // paquete->operacion = IO_INTERFAZ_CREADA;
-    // paquete->size_payload = size_pay;
-    // paquete->payload = buffer;
-
-    // agregar_paquete_entre_a_paquete(paq,paquete);
-    // enviar_paquete(paquete,resultHandshake);
-
     return resultHandshake;
 }
 
-// int conexionMemoria(char* ip, char* puerto) {
-//     int resultHandshake = connectAndHandshake(ip, puerto, IO, "memoria", logger);
-//     return resultHandshake;
-// }
 
 void hilo_generica(void* argumentos) {
     struct args* nombreYpath = argumentos;
@@ -116,9 +119,7 @@ void hilo_stdin(void* argumentos) {
                 void* payloadSerializado = serializar_escribir_memoria(payload, &size_payload);
                 enviar_paquete_entre(socketMemoria, ESCRIBIR_MEMORIA, payloadSerializado, sizeof(t_payload_escribir_memoria));
 
-                
-                // Cerrar conexión con memoria
-                // close(resultHandshakeMemoria);
+            
                 break;
             default:
                 log_info(logger, "Operacion: <NO DEFINIDA>");
@@ -135,14 +136,11 @@ void hilo_stdout(void* argumentos) {
 
     char* ip_kernel = config_get_string_value(config, "IP_KERNEL");
     char* puerto_kernel = config_get_string_value(config, "PUERTO_KERNEL");
-    // char* ip_memoria = config_get_string_value(config, "IP_MEMORIA");
-    // char* puerto_memoria = config_get_string_value(config, "PUERTO_MEMORIA");
     char* tipo_interfaz = config_get_string_value(config, "TIPO_INTERFAZ");
 
     int resultHandshakeKernell = conexionKernell(ip_kernel, puerto_kernel, tipo_interfaz, nombre);
 
     while (1) {
-        // t_list* paq = recibir_paquete(resultHandshakeKernell);
         t_paquete_entre* paquete_dispatch = recibir_paquete_entre(resultHandshakeKernell);
         OP_CODES_ENTRE op = paquete_dispatch->operacion;
 
@@ -156,22 +154,74 @@ void hilo_stdout(void* argumentos) {
 
                 enviar_paquete_entre(socketMemoria, SOLICITAR_DATO_MEMORIA, payloadMandar, sizeof(t_payload_solicitar_dato_memoria));
 
-                // Recibir respuesta de la memoria
                 t_paquete_entre* respuesta = recibir_paquete_entre(socketMemoria);
                 char* valor_leido = (char*)respuesta->payload;
 
                 log_info(logger, "Valor leído de memoria: %s", valor_leido);
 
-                // Mostrar el valor leído en la consola
                 printf("Valor leído de memoria en la dirección %u: %s\n", operacionRecibida->direccionFisica, valor_leido);
 
-                // Limpiar la lista recibida y cerrar conexión
                 list_destroy(respuesta);
-                // close(resultHandshakeMemoria);
 
                 break;
             default:
                 log_info(logger, "Operacion: <NO DEFINIDA>");
+        }
+    }
+}
+
+void hilo_dialfs(void* argumentos){
+    struct args* nombreYpath = argumentos;
+    char* path_config = nombreYpath->path_config;
+    char* nombre = nombreYpath->nombre;
+
+    t_config* config = config_create(path_config);
+
+    char* ip_kernel = config_get_string_value(config, "IP_KERNEL");
+    char* puerto_kernel = config_get_string_value(config, "PUERTO_KERNEL");
+    char* tipo_interfaz = config_get_string_value(config, "TIPO_INTERFAZ");
+    int block_size = config_get_int_value(config, "BLOCK_SIZE");
+    int block_count = config_get_int_value(config, "BLOCK_COUNT");
+    char* path_base = config_get_string_value(config, "PATH_BASE_DIALFS")
+
+    int resultHandshakeKernell = conexionKernell(ip_kernel, puerto_kernel, tipo_interfaz, nombre);
+
+
+
+    /*
+    char cwd[256];
+    getcwd(cwd, sizeof(cwd));
+
+    char* path_archivo = malloc(strlen(cwd) + strlen(path_instrucciones) + strlen(nombre_archivo) + 1);
+    strcpy(path_archivo, cwd);
+    strcat(path_archivo, path_instrucciones);
+    strcat(path_archivo, nombre_archivo);
+    */
+    crearFS(block_count, block_size);
+
+
+    while (1) {
+        t_paquete_entre* paquete_dispatch = recibir_paquete_entre(resultHandshakeKernell);
+        OP_CODES_ENTRE op = paquete_dispatch->operacion;
+        
+        switch(op) {
+            case IO_FS_CREATE:
+                crear_archivo();
+                    
+            break;
+
+            case IO_FS_DELETE:
+            break;
+
+            case IO_FS_TRUNCATE:
+            break;
+
+            case IO_FS_WRITE:
+            break;
+
+            case IO_FS_READ:
+            break;
+
         }
     }
 }

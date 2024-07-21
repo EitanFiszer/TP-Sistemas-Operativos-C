@@ -37,8 +37,8 @@ void crearHilo(char* nombre, char* path_config, char* ultimo_path) {
         funcion = hilo_stdin;
     } else if (strcmp(interfaz, "IO_STDOUT") == 0) {
         funcion = hilo_stdout;
-    } else if (strcmp(interfaz, "DIALFS") == 0) {
-        // funcion = hilo_dialfs; // Define esta función si es necesario
+    } else if (strcmp(interfaz, "IO_DIALFS") == 0) {
+        funcion = hilo_dialfs; // Define esta función si es necesario
     } else {
         log_error(logger, "Tipo de interfaz desconocido: %s", interfaz);
         config_destroy(config);

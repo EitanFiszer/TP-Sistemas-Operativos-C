@@ -13,6 +13,7 @@ void hilo_stdin(void* args);
 
 void hilo_stdout(void* args);
 
+void hilo_dialfs(void* args);
 
 
 #endif // HILOS_H
