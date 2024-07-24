@@ -98,7 +98,7 @@ void iniciar_semaforos(void)
     pthread_mutex_init(&mutex_planificacion, NULL);
     pthread_cond_init(&cond_planificacion, NULL);
 
-        sem_init(&sem_cont_ready, 0, 0);
+    sem_init(&sem_cont_ready, 0, 0);
 
     sem_init(&sem_gm_actual, 0, grado_multiprog);
 }
@@ -555,7 +555,27 @@ void iniciar_planificacion()
     printf("Planificación iniciada");
 }
 
-void modificar_multiprogramacion(int) {}
+void modificar_multiprogramacion(int num)
+{
+    if (num > 0 && num < 30)
+    {
+        if (num < grado_multiprog)
+        {
+            for (int i = 0; i < grado_multiprog - num; i++)
+            {
+                sem_wait(&sem_gm_actual);
+            }
+        }else if(num>grado_multiprog){
+            for(int i = 0; i< num- grado_multiprog; i++){
+                sem_post(&sem_gm_actual);
+            }
+        }
+    }
+    else
+    {
+        printf("Grado de multiprogramacion incorrecto");
+    }
+}
 
 void listar_procesos_por_estado()
 {
