@@ -25,7 +25,7 @@ void atender_fs_createOrDelate(t_payload_fs_create*, OP_CODES_ENTRE);
 void atender_fs_truncate(t_payload_fs_truncate*);
 void atender_fs_writeOrRead(t_payload_fs_writeORread*, OP_CODES_ENTRE);
 void atender_io_gen_sleep(t_payload_io_gen_sleep*);
-
+void remove_cola_blocked_io(char *, t_PCB *);
 
 
 #endif /* MANINTERFAZ_H */

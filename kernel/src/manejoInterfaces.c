@@ -66,6 +66,7 @@ void atender_io_stdin_read(t_payload_io_stdin_read *stdint_read)
         pthread_mutex_lock(&(find_io->mutex_interfaz));
         if (strcmp(find_io->tipo_interfaz, "IO_STDIN") == 0)
         {
+            add_queue_blocked(stdint_read->pcb,IOB,stdint_read->interfaz);
 
             t_payload_io_stdin_read_de_kernel_a_io *payload = malloc(sizeof(t_payload_io_stdin_read_de_kernel_a_io));
 
@@ -117,6 +118,8 @@ void atender_io_stdout_write(t_payload_io_stdout_write *stdout_write)
     {
         if (strcmp(find_io->tipo_interfaz, "IO_STDOUT_WRITE") == 0)
         {
+            add_queue_blocked(stdout_write->pcb, IOB, stdout_write->interfaz);
+
             pthread_mutex_lock(&(find_io->mutex_interfaz));
             int size_payload;
             void *buffer = serializar_io_stdout_write(stdout_write, &size_payload);
@@ -160,6 +163,7 @@ void atender_fs_createOrDelate(t_payload_fs_create *createOrDelate, OP_CODES_ENT
         pthread_mutex_lock(&(find_io->mutex_interfaz));
         if (strcmp(find_io->tipo_interfaz, "DIALFS") == 0)
         { // VER QUE RECIBE IO
+            add_queue_blocked(createOrDelate->pcb,IOB,createOrDelate->interfaz);
             int size_payload;
             void *buffer = serializar_fs_create(createOrDelate, &size_payload);
             if (!find_io->libre)
@@ -202,6 +206,7 @@ void atender_fs_truncate(t_payload_fs_truncate *fs_truncate)
     {
         if (strcmp(find_io->tipo_interfaz, "DIALFS") == 0)
         {
+            add_queue_blocked(fs_truncate->pcb, IOB, fs_truncate->interfaz);
             int size_payload;
             void *buffer = serializar_fs_truncate(fs_truncate, &size_payload);
             if (!find_io->libre)
@@ -246,6 +251,7 @@ void atender_fs_writeOrRead(t_payload_fs_writeORread *writeOrRead, OP_CODES_ENTR
 
         if (strcmp(find_io->tipo_interfaz, "DIALFS") == 0)
         {
+            add_queue_blocked(writeOrRead->pcb, IOB, writeOrRead->interfaz);
             int size_payload;
             void *buffer = serializar_fs_writeORread(writeOrRead, &size_payload);
             if (!find_io->libre)
@@ -289,6 +295,7 @@ void atender_io_gen_sleep(t_payload_io_gen_sleep *genSleep)
     {
         if (strcmp(find_io->tipo_interfaz, "GENERICA") == 0)
         {
+            add_queue_blocked(genSleep->pcb, IOB, genSleep->interfaz);
             int size_payload;
             void *buffer = serializar_io_gen_sleep(genSleep, &size_payload);
             pthread_mutex_lock(&(find_io->mutex_interfaz));
@@ -337,6 +344,7 @@ void desconectar_IO(char *nombre_io_hilo)
         while (!queue_is_empty(datos_io->cola_blocked_interfaz))
         {
             t_PCB *retirada = queue_pop(datos_io->cola_blocked_interfaz);
+            delete_queue_blocked(retirada);
             dictionary_remove_and_destroy(operaciones_espera_dict,int_to_string(retirada->PID),removerBuffer);
             lts_ex(retirada, BLOCKED);
         }
@@ -352,7 +360,7 @@ void desocupar_io(char* nombre_io_hilo){
     }
     else{
         pthread_mutex_lock(&(find_io->mutex_interfaz));
-
+        delete_queue_blocked(find_io->pcb_usando_interfaz);
         cargar_ready(find_io->pcb_usando_interfaz,BLOCKED);
 
         find_io->pcb_usando_interfaz = NULL;
@@ -370,5 +378,30 @@ void desocupar_io(char* nombre_io_hilo){
         }
 
         pthread_mutex_unlock(&(find_io->mutex_interfaz));
+    }
+}
+
+void remove_cola_blocked_io(char *nombre_interfaz, t_PCB *pcb)
+{
+   datos_interfaz *find_io = dictionary_get(interfaces_dict, nombre_interfaz);
+    if (find_io != NULL)
+    {
+        if(pcb->PID == find_io->pcb_usando_interfaz->PID){
+            desocupar_io(nombre_interfaz);
+        }else{
+            pthread_mutex_lock(&(find_io->mutex_interfaz));
+
+        t_PCB *pcb_aux = malloc(sizeof(t_PCB));
+        int tam_cola_bloc = sizeof(find_io->cola_blocked_interfaz);
+        for (int i = 0; i < tam_cola_bloc; i++)
+        {
+            pcb_aux = queue_pop(find_io->cola_blocked_interfaz);
+            if (pcb_aux->PID != pcb->PID)
+            {
+                queue_push(find_io->cola_blocked_interfaz, pcb_aux);
+            }
+        }
+            pthread_mutex_unlock(&(find_io->mutex_interfaz));
+        }
     }
 }

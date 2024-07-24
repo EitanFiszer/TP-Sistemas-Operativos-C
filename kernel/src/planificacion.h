@@ -39,6 +39,17 @@
 
 // pthread_t hilo_quantum;
 
+typedef enum{
+    IOB,
+    REC,
+}tipo_block;
+
+typedef struct{
+    t_PCB* pcb;
+    tipo_block tipo;
+    char* key;
+}str_blocked;
+
 // int PID;
 bool condition_pcb_find(void*);
 t_PCB* get_and_remove_pcb(int);
@@ -65,8 +76,8 @@ t_PCB *crear_PCB(int);
 // void atender_wait(t_PCB*, char*);
 // void atender_signal(t_PCB*, char*);
 
-void add_queue_blocked(int );
-void delete_queue_blocked(int );
+void add_queue_blocked(t_PCB*, tipo_block, char* );
+void delete_queue_blocked(t_PCB*);
 
 void finalizar_proceso(int);
 void detener_planificacion();
@@ -75,4 +86,8 @@ void modificar_multiprogramacion(int);
 void listar_procesos_por_estado();
 
 void* planificacion (void*);
+
+bool buscar_pcb(int);
+void sacar_bloqueo(str_blocked* );
+
 #endif // PLANIFICACION_H

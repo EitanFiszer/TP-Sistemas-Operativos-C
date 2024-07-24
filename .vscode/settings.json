@@ -30,6 +30,7 @@
         "manejointerfaces.h": "c",
         "cicloinstruccion.h": "c",
         "dictionary.h": "c",
-        "recursos.h": "c"
+        "recursos.h": "c",
+        "stdbool.h": "c"
     }
 }

@@ -1,4 +1,10 @@
 #include "planificacion.h"
+#include <stdbool.h>
+
+// DETENER E INICIAR PLANI
+bool planificacion_activa = true;
+pthread_mutex_t mutex_planificacion;
+pthread_cond_t cond_planificacion;
 
 // colas
 t_list *lista_new;
@@ -55,16 +61,18 @@ void *planificacion(void *args)
     }
     else
     {
-        log_error(logger, "Error con el algoritmo de planificacion enviado");
+        log_error(logger, "Error con el algoritmo de planificación enviado");
     }
     return NULL;
 }
+
 void modificar_quantum(t_PCB *pcb)
 {
     pthread_cancel(hilo_quantum);
     int64_t tiempo_gastado = temporal_gettime(tempo_quantum);
-    pcb->quantum -= pcb->quantum - tiempo_gastado;
+    pcb->quantum -= tiempo_gastado;
 }
+
 void iniciar_colas(void)
 {
     lista_new = list_create();
@@ -87,42 +95,33 @@ void iniciar_semaforos(void)
     pthread_mutex_init(&sem_CPU_libre, NULL);
     pthread_mutex_init(&interrupcion_syscall, NULL);
 
-    sem_init(&sem_cont_ready, 0, 0);
+    pthread_mutex_init(&mutex_planificacion, NULL);
+    pthread_cond_init(&cond_planificacion, NULL);
+
+        sem_init(&sem_cont_ready, 0, 0);
+
     sem_init(&sem_gm_actual, 0, grado_multiprog);
 }
 
-void iniciar_proceso(char *path) // PLANIFICADOR A LARGO PLAZO
+void iniciar_proceso(char *path)
 {
-    // CREO EL PROCESO LOG
     log_info(logger, "Se crea el proceso con el path %s <%d> en NEW", path, PID);
-    // creo el paquete con las instrucciones para enviar a memoria las instrucciones
     enviar_instrucciones_memoria(path, PID);
-    // creo la PCB Y la guardo en cola NEW
     t_PCB *new_PCB = crear_PCB(PID);
 
-    // semaforo cola new
     pthread_mutex_lock(&sem_q_new);
     list_add(lista_new, new_PCB);
     pthread_mutex_unlock(&sem_q_new);
 
-    // Incremento identificador de proceso
     PID++;
 }
+
 t_PCB *crear_PCB(int num_pid)
 {
     t_PCB *newPCB = malloc(sizeof(t_PCB));
     newPCB->PID = num_pid;
     newPCB->program_counter = 0;
-    newPCB->cpu_registro.AX = 0;
-    newPCB->cpu_registro.BX = 0;
-    newPCB->cpu_registro.CX = 0;
-    newPCB->cpu_registro.DX = 0;
-    newPCB->cpu_registro.EAX = 0;
-    newPCB->cpu_registro.EBX = 0;
-    newPCB->cpu_registro.ECX = 0;
-    newPCB->cpu_registro.EDX = 0;
-    newPCB->cpu_registro.SI = 0;
-    newPCB->cpu_registro.DI = 0;
+    memset(&newPCB->cpu_registro, 0, sizeof(newPCB->cpu_registro));
     newPCB->quantum = quantum;
     newPCB->estado = NEW;
     return newPCB;
@@ -147,13 +146,11 @@ t_PCB *get_and_remove_pcb(int pid)
     return pcb_find;
 }
 
-void cargar_ready_por_pid(int num_pid) // PLANIFICADOR A LARGO PLAZO
+void cargar_ready_por_pid(int num_pid)
 {
-
     sem_wait(&sem_gm_actual);
 
-    // semaforo cola new
-    pthread_mutex_trylock(&sem_q_new);
+    pthread_mutex_lock(&sem_q_new);
     t_PCB *retirar_PCB = get_and_remove_pcb(num_pid);
     pthread_mutex_unlock(&sem_q_new);
 
@@ -166,6 +163,7 @@ void cargar_ready_por_pid(int num_pid) // PLANIFICADOR A LARGO PLAZO
         cargar_ready(retirar_PCB, NEW);
     }
 }
+
 void cargar_ready(t_PCB *pcb, t_proceso_estado estado_anterior)
 {
     pcb->estado = READY;
@@ -196,7 +194,12 @@ void stl_FIFO()
 {
     while (1)
     {
-        // si hay elemenetos en cola ready && la cpu esta libre
+        pthread_mutex_lock(&mutex_planificacion);
+        while (!planificacion_activa)
+        {
+            log_info(logger, "Planificación detenida, esperando para reanudar");
+            pthread_cond_wait(&cond_planificacion, &mutex_planificacion);
+        }
         sem_wait(&sem_cont_ready);
         pthread_mutex_lock(&sem_CPU_libre);
 
@@ -210,11 +213,8 @@ void stl_FIFO()
         queue_push(cola_exec, retirar_ready);
         pthread_mutex_unlock(&sem_q_exec);
         log_info(logger, "PID:%d - Estado Anterior: READY - Estado Actual: EXEC", retirar_ready->PID);
-        // envio proceso a cpu
-        // POR AHORA NO SE SI AGREFAR SEMAFORO ACA
-        enviar_paquete_cpu_dispatch(EXEC_PROCESO, retirar_ready, sizeof(t_PCB));
 
-        // semaforo de planificacion a corto plazo para replanifica
+        enviar_paquete_cpu_dispatch(EXEC_PROCESO, retirar_ready, sizeof(t_PCB));
     }
 }
 
@@ -223,12 +223,17 @@ void stl_RR()
     log_info(logger, "INICIANDO PLANIFICACION POR RR");
     while (1)
     {
-        // si hay elemenetos en cola ready && la cpu esta libre
+        pthread_mutex_lock(&mutex_planificacion);
+        while (!planificacion_activa)
+        {
+            log_info(logger, "Planificación detenida, esperando para reanudar");
+            pthread_cond_wait(&cond_planificacion, &mutex_planificacion);
+        }
         sem_wait(&sem_cont_ready);
         log_info(logger, "HAY ELEMENTOS EN LA COLA READY");
 
-        pthread_mutex_trylock(&sem_CPU_libre);
-        log_info(logger, "bloqueando CPU");
+        pthread_mutex_lock(&sem_CPU_libre);
+        log_info(logger, "Bloqueando CPU");
 
         pthread_mutex_lock(&sem_q_ready);
         t_PCB *retirar_ready = queue_pop(cola_ready);
@@ -244,7 +249,6 @@ void stl_RR()
 
         if (retirar_ready->quantum <= 0)
         {
-            // replanifico FIN DE QUANTUM
             retirar_ready->estado = READY;
             retirar_ready->quantum = quantum;
 
@@ -255,17 +259,12 @@ void stl_RR()
         }
         else
         {
-            // empiezo a cronometrar el tiempo
             tempo_quantum = temporal_create();
 
-            // creo hilo para manejar el quantum
             pthread_create(&hilo_quantum, NULL, manejar_quantum, (void *)retirar_ready);
 
-            // envio proceso a cpu
             enviar_paquete_cpu_dispatch(EXEC_PROCESO, retirar_ready, sizeof(t_PCB));
 
-            // // interrumpo el proceso por fin de quantum
-            // interrumpir(resultHandshakeInterrupt);
             pthread_join(hilo_quantum, NULL);
         }
     }
@@ -275,8 +274,6 @@ void *manejar_quantum(void *arg)
 {
     t_PCB *pcb = (t_PCB *)arg;
 
-    // pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
-    // pthread_setcanceltype(PTHREAD_CANCEL_DEFERRED, NULL);
     sleep(((unsigned int)(pcb->quantum)) / 1000);
     interrumpir(FIN_QUANTUM);
     temporal_destroy(tempo_quantum);
@@ -285,26 +282,24 @@ void *manejar_quantum(void *arg)
 
 void hubo_syscall(t_PCB *pcb)
 {
-    // tomo el tiempo en el q hubo syscall
-    // cancelo elhilo quantum y cambio el quantum restante parando el cronometro y restando el tiempo del quantum que habia
     pthread_cancel(hilo_quantum);
     int64_t tiempo_gastado = temporal_gettime(tempo_quantum);
-    pcb->quantum -= pcb->quantum - tiempo_gastado;
-    // si es VRR el algoritmo agrego a cola ready priori
+    pcb->quantum -= tiempo_gastado;
+
     if (strcmp(algoritmo_planificacion, "VRR") == 0)
     {
         pthread_mutex_lock(&sem_q_ready_priori);
         queue_push(cola_ready_priori, pcb);
         pthread_mutex_unlock(&sem_q_ready_priori);
-        sem_post(&sem_cont_ready);
     }
     else
     {
         pthread_mutex_lock(&sem_q_ready);
         queue_push(cola_ready, pcb);
         pthread_mutex_unlock(&sem_q_ready);
-        sem_post(&sem_cont_ready);
     }
+
+    sem_post(&sem_cont_ready);
     temporal_destroy(tempo_quantum);
 }
 
@@ -312,11 +307,15 @@ void stl_VRR()
 {
     while (1)
     {
-
-        // si hay elemenetos en cola ready && la cpu esta libre
+        pthread_mutex_lock(&mutex_planificacion);
+        while (!planificacion_activa)
+        {
+            log_info(logger, "Planificación detenida, esperando para reanudar");
+            pthread_cond_wait(&cond_planificacion, &mutex_planificacion);
+        }
         sem_wait(&sem_cont_ready);
 
-        pthread_mutex_trylock(&sem_CPU_libre);
+        pthread_mutex_lock(&sem_CPU_libre);
 
         pthread_mutex_lock(&sem_q_ready_priori);
         int largo_priori = queue_size(cola_ready_priori);
@@ -364,12 +363,11 @@ void stl_VRR()
             // envio proceso a cpu
             enviar_paquete_cpu_dispatch(EXEC_PROCESO, retirar_ready, sizeof(t_PCB));
 
-            // // interrumpo el proceso por fin de quantum
-            // interrumpir(resultHandshakeInterrupt);
             pthread_join(hilo_quantum, NULL);
         }
     }
 }
+
 void enviar_new_exit(int pid)
 {
     pthread_mutex_lock(&sem_q_new);
@@ -377,16 +375,20 @@ void enviar_new_exit(int pid)
     pthread_mutex_unlock(&sem_q_new);
     lts_ex(retirar_PCB, NEW);
 }
+
 void lts_ex(t_PCB *pcb, t_proceso_estado estado_anterior)
 {
+    if (estado_anterior != NEW)
+    {
+        sem_post(&sem_gm_actual);
+    }
+    modificar_fin_proc_dic_rec(pcb->PID);
 
-    sem_post(&sem_gm_actual);
     pcb->estado = EXIT;
     pthread_mutex_lock(&sem_q_exit);
     queue_push(cola_exit, pcb);
     pthread_mutex_unlock(&sem_q_exit);
 
-    // avisar a memoria que elimine instrucciones de PID
     enviar_paquete_memoria(FINALIZAR_PROCESO, &pcb->PID, sizeof(int));
 
     switch (estado_anterior)
@@ -413,16 +415,146 @@ void desalojar()
     pthread_mutex_lock(&sem_q_exec);
     t_PCB *retirar_PCB = queue_pop(cola_exec);
     pthread_mutex_unlock(&sem_q_exec);
-    // CPU LIBRE
+
     log_info(logger, "DESALOJANDO PROCESO DEJANDO CPU_LIBRE");
     pthread_mutex_unlock(&sem_CPU_libre);
     log_info(logger, "CPU_LIBRE, PID SACADO: %d", retirar_PCB->PID);
     free(retirar_PCB);
 }
 
-void finalizar_proceso(int) {}
-void detener_planificacion() {}
-void iniciar_planificacion() {}
+bool buscar_pcb(int pid)
+{
+
+    t_PCB *pcb = malloc(sizeof(t_PCB));
+    bool encontrado = false;
+    // RECORRO NEW
+    pthread_mutex_lock(&sem_q_new);
+    if (!list_is_empty(lista_new))
+    {
+        t_list_iterator *iterador = list_iterator_create(lista_new);
+
+        while (list_iterator_has_next(iterador) && !encontrado)
+        {
+            pcb = list_iterator_next(iterador);
+            if (pcb->PID == pid)
+            {
+                int pos = list_iterator_index(iterador);
+                pcb = list_remove(lista_new, pos);
+                lts_ex(pcb, NEW);
+                encontrado = true;
+            }
+        }
+        list_iterator_remove(iterador);
+    }
+    pthread_mutex_unlock(&sem_q_new);
+
+    // RECORRO READY
+    pthread_mutex_lock(&sem_q_ready);
+    if (!queue_is_empty(cola_ready))
+    {
+        int tam_cola = queue_size(cola_ready);
+        for (int i = 0; i < tam_cola && !encontrado; i++)
+        {
+            pcb = queue_pop(cola_ready);
+            if (pcb->PID == pid)
+            {
+                lts_ex(pcb, READY);
+                encontrado = true;
+            }
+            else
+            {
+                queue_push(cola_ready, pcb);
+            }
+        }
+    }
+    pthread_mutex_unlock(&sem_q_ready);
+
+    // RECORRO READY PRIORI
+    if (strcmp(algoritmo_planificacion, "VRR") == 0)
+    {
+        pthread_mutex_lock(&sem_q_ready_priori);
+        if (!queue_is_empty(cola_ready_priori))
+        {
+            int tam_cola = queue_size(cola_ready_priori);
+            for (int i = 0; i < tam_cola; i++)
+            {
+                if (pcb->PID == pid)
+                {
+                    lts_ex(pcb, READY);
+                    encontrado = true;
+                }
+                else
+                {
+                    queue_push(cola_ready_priori, pcb);
+                }
+            }
+        }
+        pthread_mutex_unlock(&sem_q_ready_priori);
+    }
+
+    // RECORRER BLOCKED
+    pthread_mutex_lock(&sem_q_blocked);
+    if (!queue_is_empty(cola_blocked))
+    {
+        int tam_cola = queue_size(cola_blocked);
+        str_blocked *dat_bloc = malloc(sizeof(dat_bloc));
+        for (int i = 0; i < tam_cola && !encontrado; i++)
+        {
+            dat_bloc = queue_pop(cola_blocked);
+            if (dat_bloc->pcb->PID == pid)
+            {
+                sacar_bloqueo(dat_bloc);
+                lts_ex(pcb, BLOCKED);
+                encontrado = true;
+            }
+            else
+            {
+                queue_push(cola_blocked, dat_bloc);
+            }
+        }
+    }
+    pthread_mutex_unlock(&sem_q_blocked);
+    return encontrado;
+}
+
+void sacar_bloqueo(str_blocked *dat_bloc)
+{
+    switch (dat_bloc->tipo)
+    {
+    case IOB:
+        remove_cola_blocked_io(dat_bloc->key, dat_bloc->pcb);
+        break;
+    case REC:
+        remove_cola_blocked_rec(dat_bloc->key, dat_bloc->pcb);
+        break;
+    }
+}
+
+void finalizar_proceso(int pid)
+{
+    bool encontrado = buscar_pcb(pid);
+    if (encontrado)
+    {
+        printf("Finaliza el proceso <%d> - Motivo: INTERRUPTED_BY_USER", pid);
+    }
+}
+void detener_planificacion()
+{
+    pthread_mutex_lock(&mutex_planificacion);
+    planificacion_activa = false;
+    pthread_mutex_unlock(&mutex_planificacion);
+    printf("Planificación detenida");
+}
+
+void iniciar_planificacion()
+{
+    pthread_mutex_lock(&mutex_planificacion);
+    planificacion_activa = true;
+    pthread_cond_broadcast(&cond_planificacion);
+    pthread_mutex_unlock(&mutex_planificacion);
+    printf("Planificación iniciada");
+}
+
 void modificar_multiprogramacion(int) {}
 
 void listar_procesos_por_estado()
@@ -488,12 +620,12 @@ void listar_procesos_por_estado()
     {
         printf("Procesos en estado: EXECUTE \n");
         int tam_cola = queue_size(cola_blocked);
-        int *pid = NULL;
+        str_blocked *dat_bloc = malloc(sizeof(str_blocked));
         for (int i = 0; i < tam_cola; i++)
         {
-            pid = queue_pop(cola_blocked);
-            printf("PID: <%d> \n", *pid);
-            queue_push(cola_blocked, pid);
+            dat_bloc = queue_pop(cola_blocked);
+            printf("PID: <%d> \n", dat_bloc->pcb->PID);
+            queue_push(cola_blocked, dat_bloc);
         }
     }
     else
@@ -539,32 +671,36 @@ void listar_procesos_por_estado()
     pthread_mutex_unlock(&sem_q_exit);
 }
 
-void add_queue_blocked(int pid)
+void add_queue_blocked(t_PCB *pcb, tipo_block tipo, char *key)
 {
+    str_blocked dat_bloc;
+    dat_bloc.pcb = pcb;
+    dat_bloc.tipo = tipo;
+    dat_bloc.key = key;
     pthread_mutex_lock(&sem_q_blocked);
-    queue_push(cola_blocked, &pid);
+    queue_push(cola_blocked, &dat_bloc);
     pthread_mutex_unlock(&sem_q_blocked);
 }
 
-void delete_queue_blocked(int pid)
+void delete_queue_blocked(t_PCB *pcb)
 {
+    str_blocked *dat_bloc = malloc(sizeof(str_blocked));
+
     pthread_mutex_lock(&sem_q_blocked);
 
     int tam_cola = queue_size(cola_blocked);
-    int *pid_retirado = NULL;
 
     for (int i = 0; i < tam_cola; i++)
     {
-        pid_retirado = queue_pop(cola_blocked);
-        if (*pid_retirado != pid)
+        dat_bloc = queue_pop(cola_blocked);
+        if (dat_bloc->pcb->PID != pcb->PID)
         {
-            queue_push(cola_blocked, pid_retirado);
+            queue_push(cola_blocked, dat_bloc);
         }
         else
         {
-            free(pid_retirado);
+            free(dat_bloc);
         }
     }
-
     pthread_mutex_unlock(&sem_q_blocked);
 }

@@ -2,8 +2,7 @@
 #include <stdlib.h>
 #include "global.h"
 
-// Inicializa el diccionario en el punto de entrada principal de tu aplicación
-t_dictionary* rec_por_pid_dic;
+t_dictionary *rec_por_pid_dic;
 
 void guardar_dictionary_recursos(t_config *config)
 {
@@ -51,18 +50,19 @@ void atender_wait(t_PCB *pcb, char *nombre_recurso)
         {
             // desalojo el proceso y lo envio a la cola de bloqueados
             desalojar();
-            add_queue_blocked(pcb->PID);
             if (strcmp(algoritmo_planificacion, "RR") == 0 || strcmp(algoritmo_planificacion, "VRR") == 0)
             {
                 // / tomo el tiempo en el q hubo syscall
                 // cancelo elhilo quantum y cambio el quantum restante parando el cronometro y restando el tiempo del quantum que habia
                 modificar_quantum(pcb);
                 queue_push(recurso_encontrado->cola_blocked_recurso, pcb);
+                add_queue_blocked(pcb, REC, nombre_recurso);
                 log_info(logger, "PID:%d - Estado Anterior: EXEC - Estado Actual: BLOCKED", pcb->PID);
             }
             else
             {
                 queue_push(recurso_encontrado->cola_blocked_recurso, pcb);
+                add_queue_blocked(pcb, REC, nombre_recurso);
                 log_info(logger, "PID:%d - Estado Anterior: EXEC - Estado Actual: BLOCKED", pcb->PID);
             }
         }
@@ -102,7 +102,7 @@ void atender_signal(t_PCB *pcb, char *nombre_recurso)
             if (!queue_is_empty(recurso_encontrado->cola_blocked_recurso))
             {
                 t_PCB *retirar_bloqueo = queue_pop(recurso_encontrado->cola_blocked_recurso);
-                delete_queue_blocked(retirar_bloqueo->PID);
+                delete_queue_blocked(retirar_bloqueo);
                 if (strcmp(algoritmo_planificacion, "VRR") == 0)
                 {
                     pthread_mutex_trylock(&sem_q_ready_priori);
@@ -139,7 +139,7 @@ void signal_por_fin(char *nombre_recurso)
             if (!queue_is_empty(recurso_encontrado->cola_blocked_recurso))
             {
                 t_PCB *retirar_bloqueo = queue_pop(recurso_encontrado->cola_blocked_recurso);
-                delete_queue_blocked(retirar_bloqueo->PID);
+                delete_queue_blocked(retirar_bloqueo);
                 if (strcmp(algoritmo_planificacion, "VRR") == 0)
                 {
                     pthread_mutex_trylock(&sem_q_ready_priori);
@@ -235,12 +235,33 @@ void modificar_signal_dic_rec(int pid, char *nombre_rec)
     }
 }
 
-void modificar_fin_proc_dic_rec(int pid, char *nombre_rec)
+// FUNCION PARA DEVOLVER RECURSOS
+void modificar_fin_proc_dic_rec(int pid)
 {
     t_list *recurso_list = dictionary_get(rec_por_pid_dic, int_to_string(pid));
     if (recurso_list != NULL)
     {
         recorrer_liberar_rec(recurso_list);
         list_destroy_and_destroy_elements(recurso_list, free);
+    }
+}
+
+void remove_cola_blocked_rec(char *nombre_recurso, t_PCB *pcb)
+{
+    t_recurso *recurso_encontrado = dictionary_get(diccionario_recursos, nombre_recurso);
+    if (recurso_encontrado != NULL)
+    {
+        pthread_mutex_lock(recurso_encontrado->mutex_recurso);
+        t_PCB *pcb_aux = malloc(sizeof(t_PCB));
+        int tam_cola_bloc = sizeof(recurso_encontrado->cola_blocked_recurso);
+        for (int i = 0; i < tam_cola_bloc; i++)
+        {
+            pcb_aux = queue_pop(recurso_encontrado->cola_blocked_recurso);
+            if (pcb_aux->PID != pcb->PID)
+            {
+                queue_push(recurso_encontrado->cola_blocked_recurso, pcb_aux);
+            }
+        }
+        pthread_mutex_unlock(recurso_encontrado->mutex_recurso);
     }
 }

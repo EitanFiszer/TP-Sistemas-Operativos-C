@@ -30,7 +30,7 @@ void recorrer_liberar_rec(t_list*);
 
 void modificar_wait_dic_rec(int,char*);
 void modificar_signal_dic_rec(int,char*);
-void modificar_fin_proc_dic_rec(int,char*); 
+void modificar_fin_proc_dic_rec(int); 
 
 void guardar_dictionary_recursos(t_config* );
 
@@ -38,6 +38,7 @@ void atender_wait(t_PCB* , char*);
 
 void atender_signal(t_PCB*, char*);
 
+void remove_cola_blocked_rec(char *, t_PCB *);
 
 
 
