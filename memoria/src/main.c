@@ -66,25 +66,7 @@ void iniciarSemaforos() {
     sem_init(&sem_io, 0, 0);
 }
 
-int main(int argc, char* argv[]) {
-    logger = iniciar_logger("memoria.log", "Memoria");
-    config = iniciar_config("memoria.config");
-
-    char* puerto_escucha = config_get_string_value(config, "PUERTO_ESCUCHA");
-    retardo_respuesta = config_get_int_value(config, "RETARDO_RESPUESTA");
-    path_instrucciones = config_get_string_value(config, "PATH_INSTRUCCIONES");
-    TAM_PAGINA = config_get_int_value(config, "TAM_PAGINA");
-    TAM_MEMORIA = config_get_int_value(config, "TAM_MEMORIA");
-
-    char* string = NULL;
-    marcosLibres = iniciarBitarray(string);
-    server_fd = iniciar_servidor(puerto_escucha, logger);
-    iniciarSemaforos();
-    inicializarMemoria();
-    iniciarHilos();
-
-    log_info(logger, "[MEMORIA] Escuchando en el puerto: %s", puerto_escucha);
-
+void esperarConexiones() {
     bool seConectoKernel = false;
     bool seConectoCpu = false;
     bool seConectoIO = false;
@@ -137,6 +119,28 @@ int main(int argc, char* argv[]) {
     pthread_detach(hiloEsperaKernel);
     pthread_detach(hiloEsperaCpu);
     pthread_join(hiloEsperaIO, NULL);
+}
+
+int main(int argc, char* argv[]) {
+    logger = iniciar_logger("memoria.log", "Memoria");
+    config = iniciar_config("memoria.config");
+
+    char* puerto_escucha = config_get_string_value(config, "PUERTO_ESCUCHA");
+    retardo_respuesta = config_get_int_value(config, "RETARDO_RESPUESTA");
+    path_instrucciones = config_get_string_value(config, "PATH_INSTRUCCIONES");
+    TAM_PAGINA = config_get_int_value(config, "TAM_PAGINA");
+    TAM_MEMORIA = config_get_int_value(config, "TAM_MEMORIA");
+
+    char* string = NULL;
+    marcosLibres = iniciarBitarray(string);
+    server_fd = iniciar_servidor(puerto_escucha, logger);
+    iniciarSemaforos();
+    inicializarMemoria();
+    iniciarHilos();
+
+    log_info(logger, "[MEMORIA] Escuchando en el puerto: %s", puerto_escucha);
+
+    esperarConexiones();
 
     liberarMemoria();
 

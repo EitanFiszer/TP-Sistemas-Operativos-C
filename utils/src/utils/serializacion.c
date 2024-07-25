@@ -682,20 +682,22 @@ t_payload_leer_memoria* deserializar_leer_memoria(void* buffer) {
 }
 
 void* serializar_enviar_dato_memoria(t_payload_enviar_dato_memoria* payload, int* size_payload) {
-  *size_payload = sizeof(payload->direccion) + sizeof(payload->tamDato) + payload->tamDato;
-    void *buffer = malloc(*size_payload);
+    *size_payload = sizeof(payload->direccion) + sizeof(payload->tamDato) + payload->tamDato;
+    
+    void* buffer = malloc(*size_payload);
+    int desplazamiento = 0;
+    
     if (buffer == NULL) {
         perror("Error al asignar memoria");
         exit(EXIT_FAILURE);
     }
-    
-    void *ptr = buffer;
-    memcpy(ptr, &payload->direccion, sizeof(payload->direccion));
-    ptr += sizeof(payload->direccion);
-    memcpy(ptr, &payload->tamDato, sizeof(payload->tamDato));
-    ptr += sizeof(payload->tamDato);
-    memcpy(ptr, payload->dato, payload->tamDato);
-    
+
+    memcpy(buffer + desplazamiento, &(payload->direccion), sizeof(payload->direccion));
+    desplazamiento += sizeof(payload->direccion);
+    memcpy(buffer + desplazamiento, &(payload->tamDato), sizeof(payload->tamDato));
+    desplazamiento += sizeof(payload->tamDato);
+    memcpy(buffer + desplazamiento, payload->dato, payload->tamDato);
+
     return buffer;
 }
 
