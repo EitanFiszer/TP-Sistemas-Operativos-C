@@ -153,7 +153,7 @@ int main()
     err = pthread_create(&hilo_consola, NULL, consola_interactiva, NULL);
     pthread_join(hilo_consola, NULL);
     if (err != 0)
-    {
+    { 
         log_error(logger, "HUBO UN ERROR AL CREAR EL HILO");
     }
     return 0;

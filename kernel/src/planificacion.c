@@ -226,6 +226,8 @@ void stl_FIFO()
             log_info(logger, "Planificación detenida, esperando para reanudar");
             pthread_cond_wait(&cond_planificacion, &mutex_planificacion);
         }
+        pthread_mutex_unlock(&mutex_planificacion);
+
         sem_wait(&sem_cont_ready);
         pthread_mutex_lock(&sem_CPU_libre);
 
@@ -255,6 +257,7 @@ void stl_RR()
             log_info(logger, "Planificación detenida, esperando para reanudar");
             pthread_cond_wait(&cond_planificacion, &mutex_planificacion);
         }
+        pthread_mutex_unlock(&mutex_planificacion);
         sem_wait(&sem_cont_ready);
         log_info(logger, "HAY ELEMENTOS EN LA COLA READY");
 
@@ -339,6 +342,7 @@ void stl_VRR()
             log_info(logger, "Planificación detenida, esperando para reanudar");
             pthread_cond_wait(&cond_planificacion, &mutex_planificacion);
         }
+        pthread_mutex_unlock(&mutex_planificacion);
         sem_wait(&sem_cont_ready);
 
         pthread_mutex_lock(&sem_CPU_libre);

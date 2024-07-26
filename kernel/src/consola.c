@@ -98,36 +98,16 @@ void *consola_interactiva()
         }
     }
     return NULL;
-}
-
+}// EJECUTAR_SCRIPT ./scripts_kernel/prueba.txt
 int ejecutar_script(char *path)
 {
-    const char *prefix = ".";
-    const char *suffix = ".txt";
-    size_t size = strlen(prefix) + strlen(path) + strlen(suffix) + 1;
-    char *new_path = malloc(size);
-
-    if (new_path == NULL)
-    {
-        log_error(logger, "Error al asignar memoria, para path: %s", path);
-        return 1;
-    }
-
-    strcpy(new_path, prefix);
-    strcat(new_path, path);
-    strcat(new_path, suffix);
-
-    int existeArchivo = access(new_path, F_OK);
-    if (existeArchivo == -1)
-    {
-        log_error(logger, "No se encontró el archivo %s", new_path);
-        return 1;
-    }
-
-    FILE *archivo = fopen(new_path, "r");
+  
+    // Abre el archivo
+    FILE *archivo = fopen(path, "r");
     if (!archivo)
     {
-        log_error(logger, "error abriendo el archivo %s", new_path);
+        log_error(logger, "Error abriendo el archivo %s", path);
+        free(path);
         return 1;
     }
 
@@ -165,9 +145,9 @@ int ejecutar_script(char *path)
         {
             printf("Comando desconocido o malformado: %s\n", line);
         }
-
-        fclose(archivo);
     }
-    free(new_path);
+
+    fclose(archivo);
+    
     return 0;
 }
