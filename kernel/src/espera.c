@@ -1,7 +1,7 @@
 #include "espera.h"
 bool bool_error_memoria=false;
 bool bool_syscall=false;
-
+bool bool_interrupted_by_user=false;
 void atender_cliente(void *socket)
 {
     char *nombre_io_hilo = NULL;
@@ -111,7 +111,10 @@ void *esperar_paquetes_cpu_dispatch(void *arg)
             }else if (bool_syscall){
                 log_info(logger, "hubo_syscall");
                 bool_syscall = false;
-            }else{
+            }else if(bool_interrupted_by_user){
+                bool_interrupted_by_user =false;
+            }
+            else{
                 desalojar();
                 cargar_ready(PCB, EXEC);
             }
@@ -279,6 +282,9 @@ void interrumpir(t_motivo_interrupcion motivo)
     }else if(motivo == ERROR_OUT_OF_MEMORY_I){
         log_info(logger, "INTERRUMPIENDO PROCESO POR ERROR_OUT_OF_MEMORY");
         bool_error_memoria = true;
+    }else if(motivo == INTERRUPTED_BY_USER){
+        log_info(logger, "INTERRUMPIENDO PROCESO POR INTERRUPTED_BY_USER");
+        bool_interrupted_by_user = true;
     }
     t_paquete *paquete_fin_de_q = crear_paquete();
     t_paquete_entre *fin_q = malloc(sizeof(t_paquete_entre));
