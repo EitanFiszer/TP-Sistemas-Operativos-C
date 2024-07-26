@@ -31,10 +31,14 @@ handshake_cpu_memoria handshake_memoria(char* ip_memoria, char* puerto_memoria) 
     return handData;
 }
 
-void* solicitar_dato_memoria(int dirFisica) {
+void* solicitar_dato_memoria(int dirFisica, int tam) {
     t_payload_solicitar_dato_memoria* payload = malloc(sizeof(t_payload_solicitar_dato_memoria));
     payload->direccion = dirFisica;
-    enviar_paquete_entre(socketMemoria, SOLICITAR_DATO_MEMORIA, payload, sizeof(t_payload_solicitar_dato_memoria));   
+    payload->tam = tam;
+
+    int size_payload;
+    void* buffer = serializar_solicitar_dato_memoria(payload, &size_payload); 
+    enviar_paquete_entre(socketMemoria, SOLICITAR_DATO_MEMORIA, buffer, size_payload);   
 
     t_paquete_entre* paqueteRecibidoEntero = recibir_paquete_entre(socketMemoria);
     if (paqueteRecibidoEntero == NULL) {
