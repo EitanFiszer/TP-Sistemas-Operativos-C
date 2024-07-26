@@ -107,7 +107,9 @@ void instruccionMovIn(char* regDato, char* regDire, registros_t* registros, t_PC
     int dirLogica = valorDelRegistro(regDire, registros);
     int dirFisica = calcularDireccionFisica(pcb->PID, dirLogica);
 
-    void* dato = (int)solicitar_dato_memoria(dirFisica, 4);
+    int dato = (int)solicitar_dato_memoria(dirFisica, 4);
+
+    log_info(logger, "PID %d - Acción: LEER - Dirección Física: %d - Valor: %d", pcb->PID, dirFisica, dato);
 
     // if (dato == NULL) {
     //     return;
@@ -151,6 +153,7 @@ void instruccionCopyString(int tam, registros_t registros, t_PCB* pcb) {
     int dirFisicaDI = calcularDireccionFisica(pcb->PID, dirLogicaDI);
 
     char* string = (char*)solicitar_dato_memoria(dirFisicaSI, tam);
+    log_info(logger, "PID %d - Acción: LEER - Dirección Física: %d - Valor: %s", pcb->PID, dirFisicaSI, string);
 
     if (string == NULL) {
         return;
@@ -257,10 +260,10 @@ void instruccionIoFSRead(char* interfaz, char* nombreArchivo, char* regDire, cha
 /*Esta instrucción representa la syscall de finalización del proceso. Se deberá devolver el 
 Contexto de Ejecución actualizado al Kernel para su finalización.*/
 void instruccionExit(t_PCB* pcb) {
-    printf("Llamado a exit %d-%d\n", pcb->PID, pcb->program_counter);
+    // printf("Llamado a exit %d-%d\n", pcb->PID, pcb->program_counter);
     pcb->program_counter = pcb->program_counter + 1;
 
-    printf("Finalizando proceso %d en PC: %d\n", pcb->PID, pcb->program_counter);
+    // printf("Finalizando proceso %d en PC: %d\n", pcb->PID, pcb->program_counter);
 
     // enviar_pcb_kernel(pcb, TERMINO_EJECUCION);
 }

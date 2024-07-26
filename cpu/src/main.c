@@ -25,7 +25,7 @@ struct args {
 };
 
 void finalizarCPU() {
-    printf("Finalizando CPU\n");
+    // printf("Finalizando CPU\n");
     log_destroy(logger);
     config_destroy(config);
     liberar_conexion(server_dispatch_fd);
@@ -138,7 +138,7 @@ int main(int argc, char* argv[]) {
         log_error(logger, "No se pudo conectar con la memoria");
         finalizarCPU();
     }
-    printf("Handshake socket: %d, TAM_PAG: %d\n", socketMemoria, TAM_PAGINA);
+    // printf("Handshake socket: %d, TAM_PAG: %d\n", socketMemoria, TAM_PAGINA);
 
     // El kernel se conecta a nosotros (CPU) y recibimos su handshake para poder recibir el pcb de parte del kernel
     server_dispatch_fd = iniciar_servidor(puerto_escucha_dispatch, logger);

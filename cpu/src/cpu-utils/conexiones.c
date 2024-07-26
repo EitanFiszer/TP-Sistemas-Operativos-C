@@ -6,7 +6,7 @@ extern int socketMemoria;
 extern int socketKernel;
 
 void enviar_pcb_kernel(t_PCB *pcb, OP_CODES_ENTRE operacion) {
-    printf("Enviando PCB al kernel, PID: %d\n", pcb->PID);
+    // printf("Enviando PCB al kernel, PID: %d\n", pcb->PID);
     
     enviar_paquete_entre(socketKernel, operacion, pcb, sizeof(t_PCB));
 }
@@ -59,7 +59,7 @@ int enviar_dato_memoria(int dirFisica, void* dato, int tamDato) {
     int size_payload;
     void* buffer = serializar_enviar_dato_memoria(payload, &size_payload);
 
-    printf("Enviando dato void %p a direccion %d", dato, dirFisica);
+    // printf("Enviando dato void %p a direccion %d", dato, dirFisica);
     
     enviar_paquete_entre(socketMemoria, ENVIAR_DATO_MEMORIA, buffer, size_payload);
 

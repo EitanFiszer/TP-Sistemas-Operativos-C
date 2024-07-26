@@ -46,6 +46,8 @@ int buscarEnTablaDePaginas(int PID, int numeroPagina) {
 
     t_payload_direccion_fisica* payloadRecibido = paqueteRecibido->payload;
 
+    log_info(logger, "PID %d - OBTENER MARCO - Pagina: %d - Marco: %d", PID, numeroPagina, payloadRecibido->marco);
+
     return payloadRecibido->marco;
 }
 
@@ -55,8 +57,11 @@ int calcularDireccionFisica(int PID, int direccionLogica) {
 
     int marco = buscarEnTLB(PID, numeroPagina);
     if (marco == -1) {
+        log_info(logger, "PID %d - TLB miss - Pagina %d", PID, numeroPagina);
         marco = buscarEnTablaDePaginas(PID, numeroPagina);
         agregarEntradaTLB(PID, numeroPagina, marco);
+    } else {
+        log_info(logger, "PID %d - TLB hit - Pagina %d", PID, numeroPagina);
     }
 
     if (marco == -1) {
