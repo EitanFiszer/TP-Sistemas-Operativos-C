@@ -8,6 +8,7 @@
 #include <utils/serializacion.h>
 #include <utils/server.h>
 #include "operacionesFS.h"
+#include "bitmap.h"
 
 struct args {
     char* nombre;
@@ -17,18 +18,33 @@ struct args {
 extern t_log* logger;
 extern int socketMemoria;
 
-void crearFS(int block_count, int block_size){
-
+void crearArchivodebloques(int block_count, int block_size) {
     size_t tamano_total = block_size * block_count;
+
+    char* filepath;
+    snprintf(filepath, sizeof(filepath), "%s/bloques.dat", pathbase);
 
     FILE *archivo = fopen("bloques.dat", "wb");
     if (!archivo) {
-        log_error(logger, "Error al abrir el archivo de bloques");
+        perror("Error al abrir el archivo de bloques");
         exit(EXIT_FAILURE);
     }
+
+    // Establecer el tamaño del archivo
+    if (fseek(archivo, tamano_total - 1, SEEK_SET) != 0) {
+        perror("Error al ajustar el tamaño del archivo");
+        fclose(archivo);
+        exit(EXIT_FAILURE);
+    }
+
+    // Escribir un byte nulo al final para establecer el tamaño
+    if (fwrite("", 1, 1, archivo) != 1) {
+        perror("Error al escribir el byte final");
+        fclose(archivo);
+        exit(EXIT_FAILURE);
+    }
+
     fclose(archivo);
-
-
 }
 
 
@@ -72,6 +88,8 @@ void hilo_generica(void* argumentos) {
                 int tiempo_gen = operacionRecibida->tiempo;
                 log_info(logger, "Operacion: <IO_GEN_SLEEP> - PID: %d, INTERFAZ: %s, TIEMPO %d", operacionRecibida->pcb->PID, operacionRecibida->interfaz, tiempo_gen);
                 sleep(tiempo_unidad_trabajo / 1000 * tiempo_gen);
+                log_info(logger, "Operacion: <IO_GEN_SLEEP> - PID: %d, INTERFAZ: %s, TIEMPO %d - FINALIZADA", operacionRecibida->pcb->PID, operacionRecibida->interfaz, tiempo_gen);
+                enviar_paquete_entre(resultHandshakeKernell, TERMINE_OPERACION, NULL, 0);
                 break;
             default:
                 log_info(logger, "Operacion: <NO DEFINIDA>");
@@ -197,8 +215,10 @@ void hilo_dialfs(void* argumentos){
     strcat(path_archivo, path_instrucciones);
     strcat(path_archivo, nombre_archivo);
     */
-    crearFS(block_count, block_size);
 
+
+    crearArchivodebloques(block_count, block_size);
+    crear_bitmap(block_count, path_base);
 
     while (1) {
         t_paquete_entre* paquete_dispatch = recibir_paquete_entre(resultHandshakeKernell);
