@@ -18,7 +18,7 @@ struct args {
 extern t_log* logger;
 extern int socketMemoria;
 
-void crearArchivodebloques(int block_count, int block_size) {
+void crearArchivodebloques(int block_count, int block_size, char* pathbase) {
     size_t tamano_total = block_size * block_count;
 
     char* filepath;
@@ -217,7 +217,7 @@ void hilo_dialfs(void* argumentos){
     */
 
 
-    crearArchivodebloques(block_count, block_size);
+    crearArchivodebloques(block_count, block_size, path_base);
     crear_bitmap(block_count, path_base);
 
     while (1) {
