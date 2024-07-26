@@ -24,11 +24,7 @@ void crearArchivodebloques(int block_count, int block_size, char* pathbase) {
     char filepath[256];
     snprintf(filepath, sizeof(filepath), "%s/bloques.dat", pathbase);
 
-<<<<<<< HEAD
     FILE* archivo = fopen(filepath, "wb");
-=======
-    FILE *archivo = fopen(filepath, "wb");
->>>>>>> c629c041e42eda558302b935a1453063547f18df
     if (!archivo) {
         perror("Error al abrir el archivo de bloques");
         exit(EXIT_FAILURE);
@@ -230,12 +226,16 @@ void hilo_dialfs(void* argumentos){
         
         switch(op) {
             case IO_FS_CREATE:
-                crear_archivo(block_count, path_base);    
+                t_payload_fs_create* payloadcreate=deserializar_fs_create(paquete_dispatch->payload);
+                crear_archivo(path_base, payloadcreate->nombreArchivo, block_count, block_size);    
             break;
             case IO_FS_DELETE:
+                t_payload_fs_create* payloaddelete=deserializar_fs_create(paquete_dispatch->payload);
+                delete_archivo(path_base, payloaddelete, block_count, block_size);
             break;
 
             case IO_FS_TRUNCATE:
+
             break;
 
             case IO_FS_WRITE:
