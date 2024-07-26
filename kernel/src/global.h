@@ -35,11 +35,14 @@ extern pthread_mutex_t sem_q_ready_priori;
 extern t_queue* cola_ready_priori;
 extern sem_t sem_cont_ready;
 
+extern bool bool_error_memoria;
+extern bool bool_syscall;
 
 
 typedef enum {
     SYSCALL,
-    FIN_QUANTUM
+    FIN_QUANTUM,
+    ERROR_OUT_OF_MEMORY_I
 }t_motivo_interrupcion;
 
 // extern pthread_mutex_t logger_mutex;

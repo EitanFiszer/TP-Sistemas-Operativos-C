@@ -101,9 +101,20 @@ void *consola_interactiva()
 }// EJECUTAR_SCRIPT ./scripts_kernel/prueba.txt
 int ejecutar_script(char *path)
 {
-  
     // Abre el archivo
-    FILE *archivo = fopen(path, "r");
+
+    char cwd[256];
+    getcwd(cwd, sizeof(cwd));
+    char* path_instrucciones = "/scripts_kernel/";
+
+    char* path_archivo = malloc(strlen(cwd) + strlen(path_instrucciones) + strlen(path) + 1);
+    strcpy(path_archivo, cwd);
+    strcat(path_archivo, path_instrucciones);
+    strcat(path_archivo, path);
+
+    log_info(logger, "%s", path_archivo);
+
+    FILE *archivo = fopen(path_archivo, "r");
     if (!archivo)
     {
         log_error(logger, "Error abriendo el archivo %s", path);

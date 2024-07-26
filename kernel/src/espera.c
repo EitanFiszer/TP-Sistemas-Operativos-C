@@ -1,4 +1,6 @@
 #include "espera.h"
+bool bool_error_memoria=false;
+bool bool_syscall=false;
 
 void atender_cliente(void *socket)
 {
@@ -101,6 +103,17 @@ void *esperar_paquetes_cpu_dispatch(void *arg)
         {
         case INTERRUMPIO_PROCESO:
             log_info(logger, "RECIBIENDO PROCESO DESALOJADO");
+            t_PCB *PCB = (t_PCB *)paquete_dispatch->payload;
+            if(bool_error_memoria){
+                lts_ex(PCB,EXEC,"ERROR_OUT_OF_MEMORY");
+                bool_error_memoria = false;
+            }else if (bool_syscall){
+                log_info(logger, "hubo_syscall");
+                bool_syscall = false;
+            }else{
+                desalojar();
+                cargar_ready(PCB, EXEC);
+            }
             // if(no hubo syscall)
             // pthread_mutex_trylock(&interrupcion_syscall);
             // if (interrumpio_syscall)
@@ -111,16 +124,17 @@ void *esperar_paquetes_cpu_dispatch(void *arg)
             // }
             // else
             // {
-            t_PCB *PCB = (t_PCB *)paquete_dispatch->payload;
-            desalojar();
-            cargar_ready(PCB, EXEC);
+
+            
             break;
             // }
             // pthread_mutex_unlock(&interrupcion_syscall);
         case ERROR_OUT_OF_MEMORY:
             t_PCB *PCB_err = (t_PCB *)paquete_dispatch->payload;
+            interrumpir(ERROR_OUT_OF_MEMORY_I);
             desalojar();
-            lts_ex(PCB_err,EXEC,"ERROR_OUT_OF_MEMORY");
+
+            
             break;
         case WAIT:
             t_payload_wait_signal *paquete_wait = deserializar_wait_signal(paquete_dispatch->payload);
@@ -244,8 +258,12 @@ void interrumpir(t_motivo_interrupcion motivo)
         interrumpio_syscall = true;
         pthread_mutex_unlock(&interrupcion_syscall);
         log_info(logger, "INTERRUMPIENDO PROCESO POR SYSCALL");
+        bool_syscall =true;
     }else if(motivo == FIN_QUANTUM){
         log_info(logger, "INTERRUMPIENDO PROCESO POR FIN DE QUANTUM");
+    }else if(motivo == ERROR_OUT_OF_MEMORY_I){
+        log_info(logger, "INTERRUMPIENDO PROCESO POR ERROR_OUT_OF_MEMORY");
+        bool_error_memoria = true;
     }
     t_paquete *paquete_fin_de_q = crear_paquete();
     t_paquete_entre *fin_q = malloc(sizeof(t_paquete_entre));
