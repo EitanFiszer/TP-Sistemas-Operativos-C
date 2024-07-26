@@ -403,7 +403,7 @@ void remove_cola_blocked_io(char *nombre_interfaz, t_PCB *pcb)
             pthread_mutex_lock(&(find_io->mutex_interfaz));
 
         t_PCB *pcb_aux = malloc(sizeof(t_PCB));
-        int tam_cola_bloc = sizeof(find_io->cola_blocked_interfaz);
+        int tam_cola_bloc = queue_size(find_io->cola_blocked_interfaz);
         for (int i = 0; i < tam_cola_bloc; i++)
         {
             pcb_aux = queue_pop(find_io->cola_blocked_interfaz);

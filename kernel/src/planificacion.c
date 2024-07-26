@@ -530,14 +530,14 @@ bool buscar_pcb(int pid)
     if (!queue_is_empty(cola_blocked))
     {
         int tam_cola = queue_size(cola_blocked);
-        str_blocked *dat_bloc = malloc(sizeof(dat_bloc));
+        str_blocked *dat_bloc = malloc(sizeof(str_blocked));
         for (int i = 0; i < tam_cola && !encontrado; i++)
         {
             dat_bloc = queue_pop(cola_blocked);
             if (dat_bloc->pcb->PID == pid)
             {
                 sacar_bloqueo(dat_bloc);
-                lts_ex(pcb, BLOCKED,"INTERRUPTED_BY_USER");
+                lts_ex(dat_bloc->pcb, BLOCKED,"INTERRUPTED_BY_USER");
                 encontrado = true;
             }
             else
@@ -568,7 +568,7 @@ void finalizar_proceso(int pid)
     bool encontrado = buscar_pcb(pid);
     if (encontrado)
     {
-        printf("Finaliza el proceso <%d> - Motivo: INTERRUPTED_BY_USER", pid);
+        printf("Finaliza el proceso <%d> - Motivo: INTERRUPTED_BY_USER\n", pid);
     }
 }
 void detener_planificacion()
@@ -730,12 +730,12 @@ void listar_procesos_por_estado()
 
 void add_queue_blocked(t_PCB *pcb, tipo_block tipo, char *key)
 {
-    str_blocked dat_bloc;
-    dat_bloc.pcb = pcb;
-    dat_bloc.tipo = tipo;
-    dat_bloc.key = key;
+    str_blocked* dat_bloc= malloc(sizeof(str_blocked));
+    dat_bloc->pcb = pcb;
+    dat_bloc->tipo = tipo;
+    dat_bloc->key = key;
     pthread_mutex_lock(&sem_q_blocked);
-    queue_push(cola_blocked, &dat_bloc);
+    queue_push(cola_blocked, dat_bloc);
     pthread_mutex_unlock(&sem_q_blocked);
 }
 
@@ -743,7 +743,7 @@ void delete_queue_blocked(t_PCB *pcb)
 {
     str_blocked *dat_bloc = malloc(sizeof(str_blocked));
 
-    pthread_mutex_lock(&sem_q_blocked);
+    // pthread_mutex_lock(&sem_q_blocked);
 
     int tam_cola = queue_size(cola_blocked);
 
@@ -759,5 +759,5 @@ void delete_queue_blocked(t_PCB *pcb)
             free(dat_bloc);
         }
     }
-    pthread_mutex_unlock(&sem_q_blocked);
+    // pthread_mutex_unlock(&sem_q_blocked);
 }

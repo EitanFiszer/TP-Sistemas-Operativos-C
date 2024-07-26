@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <commons/bitarray.h>
 
+<<<<<<< HEAD
 void crearBitmap(const char *pathbase, int block_count) {
     
     int bitmap_size = (block_count + 7) / 8; // Cada bit representa un bloque, +7 para redondear hacia arriba
@@ -35,6 +36,13 @@ void crearBitmap(const char *pathbase, int block_count) {
 
     free(bitmap);
     fclose(archivo);
+=======
+t_bitmap* crear_bitmap(int block_count, const char* path) {
+    int bitmap_size = (block_count + 7) / 8;
+
+    
+
+>>>>>>> c629c041e42eda558302b935a1453063547f18df
 }
 
 int getBit(const char *pathbase, int block_count) {
