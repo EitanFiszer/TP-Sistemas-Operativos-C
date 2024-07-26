@@ -7,8 +7,8 @@ extern int socketKernel;
 
 void enviar_pcb_kernel(t_PCB *pcb, OP_CODES_ENTRE operacion) {
     // printf("Enviando PCB al kernel, PID: %d\n", pcb->PID);
-    
     enviar_paquete_entre(socketKernel, operacion, pcb, sizeof(t_PCB));
+    sleep(1);
 }
 
 handshake_cpu_memoria handshake_memoria(char* ip_memoria, char* puerto_memoria) {

@@ -21,61 +21,6 @@ t_payload_resize_memoria* deserializar_resize_memoria(void* buffer) {
     return payload;
 }
 
-/*
-void* serializar_dato_memoria(t_payload_dato_memoria* payload, int* size_payload) {
-    int desplazamiento = 0;
-
-    *size_payload = sizeof(int) + payload->size_dato;
-    void* buffer = malloc(*size_payload);
-
-    memcpy(buffer + desplazamiento, &(payload->size_dato), sizeof(int));
-    desplazamiento += sizeof(int);
-    memcpy(buffer + desplazamiento, payload->dato, payload->size_dato);
-
-    return buffer;
-}
-*/
-
-/*
-void* serializar_enviar_dato_memoria(t_payload_enviar_dato_memoria* payload, int* size_payload) {
-    int desplazamiento = 0;
-    *size_payload = sizeof(int) * 2 + payload->size_dato;
-    void* buffer = malloc(*size_payload);
-    memcpy(buffer + desplazamiento, &(payload->direccion), sizeof(int));
-    desplazamiento += sizeof(int);
-    memcpy(buffer + desplazamiento, &(payload->size_dato), sizeof(int));
-    desplazamiento += sizeof(int);
-    memcpy(buffer + desplazamiento, payload->dato, payload->size_dato);
-    return buffer;
-}
-*/
-
-/*
-t_payload_dato_memoria* deserializar_dato_memoria(void* buffer) {
-    t_payload_dato_memoria* payload = malloc(sizeof(t_payload_dato_memoria));
-    int desplazamiento = 0;
-    memcpy(&(payload->size_dato), buffer + desplazamiento, sizeof(int));
-    desplazamiento += sizeof(int);
-    payload->dato = malloc(payload->size_dato);
-    memcpy(payload->dato, buffer + desplazamiento, payload->size_dato);
-    return payload;
-}
-*/
-
-/*
-t_payload_enviar_dato_memoria* deserializar_enviar_dato_memoria(void* buffer) {
-    t_payload_enviar_dato_memoria* payload = malloc(sizeof(t_payload_enviar_dato_memoria));
-    int desplazamiento = 0;
-    memcpy(&(payload->direccion), buffer + desplazamiento, sizeof(int));
-    desplazamiento += sizeof(int);
-    memcpy(&(payload->size_dato), buffer + desplazamiento, sizeof(int));
-    desplazamiento += sizeof(int);
-    payload->dato = malloc(payload->size_dato);
-    memcpy(payload->dato, buffer + desplazamiento, payload->size_dato);
-    return payload;
-}
-*/
-
 void* serializar_stdin_read_de_kernel_a_io(t_payload_io_stdin_read_de_kernel_a_io* payload, int* size_payload) {
     /*
     typedef struct {

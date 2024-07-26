@@ -172,6 +172,7 @@ int main(int argc, char* argv[]) {
                     if (ok == -1) {
                         log_error(logger, "PROCESO TERMINÓ EJECUCIÓN: PID %d", pcb->PID);
                         // Devolver el PCB al kernel
+                        
                         enviar_pcb_kernel(pcb, TERMINO_EJECUCION);
                         break;
                     }
@@ -185,11 +186,12 @@ int main(int argc, char* argv[]) {
                 if (interrupcion) {
                     log_info(logger, "Interrupcion recibida");
 
-                    pthread_mutex_trylock(&mutex_interrupcion);
+                    pthread_mutex_lock(&mutex_interrupcion);
                     interrupcion = false;
                     pthread_mutex_unlock(&mutex_interrupcion);
                     // Interrumpir el proceso
                     enviar_pcb_kernel(pcb, INTERRUMPIO_PROCESO);
+                    break;
                 }
                 break;
             default:
