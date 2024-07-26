@@ -103,18 +103,24 @@ void solicitar_wait(char* recurso, t_PCB* pcb) {
     t_payload_wait_signal* payload = malloc(sizeof(t_payload_wait_signal));
     payload->recurso = recurso;
     payload->pcb = pcb;
+
+    printf("Solicitando wait de recurso %s en el PID %d\n", recurso, pcb->PID);
+
     int size_payload;
     void* buffer = serializar_wait_signal(payload,&size_payload);
-    enviar_paquete_entre(socketKernel, WAIT, payload, size_payload);
+    enviar_paquete_entre(socketKernel, WAIT, buffer, size_payload);
 }
 
 void solicitar_signal(char* recurso, t_PCB* pcb) {
-     t_payload_wait_signal* payload = malloc(sizeof(t_payload_wait_signal));
+    t_payload_wait_signal* payload = malloc(sizeof(t_payload_wait_signal));
     payload->recurso = recurso;
     payload->pcb = pcb;
+
+    printf("Solicitando signal de recurso %s en el PID %d\n", recurso, pcb->PID);
+    
     int size_payload;
     void* buffer = serializar_wait_signal(payload,&size_payload);
-    enviar_paquete_entre(socketKernel, SIGNAL, payload, size_payload);
+    enviar_paquete_entre(socketKernel, SIGNAL, buffer, size_payload);
 }
 
 void solicitar_io_stdin(int tam, t_PCB* pcb, char* interfaz, char* regTam, int dirFisica) {
