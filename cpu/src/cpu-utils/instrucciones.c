@@ -92,12 +92,13 @@ void instruccionIoGenSleep(t_PCB* pcb, char* interfaz, int tiempo) {
     t_payload_io_gen_sleep* nuestroPayload = malloc(sizeof(t_payload_io_gen_sleep));
     nuestroPayload->tiempo = tiempo;
     nuestroPayload->interfaz = interfaz; 
+
+    pcb->program_counter = pcb->program_counter + 1;
     nuestroPayload->pcb = pcb;
 
     int size_payload;
     void* payloadSerializado = serializar_io_gen_sleep(nuestroPayload, &size_payload);
 
-    pcb->program_counter = pcb->program_counter + 1;
     enviar_paquete_entre(socketKernel, IO_GEN_SLEEP, payloadSerializado, size_payload);
 
     t_paquete_entre* paqueteRecibido = recibir_paquete_entre(socketKernel); // Confirmar SYSCALL EJECUTADA
