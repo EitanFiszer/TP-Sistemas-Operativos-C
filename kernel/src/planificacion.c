@@ -673,7 +673,7 @@ void listar_procesos_por_estado()
     pthread_mutex_lock(&sem_q_blocked);
     if (!queue_is_empty(cola_blocked))
     {
-        printf("Procesos en estado: EXECUTE \n");
+        printf("Procesos en estado: BLOCKED \n");
         int tam_cola = queue_size(cola_blocked);
         str_blocked *dat_bloc = malloc(sizeof(str_blocked));
         for (int i = 0; i < tam_cola; i++)
@@ -685,7 +685,7 @@ void listar_procesos_por_estado()
     }
     else
     {
-        printf("No hay procesos en estado: EXECUTE \n");
+        printf("No hay procesos en estado: BLOCKED \n");
     }
     pthread_mutex_unlock(&sem_q_blocked);
     // MUESTRO EXEC

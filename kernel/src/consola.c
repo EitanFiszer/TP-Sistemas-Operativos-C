@@ -59,7 +59,7 @@ void *consola_interactiva()
         {
             if (/*split[1]!= NULL && */strcmp(split[1], "") != 0 && strcmp(split[1], " ") != 0){
                 ejecutar_script(split[1]);
-                free(split[1]);
+                // free(split);
             }
             free(leido);
         }
