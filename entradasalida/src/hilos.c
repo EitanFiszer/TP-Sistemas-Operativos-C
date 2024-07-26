@@ -21,10 +21,10 @@ extern int socketMemoria;
 void crearArchivodebloques(int block_count, int block_size, char* pathbase) {
     size_t tamano_total = block_size * block_count;
 
-    char* filepath;
+    char filepath[256];
     snprintf(filepath, sizeof(filepath), "%s/bloques.dat", pathbase);
 
-    FILE *archivo = fopen("bloques.dat", "wb");
+    FILE* archivo = fopen(filepath, "wb");
     if (!archivo) {
         perror("Error al abrir el archivo de bloques");
         exit(EXIT_FAILURE);
@@ -226,10 +226,8 @@ void hilo_dialfs(void* argumentos){
         
         switch(op) {
             case IO_FS_CREATE:
-                crear_archivo();
-                    
+                crear_archivo(block_count, path_base);    
             break;
-
             case IO_FS_DELETE:
             break;
 
