@@ -46,6 +46,7 @@ void atender_wait(t_PCB *pcb, char *nombre_recurso)
         pthread_mutex_lock(recurso_encontrado->mutex_recurso);
 
         recurso_encontrado->instancias_recurso--;
+        modificar_wait_dic_rec(pcb->PID, nombre_recurso);
 
         if (recurso_encontrado->instancias_recurso < 0)
         {
@@ -71,7 +72,7 @@ void atender_wait(t_PCB *pcb, char *nombre_recurso)
         }
         else
         {
-            modificar_wait_dic_rec(pcb->PID, nombre_recurso);
+            // modificar_wait_dic_rec(pcb->PID, nombre_recurso);
             enviar_paquete_cpu_dispatch(EXEC_PROCESO, pcb, sizeof(t_PCB));
         }
 
@@ -105,7 +106,9 @@ void atender_signal(t_PCB *pcb, char *nombre_recurso)
             if (!queue_is_empty(recurso_encontrado->cola_blocked_recurso))
             {
                 t_PCB *retirar_bloqueo = queue_pop(recurso_encontrado->cola_blocked_recurso);
+                pthread_mutex_lock(&sem_q_blocked);
                 delete_queue_blocked(retirar_bloqueo);
+                pthread_mutex_unlock(&sem_q_blocked);
                 if (strcmp(algoritmo_planificacion, "VRR") == 0)
                 {
                     pthread_mutex_trylock(&sem_q_ready_priori);
@@ -271,7 +274,7 @@ void remove_cola_blocked_rec(char *nombre_recurso, t_PCB *pcb)
     {
         pthread_mutex_lock(recurso_encontrado->mutex_recurso);
         t_PCB *pcb_aux = malloc(sizeof(t_PCB));
-        int tam_cola_bloc = sizeof(recurso_encontrado->cola_blocked_recurso);
+        int tam_cola_bloc = queue_size(recurso_encontrado->cola_blocked_recurso);
         for (int i = 0; i < tam_cola_bloc; i++)
         {
             pcb_aux = queue_pop(recurso_encontrado->cola_blocked_recurso);
