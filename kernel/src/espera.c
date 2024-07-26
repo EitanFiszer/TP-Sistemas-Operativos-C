@@ -133,6 +133,7 @@ void *esperar_paquetes_cpu_dispatch(void *arg)
         case ERROR_OUT_OF_MEMORY:
             t_PCB *PCB_err = (t_PCB *)paquete_dispatch->payload;
             interrumpir(ERROR_OUT_OF_MEMORY_I);
+            enviar_paquete_cpu_dispatch(CONFIRMAR_SYSCALL,NULL,0);
             desalojar();
 
             
@@ -142,6 +143,7 @@ void *esperar_paquetes_cpu_dispatch(void *arg)
             paquete_wait = deserializar_wait_signal(paquete_dispatch->payload);
             log_info(logger, "RECIBIENDO WAIT DE RECURSO %s, PID: %d", paquete_wait->recurso, paquete_wait->pcb->PID);
             interrumpir(SYSCALL);
+            enviar_paquete_cpu_dispatch(CONFIRMAR_SYSCALL,NULL,0);
             atender_wait(paquete_wait->pcb, paquete_wait->recurso);
             break;
 
@@ -162,12 +164,14 @@ void *esperar_paquetes_cpu_dispatch(void *arg)
 
         case IO_STDIN_READ:
             interrumpir(SYSCALL);
+            enviar_paquete_cpu_dispatch(CONFIRMAR_SYSCALL,NULL,0);
             desalojar();
             t_payload_io_stdin_read *payload_stdin_read= deserializar_io_stdin_read(paquete_dispatch->payload);
             atender_io_stdin_read(payload_stdin_read);
             break;
         case IO_STDOUT_WRITE:
             interrumpir(SYSCALL);
+            enviar_paquete_cpu_dispatch(CONFIRMAR_SYSCALL,NULL,0);
             desalojar();
             t_payload_io_stdout_write *payload_stdout_write = deserializar_io_stdout_write(paquete_dispatch->payload);
             atender_io_stdout_write(payload_stdout_write);
@@ -175,36 +179,42 @@ void *esperar_paquetes_cpu_dispatch(void *arg)
             break;
         case IO_FS_CREATE:
             interrumpir(SYSCALL);
+            enviar_paquete_cpu_dispatch(CONFIRMAR_SYSCALL,NULL,0);
             desalojar();
             t_payload_fs_create *payload_fs_create = deserializar_fs_create(paquete_dispatch->payload);
             atender_fs_createOrDelate(payload_fs_create, IO_FS_CREATE);
             break;
         case IO_FS_DELETE:
             interrumpir(SYSCALL);
+            enviar_paquete_cpu_dispatch(CONFIRMAR_SYSCALL,NULL,0);
             desalojar();
             t_payload_fs_create *payload_fs_del = deserializar_fs_create(paquete_dispatch->payload);
             atender_fs_createOrDelate(payload_fs_del,IO_FS_DELETE);
             break;
         case IO_FS_TRUNCATE:
             interrumpir(SYSCALL);
+            enviar_paquete_cpu_dispatch(CONFIRMAR_SYSCALL,NULL,0);
             desalojar();
             t_payload_fs_truncate *payload_truncate = deserializar_fs_truncate(paquete_dispatch->payload);
             atender_fs_truncate(payload_truncate);
             break;
         case IO_FS_WRITE:
             interrumpir(SYSCALL);
+            enviar_paquete_cpu_dispatch(CONFIRMAR_SYSCALL,NULL,0);
             desalojar();
             t_payload_fs_writeORread *payload_fs_wOr = deserializar_fs_writeORread(paquete_dispatch->payload);
             atender_fs_writeOrRead(payload_fs_wOr,IO_FS_WRITE);
             break;
         case IO_FS_READ:
             interrumpir(SYSCALL);
+            enviar_paquete_cpu_dispatch(CONFIRMAR_SYSCALL,NULL,0);
             desalojar();
             t_payload_fs_writeORread *payloadRoW = deserializar_fs_writeORread(paquete_dispatch->payload);
             atender_fs_writeOrRead(payloadRoW,IO_FS_READ);
             break;
         case IO_GEN_SLEEP:
             interrumpir(SYSCALL);
+            enviar_paquete_cpu_dispatch(CONFIRMAR_SYSCALL,NULL,0);
             desalojar();
             t_payload_io_gen_sleep *payload_gen_sleep = deserializar_io_gen_sleep(paquete_dispatch->payload);
             atender_io_gen_sleep(payload_gen_sleep);

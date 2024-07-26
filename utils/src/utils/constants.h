@@ -78,7 +78,9 @@ typedef enum {
 
     IO_INTERFAZ_CREADA,
 
-    EXIT_PROCESS
+    EXIT_PROCESS,
+    
+    CONFIRMAR_SYSCALL // DE KERNEL A CPU, confirmacion de wait o signal
 
 } OP_CODES_ENTRE;
 

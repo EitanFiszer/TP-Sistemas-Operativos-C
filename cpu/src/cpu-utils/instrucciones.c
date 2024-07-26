@@ -138,6 +138,7 @@ void instruccionResize(int tam, t_PCB* pcb) {
 
     if (ok == -1) {
         enviar_pcb_kernel(pcb, ERROR_OUT_OF_MEMORY);
+        t_paquete_entre* paqueteRecibido = recibir_paquete_entre(socketKernel); // Confirmar SYSCALL EJECUTADA
     } else {    
         pcb->program_counter = pcb->program_counter + 1;
     }

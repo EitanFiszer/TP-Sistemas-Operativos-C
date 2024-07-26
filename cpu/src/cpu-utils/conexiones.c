@@ -109,6 +109,8 @@ void solicitar_wait(char* recurso, t_PCB* pcb) {
     int size_payload;
     void* buffer = serializar_wait_signal(payload,&size_payload);
     enviar_paquete_entre(socketKernel, WAIT, buffer, size_payload);
+
+    t_paquete_entre* paqueteRecibido = recibir_paquete_entre(socketKernel); // Confirmar SYSCALL EJECUTADA
 }
 
 void solicitar_signal(char* recurso, t_PCB* pcb) {
@@ -121,6 +123,8 @@ void solicitar_signal(char* recurso, t_PCB* pcb) {
     int size_payload;
     void* buffer = serializar_wait_signal(payload,&size_payload);
     enviar_paquete_entre(socketKernel, SIGNAL, buffer, size_payload);
+
+    t_paquete_entre* paqueteRecibido = recibir_paquete_entre(socketKernel); // Confirmar SYSCALL EJECUTADA
 }
 
 void solicitar_io_stdin(int tam, t_PCB* pcb, char* interfaz, char* regTam, int dirFisica) {
@@ -133,6 +137,8 @@ void solicitar_io_stdin(int tam, t_PCB* pcb, char* interfaz, char* regTam, int d
     int size_payload;
     void* buffer = serializar_io_stdin_read(payload, &size_payload);
     enviar_paquete_entre(socketKernel, IO_STDIN_READ, buffer, size_payload);
+
+    t_paquete_entre* paqueteRecibido = recibir_paquete_entre(socketKernel); // Confirmar SYSCALL EJECUTADA
 }
 
 void solicitar_io_stdout(char* interfaz, int direccionFisica, int tam, t_PCB* pcb){
@@ -145,6 +151,8 @@ void solicitar_io_stdout(char* interfaz, int direccionFisica, int tam, t_PCB* pc
     void* buffer =serializar_io_stdout_write(payload,&size_payload);
 
    enviar_paquete_entre(socketKernel, IO_STDOUT_WRITE, buffer, size_payload);
+
+    t_paquete_entre* paqueteRecibido = recibir_paquete_entre(socketKernel); // Confirmar SYSCALL EJECUTADA
 }
 
 void solicitar_fs_createORdelete(char* interfaz, char* nombreArchivo, OP_CODES_ENTRE oper, t_PCB* pcb){
@@ -155,6 +163,8 @@ void solicitar_fs_createORdelete(char* interfaz, char* nombreArchivo, OP_CODES_E
     int size_payload;
     void* buffer = serializar_fs_create(payload,&size_payload);
     enviar_paquete_entre(socketKernel, oper, buffer, size_payload);
+
+    t_paquete_entre* paqueteRecibido = recibir_paquete_entre(socketKernel); // Confirmar SYSCALL EJECUTADA
 }
 
 void solicitar_fs_truncate(char* interfaz, char* nombreArchivo, char* regTam, t_PCB* pcb){
@@ -166,6 +176,8 @@ void solicitar_fs_truncate(char* interfaz, char* nombreArchivo, char* regTam, t_
     int size_payload;
     void* buffer = serializar_fs_truncate(payload, &size_payload);
     enviar_paquete_entre(socketKernel, IO_FS_TRUNCATE, buffer, size_payload);
+
+    t_paquete_entre* paqueteRecibido = recibir_paquete_entre(socketKernel); // Confirmar SYSCALL EJECUTADA
 }
 
 void solicitar_fs_writeORread(char* interfaz, char* nombreArchivo, char* regTam, char* regDire, char* regPuntero, OP_CODES_ENTRE oper, t_PCB* pcb){
@@ -181,6 +193,8 @@ void solicitar_fs_writeORread(char* interfaz, char* nombreArchivo, char* regTam,
     void* buffer = serializar_fs_writeORread(payload, &size_payload);
 
     enviar_paquete_entre(socketKernel, oper, buffer, size_payload);
+
+    t_paquete_entre* paqueteRecibido = recibir_paquete_entre(socketKernel); // Confirmar SYSCALL EJECUTADA
 }
 
 
