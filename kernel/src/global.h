@@ -38,12 +38,13 @@ extern pthread_mutex_t sem_q_blocked;
 
 extern bool bool_error_memoria;
 extern bool bool_syscall;
-
+extern bool bool_interrupted_by_user;
 
 typedef enum {
     SYSCALL,
     FIN_QUANTUM,
-    ERROR_OUT_OF_MEMORY_I
+    ERROR_OUT_OF_MEMORY_I,
+    INTERRUPTED_BY_USER
 }t_motivo_interrupcion;
 
 // extern pthread_mutex_t logger_mutex;

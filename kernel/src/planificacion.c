@@ -259,10 +259,10 @@ void stl_RR()
         }
         pthread_mutex_unlock(&mutex_planificacion);
         sem_wait(&sem_cont_ready);
-        log_info(logger, "HAY ELEMENTOS EN LA COLA READY");
+        // log_info(logger, "HAY ELEMENTOS EN LA COLA READY");
 
         pthread_mutex_lock(&sem_CPU_libre);
-        log_info(logger, "Bloqueando CPU");
+        // log_info(logger, "Bloqueando CPU");
 
         pthread_mutex_lock(&sem_q_ready);
         t_PCB *retirar_ready = queue_pop(cola_ready);
@@ -547,6 +547,25 @@ bool buscar_pcb(int pid)
         }
     }
     pthread_mutex_unlock(&sem_q_blocked);
+
+
+    // RECORRER EXEC
+    pthread_mutex_lock(&sem_q_exec);
+      if(!queue_is_empty(cola_exec)){
+        pcb = queue_pop(cola_exec);
+        if(pcb->PID!=pid){
+            queue_push(cola_exec,pcb);
+        }else{
+            encontrado=true;
+            interrumpir(INTERRUPTED_BY_USER);
+            lts_ex(pcb, EXEC,"INTERRUPTED_BY_USER");
+            log_info(logger, "DESALOJANDO PROCESO DEJANDO CPU_LIBRE");
+            pthread_mutex_unlock(&sem_CPU_libre);
+            log_info(logger, "CPU_LIBRE, PID SACADO: %d", pcb->PID);
+        }
+      }  
+    pthread_mutex_unlock(&sem_q_exec);
+    
     return encontrado;
 }
 
