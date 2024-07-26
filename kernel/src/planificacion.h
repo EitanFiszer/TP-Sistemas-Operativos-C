@@ -9,7 +9,7 @@
 #include "espera.h"
 #include <semaphore.h>
 #include <commons/temporal.h>
-#include <recursos.h>
+#include "recursos.h"
 
 // //colas
 // t_list* lista_new;
@@ -75,8 +75,6 @@ void stl_VRR();
 void enviar_new_exit(int);
 void lts_ex(t_PCB *, t_proceso_estado,char*);
 t_PCB *crear_PCB(int);
-// void atender_wait(t_PCB*, char*);
-// void atender_signal(t_PCB*, char*);
 
 void add_queue_blocked(t_PCB *, tipo_block, char *);
 void delete_queue_blocked(t_PCB *);

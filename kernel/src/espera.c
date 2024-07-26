@@ -6,6 +6,7 @@ void atender_cliente(void *socket)
 {
     char *nombre_io_hilo = NULL;
     int socket_cliente_IO = *(int *)socket;
+    free(socket);
     // bool salir = true;
     while (1)
     {
@@ -137,13 +138,17 @@ void *esperar_paquetes_cpu_dispatch(void *arg)
             
             break;
         case WAIT:
-            t_payload_wait_signal *paquete_wait = deserializar_wait_signal(paquete_dispatch->payload);
+            t_payload_wait_signal *paquete_wait = malloc(sizeof(t_payload_wait_signal));
+            paquete_wait = deserializar_wait_signal(paquete_dispatch->payload);
+            log_info(logger, "RECIBIENDO WAIT DE RECURSO %s, PID: %d", paquete_wait->recurso, paquete_wait->pcb->PID);
             interrumpir(SYSCALL);
             atender_wait(paquete_wait->pcb, paquete_wait->recurso);
             break;
 
         case SIGNAL:
-            t_payload_wait_signal *paquete_signal = deserializar_wait_signal(paquete_dispatch->payload);
+            t_payload_wait_signal *paquete_signal = malloc(sizeof(t_payload_wait_signal));
+            paquete_signal = deserializar_wait_signal(paquete_dispatch->payload);
+            log_info(logger, "RECIBIENDO SIGNAL DE RECURSO %s, PID: %d", paquete_signal->recurso, paquete_signal->pcb->PID);
             atender_signal(paquete_signal->pcb, paquete_signal->recurso);
             break;
 

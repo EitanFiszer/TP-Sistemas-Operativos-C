@@ -63,15 +63,16 @@ void esperar_clientes_io(void *args)
     while (1)
     {
         pthread_t hilo_atender_cliente;
-        int fd_conexion_ptr = -1;
+        int *fd_conexion_ptr = malloc(sizeof(int));
+
         Handshake res = esperar_cliente(server_fd, logger);
         int modulo = res.modulo;
-        fd_conexion_ptr = res.socket;
+        *fd_conexion_ptr = res.socket;
         switch (modulo)
         {
         case IO:
-            log_info(logger, "Se conecto un I/O");
-            pthread_create(&hilo_atender_cliente, NULL, (void *)atender_cliente, &fd_conexion_ptr);
+            log_info(logger, "Se conecto un I/O con el socket %d", *fd_conexion_ptr);
+            pthread_create(&hilo_atender_cliente, NULL, (void *)atender_cliente, fd_conexion_ptr);
             pthread_detach(hilo_atender_cliente);
             break;
         default:

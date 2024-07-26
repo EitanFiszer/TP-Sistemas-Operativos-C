@@ -135,14 +135,15 @@ t_payload_get_instruccion *deserializar_get_instruccion(void *buffer)
 
 void *serializar_wait_signal(t_payload_wait_signal *payload, int *size_payload)
 {
-    int size_recurso = strlen(payload->recurso) + 1;
-    // Suponiendo que la estructura t_PCB tiene un tamaño fijo conocido como SIZE_T_PCB
     int size_pcb = sizeof(t_PCB);
+    int size_recurso = strlen(payload->recurso) + 1; // Incluye el carácter nulo
     *size_payload = size_pcb + size_recurso;
     void *buffer = malloc(*size_payload);
 
-    memcpy(buffer, payload->pcb, size_pcb);
-    memcpy(buffer + size_pcb, payload->recurso, size_recurso);
+    int desplazamiento = 0;
+    memcpy(buffer + desplazamiento, payload->pcb, size_pcb);
+    desplazamiento += size_pcb;
+    memcpy(buffer + desplazamiento, payload->recurso, size_recurso);
 
     return buffer;
 }
@@ -249,14 +250,19 @@ void *serializar_fs_create(t_payload_fs_create *payload, int *size_payload)
 
 t_payload_wait_signal *deserializar_wait_signal(void *buffer)
 {
+  /*
+  typedef struct {
+    t_PCB* pcb;
+    char* recurso;
+  } t_payload_wait_signal;
+  */
     t_payload_wait_signal *payload = malloc(sizeof(t_payload_wait_signal));
-    // Suponiendo que la estructura t_PCB tiene un tamaño fijo conocido como SIZE_T_PCB
+    int desplazamiento = 0;
     int size_pcb = sizeof(t_PCB);
-
     payload->pcb = malloc(size_pcb);
-    memcpy(payload->pcb, buffer, size_pcb);
-    payload->recurso = strdup(buffer + size_pcb);
-
+    memcpy(payload->pcb, buffer + desplazamiento, size_pcb);
+    desplazamiento += size_pcb;
+    payload->recurso = strdup(buffer + desplazamiento);
     return payload;
 }
 t_payload_crear_proceso *deserializar_crear_proceso(void *buffer)

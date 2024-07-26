@@ -30,6 +30,7 @@ void guardar_dictionary_recursos(t_config *config)
 
 void atender_wait(t_PCB *pcb, char *nombre_recurso)
 {
+    log_info("Atendiendo wait recurso: %s", nombre_recurso);
     t_recurso *recurso_encontrado = dictionary_get(diccionario_recursos, nombre_recurso);
 
     if (recurso_encontrado == NULL)
