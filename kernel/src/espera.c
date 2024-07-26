@@ -265,7 +265,6 @@ void finalizar_kernel()
     liberar_conexion(resultHandshakeMemoria);
     eliminar_semaforos();
     eliminar_colas();
-    eliminar_diccionario_io();
-    eliminar_diccionario_rec();
+
     exit(1);
 }

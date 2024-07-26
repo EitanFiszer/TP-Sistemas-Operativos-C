@@ -417,7 +417,7 @@ void lts_ex(t_PCB *pcb, t_proceso_estado estado_anterior, char *motivo)
 
     enviar_paquete_memoria(FINALIZAR_PROCESO, &pcb->PID, sizeof(int));
 
-    log_info("Finaliza el proceso <%d> - Motivo: <%s>", pcb->PID, motivo);
+    log_info(logger,"Finaliza el proceso <%d> - Motivo: <%s>", pcb->PID, motivo);
 
     switch (estado_anterior)
     {
