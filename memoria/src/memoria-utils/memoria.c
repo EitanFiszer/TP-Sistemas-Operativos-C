@@ -38,7 +38,7 @@ int buscarDireccionFisicaEnTablaDePaginas(int pid, int pagina) {
     int marco = dictionary_get(proceso->tabla_de_paginas, key);
     free(key);
 
-    printf("Dirección física encontrada: %d\n", marco);
+    // printf("Dirección física encontrada: %d\n", marco);
 
     return marco;
 }
@@ -63,13 +63,14 @@ int buscarMarcoLibre() {
 }
 
 void escribirMemoria(int direccionFisica, void* dato, int tamDato) {
-    printf("Primera dirección de memoria: %p, dirección deseada: %p\n", memoria.memoria, memoria.memoria + direccionFisica);
+    // printf("Primera dirección de memoria: %p, dirección deseada: %p\n", memoria.memoria, memoria.memoria + direccionFisica);
+    // printf("Escribiendo dato %p en dirección %d\n", dato, direccionFisica);
     memcpy(memoria.memoria + direccionFisica, dato, tamDato);
-    mem_hexdump(memoria.memoria + direccionFisica, tamDato);
+    // mem_hexdump(memoria.memoria + direccionFisica, TAM_PAGINA);
 }
 
-int obtenerDatoMemoria(int direccion) {
-    int dato;
-    memcpy(&dato, memoria.memoria + direccion, sizeof(int));
+void* obtenerDatoMemoria(int direccion, int tamDato) {
+    void* dato;
+    memcpy(&dato, memoria.memoria + direccion, tamDato);
     return dato;
 }

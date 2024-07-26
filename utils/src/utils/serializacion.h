@@ -65,4 +65,7 @@ void* serializar_fs_writeORread(t_payload_fs_writeORread* payload, int* size_pay
 t_payload_enviar_dato_memoria* deserializar_enviar_dato_memoria(void* buffer);
 void* serializar_enviar_dato_memoria(t_payload_enviar_dato_memoria* payload, int* size_payload);
 
+t_payload_solicitar_dato_memoria* deserializar_solicitar_dato_memoria(void* buffer);
+void* serializar_solicitar_dato_memoria(t_payload_solicitar_dato_memoria* payload, int* size_payload);
+
 #endif /* SERIALIZACION_H */

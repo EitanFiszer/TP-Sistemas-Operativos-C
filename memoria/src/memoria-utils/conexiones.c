@@ -1,5 +1,6 @@
 #include "./conexiones.h"
 #include <commons/log.h>
+#include <commons/memory.h>
 #include <utils/serializacion.h>
 #include <utils/envios.h>
 #include <memoria-utils/procesos.h>
@@ -16,6 +17,10 @@ extern int socketKernel;
 extern int socketCpu;
 extern int socketIO;
 extern int server_fd;
+
+
+extern int TAM_MEMORIA;
+extern Memoria memoria;
 
 
 void esperar_paquetes_kernel() {
@@ -77,6 +82,8 @@ void esperar_paquetes_cpu() {
 
                 if (instruccion == NULL) {
                     log_info(logger, "Fin de archivo");
+                    // Escribir toda la memoria
+                    // mem_hexdump(memoria.memoria, TAM_MEMORIA);
                     enviar_paquete_entre(socketCpu, FIN_DE_INSTRUCCIONES, NULL, 0);
                     break;
                 }
@@ -106,22 +113,18 @@ void esperar_paquetes_cpu() {
 
             #pragma region SOLICITAR_DATO_MEMORIA
             case SOLICITAR_DATO_MEMORIA:
-                t_payload_solicitar_dato_memoria *payloadSolicitarDato = paquete_cpu->payload;
+                t_payload_solicitar_dato_memoria *payloadSolicitarDato = deserializar_solicitar_dato_memoria(paquete_cpu->payload);
                 int direccion = payloadSolicitarDato->direccion;
                 log_info(logger, "Se llamó a SOLICITAR_DATO_MEMORIA para dirección: %d", direccion);
 
+                int tamDato = payloadSolicitarDato->tam;
                 // Obtener dato de memoria
-                int dato = obtenerDatoMemoria(direccion);
-                printf("Dato: %d\n", dato);
-
-                // if (dato == NULL) {
-                //     log_info(logger, "No se pudo obtener el dato de memoria");
-                //     break;
-                // }
+                void* dato = obtenerDatoMemoria(direccion, tamDato);
+                // printf("Dato: %d\n", (int)dato);
 
                 // Enviar dato a CPU
                 t_payload_dato_memoria payloadDato = {
-                    .dato = (int*)dato
+                    .dato = (int)dato
                 };
                 enviar_paquete_entre(socketCpu, DATO_MEMORIA, &payloadDato, sizeof(t_payload_dato_memoria));
 
@@ -160,7 +163,7 @@ void esperar_paquetes_cpu() {
               int direccionEnviar = payloadEnviar->direccion;
               void* datoEnviar = payloadEnviar->dato;
               int tamDatoEnviar = payloadEnviar->tamDato;
-              printf("Escribiendo dato %p en dirección %d\n", datoEnviar, direccionEnviar);
+              printf("Escribiendo dato %d en dirección %d\n", *(int*)datoEnviar, direccionEnviar);
               escribirMemoria(direccionEnviar, datoEnviar, tamDatoEnviar);
 
               t_payload_dato_memoria* payloadDatoEnviar = malloc(sizeof(t_payload_dato_memoria));

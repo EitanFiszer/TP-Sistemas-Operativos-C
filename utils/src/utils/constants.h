@@ -118,6 +118,7 @@ typedef struct {
 
 typedef struct {
     int direccion;
+    int tam;
 } t_payload_solicitar_dato_memoria;
 
 typedef struct {

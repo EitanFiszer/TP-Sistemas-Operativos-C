@@ -25,6 +25,9 @@ void inicializarMemoria() {
     memoria.procesos = malloc(memoria.max_procesos * sizeof(Proceso));
     memoria.cant_procesos = 0;
 
+    // llenar memoria.memoria de 0
+    memset(memoria.memoria, 0, TAM_MEMORIA);
+
     log_info(logger, "Se inicializó la memoria con un tamaño de %d, páginas de %d bytes y %d marcos", TAM_MEMORIA, TAM_PAGINA, memoria.max_procesos);
 }
 
@@ -108,14 +111,15 @@ void finalizarProceso(int pid) {
     }
 
     t_dictionary* tabla_de_paginas = proceso->tabla_de_paginas;
-    void* marcos = dictionary_elements(tabla_de_paginas);
+    t_list* marcos = dictionary_elements(tabla_de_paginas);
 
     for (int i = 0; i < dictionary_size(tabla_de_paginas); i++) {
-        int* marco = (int*)list_remove(marcos, 0);
-        bitarray_set_bit(marcosLibres, *marco);
+        int marco = (int)list_get(marcos, 0);
+        bitarray_set_bit(marcosLibres, marco);
     }
 
-    dictionary_destroy_and_destroy_elements(tabla_de_paginas, free);
+    // dictionary_destroy_and_destroy_elements(tabla_de_paginas, (void*)destroy_elemento);
+    free(tabla_de_paginas);
     free(proceso->instrucciones);
     // free(proceso->tabla_de_paginas);
     free(proceso);    

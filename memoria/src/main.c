@@ -1,4 +1,6 @@
 #include "main.h"
+#include <utils/serializacion.h>
+#include <memoria-utils/memoria.h>
 
 int retardo_respuesta = 0;
 char* path_instrucciones = "";
@@ -121,6 +123,30 @@ void esperarConexiones() {
     pthread_join(hiloEsperaIO, NULL);
 }
 
+void probarTodo() {
+  t_payload_enviar_dato_memoria* payload = malloc(sizeof(t_payload_enviar_dato_memoria));
+    payload->direccion = 0;
+    int num = 5;
+    payload->dato = &num;
+    payload->tamDato = sizeof(int);
+    // payload->dato = "Hola";
+    // payload->tamDato = strlen("Hola") + 1;
+
+
+    int size_payload;
+    void* buffer = serializar_enviar_dato_memoria(payload, &size_payload);
+    t_payload_enviar_dato_memoria* payload_deserializado = deserializar_enviar_dato_memoria(buffer);
+
+    printf("Dato int: %d\n", *(int*)payload_deserializado->dato);
+
+    escribirMemoria(payload_deserializado->direccion, payload_deserializado->dato, payload_deserializado->tamDato);
+
+    void* dato = obtenerDatoMemoria(payload_deserializado->direccion, payload_deserializado->tamDato);
+
+    printf("Dato leído: %d\n", (int)dato);
+    // printf("Dato leído: %s\n", (char*)&dato);
+}
+
 int main(int argc, char* argv[]) {
     logger = iniciar_logger("memoria.log", "Memoria");
     config = iniciar_config("memoria.config");
@@ -141,6 +167,8 @@ int main(int argc, char* argv[]) {
     log_info(logger, "[MEMORIA] Escuchando en el puerto: %s", puerto_escucha);
 
     esperarConexiones();
+
+    // probarTodo();
 
     liberarMemoria();
 
