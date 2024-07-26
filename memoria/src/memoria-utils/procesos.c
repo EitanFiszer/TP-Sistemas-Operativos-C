@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <utils/envios.h>
+#include <math.h>
 
 // También el RETARDO en la/s respuesta/s y concatenar PATH con el recibido de la cpu
 
@@ -150,11 +151,11 @@ int obtenerTamanoProceso(int pid) {
 int redimensionarProceso(int pid, int nuevoTam) {
     Proceso* proceso = procesoPorPID(pid);
 
-    if (proceso == NULL) {
+    if (proceso == NULL || nuevoTam <= 0 || nuevoTam > TAM_MEMORIA) {
         return -1;
     }
 
-    int cantPaginas = nuevoTam / TAM_PAGINA;
+    int cantPaginas = ceil(nuevoTam / TAM_PAGINA);
     int cantPaginasActuales = dictionary_size(proceso->tabla_de_paginas);
 
     if (cantPaginasActuales == cantPaginas) {
@@ -180,12 +181,11 @@ int redimensionarProceso(int pid, int nuevoTam) {
         }
     } else {
         for (int i = 0; i < -diff; i++) {
-            int* marco = (int*)list_remove(dictionary_elements(proceso->tabla_de_paginas), 0);
-            bitarray_set_bit(marcosLibres, *marco);
+            int marco = (int)list_remove(dictionary_elements(proceso->tabla_de_paginas), 0);
+            bitarray_set_bit(marcosLibres, marco);
         }
     }
     return RESIZE_SUCCESS;
-
 }
 
 Proceso* procesoPorPID(int pid) {

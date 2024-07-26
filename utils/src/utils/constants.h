@@ -139,6 +139,10 @@ typedef struct {
 } t_payload_io_stdin_read;  // cambiar en instrucciones
 
 typedef struct {
+  int resultado;
+} t_payload_resultado_resize_memoria;
+
+typedef struct {
     t_PCB* pcb;
     char* recurso;
 } t_payload_wait_signal;

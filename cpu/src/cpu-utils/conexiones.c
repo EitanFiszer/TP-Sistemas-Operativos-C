@@ -93,10 +93,10 @@ int solicitar_resize_memoria(int pid, int tam) {
         return -1;
     }
 
-    t_payload_resize_memoria* payloadRecibido = deserializar_resize_memoria(paqueteRecibidoEntero->payload);
-    int resultado = payloadRecibido->tam;
+    t_payload_resultado_resize_memoria* payloadRecibido = deserializar_resultado_resize_memoria(paqueteRecibidoEntero->payload);
+    int resultado = payloadRecibido->resultado;
 
-    return resultado;
+    return resultado == ERROR_OUT_OF_MEMORY ? -1 : resultado;
 }
 
 void solicitar_wait(char* recurso, t_PCB* pcb) {

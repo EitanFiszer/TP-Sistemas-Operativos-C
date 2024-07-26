@@ -68,4 +68,7 @@ void* serializar_enviar_dato_memoria(t_payload_enviar_dato_memoria* payload, int
 t_payload_solicitar_dato_memoria* deserializar_solicitar_dato_memoria(void* buffer);
 void* serializar_solicitar_dato_memoria(t_payload_solicitar_dato_memoria* payload, int* size_payload);
 
+t_payload_resultado_resize_memoria* deserializar_resultado_resize_memoria(void* buffer);
+void* serializar_resultado_resize_memoria(t_payload_resultado_resize_memoria* payload, int* size_payload);
+
 #endif /* SERIALIZACION_H */

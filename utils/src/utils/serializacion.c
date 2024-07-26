@@ -738,3 +738,18 @@ t_payload_solicitar_dato_memoria* deserializar_solicitar_dato_memoria(void* buff
     memcpy(&(payload->tam), buffer + desplazamiento, sizeof(payload->tam));
     return payload;
 }
+
+void* serializar_resultado_resize_memoria(t_payload_resultado_resize_memoria* payload, int* size_payload) {
+    *size_payload = sizeof(payload->resultado);
+    void* buffer = malloc(*size_payload);
+    int desplazamiento = 0;
+    memcpy(buffer + desplazamiento, &(payload->resultado), sizeof(payload->resultado));
+    return buffer;
+}
+
+t_payload_resultado_resize_memoria* deserializar_resultado_resize_memoria(void* buffer) {
+    t_payload_resultado_resize_memoria* payload = malloc(sizeof(t_payload_resultado_resize_memoria));
+    int desplazamiento = 0;
+    memcpy(&(payload->resultado), buffer + desplazamiento, sizeof(payload->resultado));
+    return payload;
+}

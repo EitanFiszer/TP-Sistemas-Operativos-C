@@ -153,8 +153,14 @@ void esperar_paquetes_cpu() {
 
                 OP_CODES_ENTRE op_code = resultado < 0 ? ERROR_OUT_OF_MEMORY : RESIZE_SUCCESS;
 
+                t_payload_resultado_resize_memoria* payloadRes = malloc(sizeof(t_payload_resultado_resize_memoria));
+                payloadRes->resultado = resultado;
+
+                int size_payload;
+                void* buffer = serializar_resultado_resize_memoria(payload, &size_payload);
+
                 // Enviar confirmación a CPU
-                enviar_paquete_entre(socketCpu, op_code, paquete_cpu->payload, sizeof(paquete_cpu->payload));
+                enviar_paquete_entre(socketCpu, op_code, buffer, size_payload);
               break;
             #pragma endregion
             #pragma region ENVIAR_DATO_MEMORIA
