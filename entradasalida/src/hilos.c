@@ -44,7 +44,7 @@ int conexionKernell(char* ip, char* puerto, char* tipo_interfaz, char* nombre) {
     int size_pay;
     void* buffer = serializar_interfaz_creada(payload, &size_pay);
     enviar_paquete_entre(resultHandshake, IO_INTERFAZ_CREADA, buffer, size_pay);
-
+    log_info(logger, "Interfaz %s conectada a kernel", nombre);
     return resultHandshake;
 }
 
@@ -70,7 +70,7 @@ void hilo_generica(void* argumentos) {
             case IO_GEN_SLEEP:
                 t_payload_io_gen_sleep* operacionRecibida = deserializar_io_gen_sleep(paquete_entre->payload);
                 int tiempo_gen = operacionRecibida->tiempo;
-                log_info(logger, "Operacion: <IO_GEN_SLEEP>");
+                log_info(logger, "Operacion: <IO_GEN_SLEEP> - TIEMPO %d", tiempo_gen);
                 sleep(tiempo_unidad_trabajo / 1000 * tiempo_gen);
                 break;
             default:
@@ -182,7 +182,7 @@ void hilo_dialfs(void* argumentos){
     char* tipo_interfaz = config_get_string_value(config, "TIPO_INTERFAZ");
     int block_size = config_get_int_value(config, "BLOCK_SIZE");
     int block_count = config_get_int_value(config, "BLOCK_COUNT");
-    char* path_base = config_get_string_value(config, "PATH_BASE_DIALFS")
+    char* path_base = config_get_string_value(config, "PATH_BASE_DIALFS");
 
     int resultHandshakeKernell = conexionKernell(ip_kernel, puerto_kernel, tipo_interfaz, nombre);
 

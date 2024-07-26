@@ -123,7 +123,7 @@ void esperarConexiones() {
     pthread_join(hiloEsperaIO, NULL);
 }
 
-void probarTodo() {
+void probarTodo_() {
   t_payload_enviar_dato_memoria* payload = malloc(sizeof(t_payload_enviar_dato_memoria));
     payload->direccion = 0;
     int num = 5;
@@ -145,6 +145,26 @@ void probarTodo() {
 
     printf("Dato leído: %d\n", (int)dato);
     // printf("Dato leído: %s\n", (char*)&dato);
+}
+
+void probarTodo() {
+  t_payload_wait_signal* payload = malloc(sizeof(t_payload_wait_signal));
+    payload->recurso = "RA";
+    t_PCB* pcb = malloc(sizeof(t_PCB));
+    pcb->PID = 1;
+    pcb->estado = NEW;
+    pcb->program_counter = 0;
+    pcb->quantum = 2000;
+    
+
+    payload->pcb = pcb;
+
+    int size_payload;
+    void* buffer = serializar_wait_signal(payload, &size_payload);
+    t_payload_wait_signal* payload_deserializado = deserializar_wait_signal(buffer);
+
+    printf("Recurso: %s\n", payload_deserializado->recurso);
+    printf("PCB PID: %d, QUANTUM: %d\n", payload_deserializado->pcb->PID, payload_deserializado->pcb->quantum);
 }
 
 int main(int argc, char* argv[]) {
