@@ -161,22 +161,37 @@ void signal_por_fin(char *nombre_recurso)
     }
 }
 
+// int buscar_recurso(t_list *lista, char *nombre)
+// {
+//     t_list_iterator *iterador = list_iterator_create(lista);
+//     t_rec_list *dat_rec = malloc(sizeof(t_rec_list));
+//     int index = -1;
+//     while (list_iterator_has_next(iterador))
+//     {
+//         dat_rec = list_iterator_next(iterador);
+//         if (strcmp(dat_rec, nombre) == 0)
+//         {
+//             index = list_iterator_index(iterador);
+//             list_iterator_remove(iterador);
+//             return index;
+//         }
+//     }
+//     return index;
+// }
+
 int buscar_recurso(t_list *lista, char *nombre)
 {
-    t_list_iterator *iterador = list_iterator_create(lista);
-    t_rec_list *dat_rec = malloc(sizeof(t_rec_list));
-    int index = -1;
-    while (list_iterator_has_next(iterador))
+    t_rec_list* dat_rec;
+    int cantElementos = list_size(lista);
+    for (int i = 0; i < cantElementos; i++)
     {
-        dat_rec = list_iterator_next(iterador);
+        dat_rec = list_get(lista, i);
         if (strcmp(dat_rec->nombre_recurso, nombre) == 0)
         {
-            index = list_iterator_index(iterador);
-            list_iterator_remove(iterador);
-            return index;
+            return i;
         }
     }
-    return index;
+    return -1;
 }
 
 void recorrer_liberar_rec(t_list *recurso_list)
@@ -204,7 +219,7 @@ void modificar_wait_dic_rec(int pid, char *nombre_rec)
         dat_rec->instancias_recurso = 1;
         dat_rec->nombre_recurso = nombre_rec;
         list_add(recurso_list, dat_rec);
-        dictionary_put(rec_por_pid_dic, int_to_string(pid), dat_rec);
+        dictionary_put(rec_por_pid_dic, int_to_string(pid), recurso_list);
     }
     else
     {
