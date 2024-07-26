@@ -5,13 +5,10 @@
 #include <commons/bitarray.h>
 
 t_bitmap* crear_bitmap(int block_count, const char* path) {
-    t_bitmap* bitmap = malloc(sizeof(t_bitmap));
+    int bitmap_size = (block_count + 7) / 8;
+
     
-    t_bitarray* bits = bitarray_create_with_mode(NULL, block_count, MSB_FIRST);
-    bitmap->bits =  bits; // Inicializa todos los bits a 0
-    bitmap->block_count = block_count;
-    bitmap->path = strdup(path);
-    return bitmap;
+
 }
 
 int obtener_bloque_libre(t_bitmap* bitmap) {
