@@ -97,9 +97,8 @@ void instruccionIoGenSleep(t_PCB* pcb, char* interfaz, int tiempo) {
     int size_payload;
     void* payloadSerializado = serializar_io_gen_sleep(nuestroPayload, &size_payload);
 
-    enviar_paquete_entre(socketKernel, IO_GEN_SLEEP, payloadSerializado, size_payload);
-
     pcb->program_counter = pcb->program_counter + 1;
+    enviar_paquete_entre(socketKernel, IO_GEN_SLEEP, payloadSerializado, size_payload);
 }
 
 // Lee el valor de memoria correspondiente a la Dirección Lógica que se encuentra en el Registro Dirección y lo almacena en el Registro Datos.

@@ -84,9 +84,9 @@ void ejecutarInstruccion(instruccionCPU_t* instruccion, t_PCB* pcb, t_log* logge
     } else if(string_equals_ignore_case(inst, "SUB")) {
         instruccionSub(pcb, params[0], params[1], &registros);
     } else if(string_equals_ignore_case(inst, "JNZ")) {
-        instruccionJNZ(pcb, params[0], (intptr_t)params[1], registros);
+        instruccionJNZ(pcb, params[0], atoi(params[1]), registros);
     } else if(string_equals_ignore_case(inst, "IO_GEN_SLEEP")) {
-        instruccionIoGenSleep(pcb, params[0], (intptr_t)params[1]);
+        instruccionIoGenSleep(pcb, params[0], atoi(params[1]));
     } else if(string_equals_ignore_case(inst, "MOV_IN")) { // MOV_IN EDX ECX
         instruccionMovIn(params[0], params[1], &registros, pcb);
     } else if(string_equals_ignore_case(inst, "MOV_OUT")) { // MOV_OUT
@@ -94,7 +94,7 @@ void ejecutarInstruccion(instruccionCPU_t* instruccion, t_PCB* pcb, t_log* logge
     } else if(string_equals_ignore_case(inst, "RESIZE")) { // RESIZE 128
         instruccionResize(atoi(params[0]), pcb);
     } else if(string_equals_ignore_case(inst, "COPY_STRING")) { // COPY_STRING 8
-        instruccionCopyString((intptr_t)params[0], registros, pcb);
+        instruccionCopyString(atoi(params[0]), registros, pcb);
     } else if(string_equals_ignore_case(inst, "WAIT")) { // WAIT RECURSO_1
         instruccionWait(params[0], pcb);
     } else if(string_equals_ignore_case(inst, "SIGNAL")) { // SIGNAL RECURSO_1
