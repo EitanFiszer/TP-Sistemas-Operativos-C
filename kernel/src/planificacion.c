@@ -679,6 +679,7 @@ void listar_procesos_por_estado()
         str_blocked *dat_bloc = malloc(sizeof(str_blocked));
         for (int i = 0; i < tam_cola; i++)
         {
+            // TODO: NO ANDA
             dat_bloc = queue_pop(cola_blocked);
             printf("PID: <%d> \n", dat_bloc->pcb->PID);
             queue_push(cola_blocked, dat_bloc);
