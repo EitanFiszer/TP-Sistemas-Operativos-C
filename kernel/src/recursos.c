@@ -111,11 +111,7 @@ void atender_signal(t_PCB *pcb, char *nombre_recurso)
                 pthread_mutex_unlock(&sem_q_blocked);
                 if (strcmp(algoritmo_planificacion, "VRR") == 0)
                 {
-                    pthread_mutex_trylock(&sem_q_ready_priori);
-                    queue_push(cola_ready_priori, retirar_bloqueo);
-                    pthread_mutex_unlock(&sem_q_ready_priori);
-                    sem_post(&sem_cont_ready);
-                    log_info(logger, "PID:%d - Estado Anterior: BLOCKED - Estado Actual: READY", retirar_bloqueo->PID);
+                   cargar_ready_priori(retirar_bloqueo, BLOCKED);
                 }
                 else
                 {
@@ -148,11 +144,7 @@ void signal_por_fin(char *nombre_recurso)
                 delete_queue_blocked(retirar_bloqueo);
                 if (strcmp(algoritmo_planificacion, "VRR") == 0)
                 {
-                    pthread_mutex_trylock(&sem_q_ready_priori);
-                    queue_push(cola_ready_priori, retirar_bloqueo);
-                    pthread_mutex_unlock(&sem_q_ready_priori);
-                    sem_post(&sem_cont_ready);
-                    log_info(logger, "PID:%d - Estado Anterior: BLOCKED - Estado Actual: READY", retirar_bloqueo->PID);
+                    cargar_ready_priori(retirar_bloqueo, BLOCKED);
                 }
                 else
                 {

@@ -67,6 +67,7 @@ void iniciar_proceso(char *);
 void iniciar_colas();
 void iniciar_semaforos();
 void cargar_ready(t_PCB *, t_proceso_estado);
+void cargar_ready_priori(t_PCB *, t_proceso_estado);
 void cargar_ready_por_pid(int);
 void stl_FIFO();
 void stl_RR();

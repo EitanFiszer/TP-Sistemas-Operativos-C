@@ -24,11 +24,7 @@ void crearArchivodebloques(int block_count, int block_size, char* pathbase) {
     char filepath[256];
     snprintf(filepath, sizeof(filepath), "%s/bloques.dat", pathbase);
 
-<<<<<<< HEAD
     FILE* archivo = fopen(filepath, "wb");
-=======
-    FILE *archivo = fopen(filepath, "wb");
->>>>>>> c629c041e42eda558302b935a1453063547f18df
     if (!archivo) {
         perror("Error al abrir el archivo de bloques");
         exit(EXIT_FAILURE);

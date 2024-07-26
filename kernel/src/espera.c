@@ -134,7 +134,6 @@ void *esperar_paquetes_cpu_dispatch(void *arg)
             // }
             // pthread_mutex_unlock(&interrupcion_syscall);
         case ERROR_OUT_OF_MEMORY:
-            t_PCB *PCB_err = (t_PCB *)paquete_dispatch->payload;
             interrumpir(ERROR_OUT_OF_MEMORY_I);
             enviar_paquete_cpu_dispatch(CONFIRMAR_SYSCALL,NULL,0);
             desalojar();

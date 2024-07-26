@@ -66,12 +66,7 @@ void *planificacion(void *args)
     return NULL;
 }
 
-void modificar_quantum(t_PCB *pcb)
-{
-    pthread_cancel(hilo_quantum);
-    int64_t tiempo_gastado = temporal_gettime(tempo_quantum);
-    pcb->quantum -= tiempo_gastado;
-}
+
 
 void iniciar_colas(void)
 {
@@ -215,7 +210,31 @@ void cargar_ready(t_PCB *pcb, t_proceso_estado estado_anterior)
         break;
     }
 }
+void cargar_ready_priori(t_PCB *pcb, t_proceso_estado estado_anterior)
+{
+    pcb->estado = READY;
 
+    pthread_mutex_lock(&sem_q_ready_priori);
+    queue_push(cola_ready_priori, pcb);
+    pthread_mutex_unlock(&sem_q_ready_priori);
+
+    sem_post(&sem_cont_ready);
+
+    switch (estado_anterior)
+    {
+    case NEW:
+        log_info(logger, "PID:%d - Estado Anterior: NEW - Estado Actual: READY - PRIORI", pcb->PID);
+        break;
+    case BLOCKED:
+        log_info(logger, "PID:%d - Estado Anterior: BLOCKED - Estado Actual: READY - PRIORI", pcb->PID);
+        break;
+    case EXEC:
+        log_info(logger, "PID:%d - Estado Anterior: EXECUTE - Estado Actual: READY - PRIORI", pcb->PID);
+        break;
+    default:
+        break;
+    }
+}
 void stl_FIFO()
 {
     while (1)
@@ -308,29 +327,35 @@ void *manejar_quantum(void *arg)
     temporal_destroy(tempo_quantum);
     return NULL;
 }
-
-void hubo_syscall(t_PCB *pcb)
+void modificar_quantum(t_PCB *pcb)
 {
     pthread_cancel(hilo_quantum);
     int64_t tiempo_gastado = temporal_gettime(tempo_quantum);
     pcb->quantum -= tiempo_gastado;
-
-    if (strcmp(algoritmo_planificacion, "VRR") == 0)
-    {
-        pthread_mutex_lock(&sem_q_ready_priori);
-        queue_push(cola_ready_priori, pcb);
-        pthread_mutex_unlock(&sem_q_ready_priori);
-    }
-    else
-    {
-        pthread_mutex_lock(&sem_q_ready);
-        queue_push(cola_ready, pcb);
-        pthread_mutex_unlock(&sem_q_ready);
-    }
-
-    sem_post(&sem_cont_ready);
-    temporal_destroy(tempo_quantum);
+    // temporal_destroy(tempo_quantum);
 }
+// void hubo_syscall(t_PCB *pcb)
+// {
+//     pthread_cancel(hilo_quantum);
+//     int64_t tiempo_gastado = temporal_gettime(tempo_quantum);
+//     pcb->quantum -= tiempo_gastado;
+
+//     if (strcmp(algoritmo_planificacion, "VRR") == 0)
+//     {
+//         pthread_mutex_lock(&sem_q_ready_priori);
+//         queue_push(cola_ready_priori, pcb);
+//         pthread_mutex_unlock(&sem_q_ready_priori);
+//     }
+//     else
+//     {
+//         pthread_mutex_lock(&sem_q_ready);
+//         queue_push(cola_ready, pcb);
+//         pthread_mutex_unlock(&sem_q_ready);
+//     }
+
+//     sem_post(&sem_cont_ready);
+//     temporal_destroy(tempo_quantum);
+// }
 
 void stl_VRR()
 {
