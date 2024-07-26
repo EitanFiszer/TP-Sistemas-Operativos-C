@@ -31,13 +31,13 @@ void crearHilo(char* nombre, char* path_config, char* ultimo_path) {
 
     void* funcion = NULL;
 
-    if (strcmp(interfaz, "IO_GEN") == 0) {
+    if (strcmp(interfaz, "GENERICA") == 0) {
         funcion = hilo_generica;
-    } else if (strcmp(interfaz, "IO_STDIN") == 0) {
+    } else if (strcmp(interfaz, "STDIN") == 0) {
         funcion = hilo_stdin;
-    } else if (strcmp(interfaz, "IO_STDOUT") == 0) {
+    } else if (strcmp(interfaz, "STDOUT") == 0) {
         funcion = hilo_stdout;
-    } else if (strcmp(interfaz, "IO_DIALFS") == 0) {
+    } else if (strcmp(interfaz, "DIALFS") == 0) {
         funcion = hilo_dialfs; // Define esta función si es necesario
     } else {
         log_error(logger, "Tipo de interfaz desconocido: %s", interfaz);

@@ -70,7 +70,7 @@ void hilo_generica(void* argumentos) {
             case IO_GEN_SLEEP:
                 t_payload_io_gen_sleep* operacionRecibida = deserializar_io_gen_sleep(paquete_entre->payload);
                 int tiempo_gen = operacionRecibida->tiempo;
-                log_info(logger, "Operacion: <IO_GEN_SLEEP> - TIEMPO %d", tiempo_gen);
+                log_info(logger, "Operacion: <IO_GEN_SLEEP> - PID: %d, INTERFAZ: %s, TIEMPO %d", operacionRecibida->pcb->PID, operacionRecibida->interfaz, tiempo_gen);
                 sleep(tiempo_unidad_trabajo / 1000 * tiempo_gen);
                 break;
             default:
