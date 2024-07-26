@@ -12,10 +12,10 @@
         struct{
             int bloque_inicial;
             int tam_archivo;
-        }metadata
+        }metadata;
 
         metadata.bloque_inicial=getBit(pathbase, block_count);
-            if (bloque_inicial == -1) {
+            if (metadata.bloque_inicial == -1) {
                 fprintf(stderr, "No hay bloques libres disponibles.\n");
                 exit(EXIT_FAILURE);
             }

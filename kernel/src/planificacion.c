@@ -66,7 +66,12 @@ void *planificacion(void *args)
     return NULL;
 }
 
-
+void modificar_quantum(t_PCB *pcb)
+{
+    pthread_cancel(hilo_quantum);
+    int64_t tiempo_gastado = temporal_gettime(tempo_quantum);
+    pcb->quantum -= tiempo_gastado;
+}
 
 void iniciar_colas(void)
 {
@@ -223,13 +228,13 @@ void cargar_ready_priori(t_PCB *pcb, t_proceso_estado estado_anterior)
     switch (estado_anterior)
     {
     case NEW:
-        log_info(logger, "PID:%d - Estado Anterior: NEW - Estado Actual: READY - PRIORI", pcb->PID);
+        log_info(logger, "PID:%d - Estado Anterior: NEW - Estado Actual: READY-PRIORI", pcb->PID);
         break;
     case BLOCKED:
-        log_info(logger, "PID:%d - Estado Anterior: BLOCKED - Estado Actual: READY - PRIORI", pcb->PID);
+        log_info(logger, "PID:%d - Estado Anterior: BLOCKED - Estado Actual: READY-PRIORI", pcb->PID);
         break;
     case EXEC:
-        log_info(logger, "PID:%d - Estado Anterior: EXECUTE - Estado Actual: READY - PRIORI", pcb->PID);
+        log_info(logger, "PID:%d - Estado Anterior: EXECUTE - Estado Actual: READY-PRIORI", pcb->PID);
         break;
     default:
         break;
@@ -278,10 +283,10 @@ void stl_RR()
         }
         pthread_mutex_unlock(&mutex_planificacion);
         sem_wait(&sem_cont_ready);
-        // log_info(logger, "HAY ELEMENTOS EN LA COLA READY");
+        log_info(logger, "HAY ELEMENTOS EN LA COLA READY");
 
         pthread_mutex_lock(&sem_CPU_libre);
-        // log_info(logger, "Bloqueando CPU");
+        log_info(logger, "Bloqueando CPU");
 
         pthread_mutex_lock(&sem_q_ready);
         t_PCB *retirar_ready = queue_pop(cola_ready);
@@ -299,11 +304,12 @@ void stl_RR()
         {
             retirar_ready->estado = READY;
             retirar_ready->quantum = quantum;
-
+            log_info(logger, "QUANTUM RECARGADO PROCESO A EJECUTAR: %d", retirar_ready->quantum);
             pthread_mutex_lock(&sem_q_ready);
             queue_push(cola_ready, retirar_ready);
             pthread_mutex_unlock(&sem_q_ready);
             log_info(logger, "PID:%d - Estado Anterior: EXEC - Estado Actual: READY, FIN DE QUANTUM", retirar_ready->PID);
+            sem_post(&sem_cont_ready);
         }
         else
         {
@@ -327,35 +333,29 @@ void *manejar_quantum(void *arg)
     temporal_destroy(tempo_quantum);
     return NULL;
 }
-void modificar_quantum(t_PCB *pcb)
+
+void hubo_syscall(t_PCB *pcb)
 {
     pthread_cancel(hilo_quantum);
     int64_t tiempo_gastado = temporal_gettime(tempo_quantum);
     pcb->quantum -= tiempo_gastado;
-    // temporal_destroy(tempo_quantum);
+
+    if (strcmp(algoritmo_planificacion, "VRR") == 0)
+    {
+        pthread_mutex_lock(&sem_q_ready_priori);
+        queue_push(cola_ready_priori, pcb);
+        pthread_mutex_unlock(&sem_q_ready_priori);
+    }
+    else
+    {
+        pthread_mutex_lock(&sem_q_ready);
+        queue_push(cola_ready, pcb);
+        pthread_mutex_unlock(&sem_q_ready);
+    }
+
+    sem_post(&sem_cont_ready);
+    temporal_destroy(tempo_quantum);
 }
-// void hubo_syscall(t_PCB *pcb)
-// {
-//     pthread_cancel(hilo_quantum);
-//     int64_t tiempo_gastado = temporal_gettime(tempo_quantum);
-//     pcb->quantum -= tiempo_gastado;
-
-//     if (strcmp(algoritmo_planificacion, "VRR") == 0)
-//     {
-//         pthread_mutex_lock(&sem_q_ready_priori);
-//         queue_push(cola_ready_priori, pcb);
-//         pthread_mutex_unlock(&sem_q_ready_priori);
-//     }
-//     else
-//     {
-//         pthread_mutex_lock(&sem_q_ready);
-//         queue_push(cola_ready, pcb);
-//         pthread_mutex_unlock(&sem_q_ready);
-//     }
-
-//     sem_post(&sem_cont_ready);
-//     temporal_destroy(tempo_quantum);
-// }
 
 void stl_VRR()
 {

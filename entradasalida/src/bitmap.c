@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <commons/bitarray.h>
 
-void crearBitmap(const char *pathbase, int block_count) {
+void crear_bitmap(int block_count, const char *pathbase) {
     
     int bitmap_size = (block_count + 7) / 8; // Cada bit representa un bloque, +7 para redondear hacia arriba
 
