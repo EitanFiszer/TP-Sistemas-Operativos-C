@@ -133,7 +133,7 @@ void *esperar_paquetes_cpu_dispatch(void *arg)
             desalojar();
             t_PCB *pcb_dispatch = (t_PCB *)paquete_dispatch->payload;
             log_info(logger, "Finaliza el proceso %d - Motivo: SUCCESS", pcb_dispatch->PID);
-            lts_ex(pcb_dispatch, EXEC);
+            lts_ex(pcb_dispatch, EXEC,"SUCCESS");
             /// PROCESO TERMINADO SE DESALOJA Y SE ENVIA A EXIT
             break;
 
@@ -263,5 +263,9 @@ void finalizar_kernel()
     liberar_conexion(resultHandshakeDispatch);
     liberar_conexion(resultHandshakeInterrupt);
     liberar_conexion(resultHandshakeMemoria);
+    eliminar_semaforos();
+    eliminar_colas();
+    eliminar_diccionario_io();
+    eliminar_diccionario_rec();
     exit(1);
 }

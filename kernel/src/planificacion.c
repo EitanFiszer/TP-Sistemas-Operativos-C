@@ -102,6 +102,32 @@ void iniciar_semaforos(void)
 
     sem_init(&sem_gm_actual, 0, grado_multiprog);
 }
+void eliminar_semaforos()
+{
+    pthread_mutex_destroy(&sem_q_new);
+    pthread_mutex_destroy(&sem_q_ready);
+    pthread_mutex_destroy(&sem_q_ready_priori);
+    pthread_mutex_destroy(&sem_q_blocked);
+    pthread_mutex_destroy(&sem_q_exit);
+    pthread_mutex_destroy(&sem_q_exec);
+
+    pthread_mutex_destroy(&sem_CPU_libre);
+    pthread_mutex_destroy(&interrupcion_syscall);
+
+    pthread_mutex_destroy(&mutex_planificacion);
+    pthread_cond_destroy(&cond_planificacion);
+    sem_destroy(&sem_cont_ready);
+    sem_destroy(&sem_gm_actual);
+}
+void eliminar_colas()
+{
+    queue_clean_and_destroy_elements(cola_blocked, free);
+    queue_clean_and_destroy_elements(cola_exec, free);
+    queue_clean_and_destroy_elements(cola_ready, free);
+    queue_clean_and_destroy_elements(cola_ready_priori, free);
+    queue_clean_and_destroy_elements(cola_exit, free);
+    list_destroy_and_destroy_elements(lista_new, free);
+}
 
 void iniciar_proceso(char *path)
 {
@@ -373,10 +399,10 @@ void enviar_new_exit(int pid)
     pthread_mutex_lock(&sem_q_new);
     t_PCB *retirar_PCB = get_and_remove_pcb(pid);
     pthread_mutex_unlock(&sem_q_new);
-    lts_ex(retirar_PCB, NEW);
+    lts_ex(retirar_PCB, NEW, "OUT_OF_MEMORY");
 }
 
-void lts_ex(t_PCB *pcb, t_proceso_estado estado_anterior)
+void lts_ex(t_PCB *pcb, t_proceso_estado estado_anterior, char *motivo)
 {
     if (estado_anterior != NEW)
     {
@@ -390,6 +416,8 @@ void lts_ex(t_PCB *pcb, t_proceso_estado estado_anterior)
     pthread_mutex_unlock(&sem_q_exit);
 
     enviar_paquete_memoria(FINALIZAR_PROCESO, &pcb->PID, sizeof(int));
+
+    log_info("Finaliza el proceso <%d> - Motivo: <%s>", pcb->PID, motivo);
 
     switch (estado_anterior)
     {
@@ -440,7 +468,7 @@ bool buscar_pcb(int pid)
             {
                 int pos = list_iterator_index(iterador);
                 pcb = list_remove(lista_new, pos);
-                lts_ex(pcb, NEW);
+                lts_ex(pcb, NEW, "INTERRUPTED_BY_USER");
                 encontrado = true;
             }
         }
@@ -458,7 +486,7 @@ bool buscar_pcb(int pid)
             pcb = queue_pop(cola_ready);
             if (pcb->PID == pid)
             {
-                lts_ex(pcb, READY);
+                lts_ex(pcb, READY, "INTERRUPTED_BY_USER");
                 encontrado = true;
             }
             else
@@ -480,7 +508,7 @@ bool buscar_pcb(int pid)
             {
                 if (pcb->PID == pid)
                 {
-                    lts_ex(pcb, READY);
+                    lts_ex(pcb, READY,"INTERRUPTED_BY_USER");
                     encontrado = true;
                 }
                 else
@@ -504,7 +532,7 @@ bool buscar_pcb(int pid)
             if (dat_bloc->pcb->PID == pid)
             {
                 sacar_bloqueo(dat_bloc);
-                lts_ex(pcb, BLOCKED);
+                lts_ex(pcb, BLOCKED,"INTERRUPTED_BY_USER");
                 encontrado = true;
             }
             else
@@ -565,8 +593,11 @@ void modificar_multiprogramacion(int num)
             {
                 sem_wait(&sem_gm_actual);
             }
-        }else if(num>grado_multiprog){
-            for(int i = 0; i< num- grado_multiprog; i++){
+        }
+        else if (num > grado_multiprog)
+        {
+            for (int i = 0; i < num - grado_multiprog; i++)
+            {
                 sem_post(&sem_gm_actual);
             }
         }

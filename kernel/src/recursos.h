@@ -40,7 +40,8 @@ void atender_signal(t_PCB*, char*);
 
 void remove_cola_blocked_rec(char *, t_PCB *);
 
-
+    
+void eliminar_diccionario_rec();
 
 
 #endif /* RECURSOS_H */

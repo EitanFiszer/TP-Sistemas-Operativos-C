@@ -38,7 +38,7 @@ void atender_wait(t_PCB *pcb, char *nombre_recurso)
         log_info(logger, "Recurso %s no encontrado, se desaloja el proceso con PID: %d", nombre_recurso, pcb->PID);
         desalojar();
         // log_info(logger, "PID:%d - Estado Anterior: EXEC - Estado Actual: EXIT", pcb->PID);
-        lts_ex(pcb, EXEC);
+        lts_ex(pcb, EXEC,"INVALID_RESOURCE");
     }
     else
     {
@@ -57,12 +57,14 @@ void atender_wait(t_PCB *pcb, char *nombre_recurso)
                 modificar_quantum(pcb);
                 queue_push(recurso_encontrado->cola_blocked_recurso, pcb);
                 add_queue_blocked(pcb, REC, nombre_recurso);
+                log_info(logger,"PID: %d - Bloqueado por: <%s>",pcb->PID,nombre_recurso);
                 log_info(logger, "PID:%d - Estado Anterior: EXEC - Estado Actual: BLOCKED", pcb->PID);
             }
             else
             {
                 queue_push(recurso_encontrado->cola_blocked_recurso, pcb);
                 add_queue_blocked(pcb, REC, nombre_recurso);
+                log_info(logger,"PID: %d - Bloqueado por: <%s>",pcb->PID,nombre_recurso);
                 log_info(logger, "PID:%d - Estado Anterior: EXEC - Estado Actual: BLOCKED", pcb->PID);
             }
         }
@@ -85,7 +87,7 @@ void atender_signal(t_PCB *pcb, char *nombre_recurso)
         // NO EXISTE RECURSO
         log_info(logger, "Recurso %s no encontrado, se desaloja el proceso con PID: %d", nombre_recurso, pcb->PID);
         desalojar();
-        lts_ex(pcb, EXEC);
+        lts_ex(pcb, EXEC,"INVALID_RESOURCE");
     }
     else
     {
@@ -265,3 +267,8 @@ void remove_cola_blocked_rec(char *nombre_recurso, t_PCB *pcb)
         pthread_mutex_unlock(recurso_encontrado->mutex_recurso);
     }
 }
+
+// void eliminar_diccionario_rec(){
+//     dictionary_destroy_and_destroy_elements(diccionario_recursos,free);
+//     dictionary_destroy_and_destroy_elements(rec_por_pid_dic,free);
+// }

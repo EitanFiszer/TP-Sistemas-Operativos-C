@@ -35,49 +35,51 @@
 
 // t_temporal* tempo_quantum;
 
-// //hilo para manejar el quantum 
+// //hilo para manejar el quantum
 
 // pthread_t hilo_quantum;
 
-typedef enum{
+typedef enum
+{
     IOB,
     REC,
-}tipo_block;
+} tipo_block;
 
-typedef struct{
-    t_PCB* pcb;
+typedef struct
+{
+    t_PCB *pcb;
     tipo_block tipo;
-    char* key;
-}str_blocked;
+    char *key;
+} str_blocked;
 
 // int PID;
-bool condition_pcb_find(void*);
-t_PCB* get_and_remove_pcb(int);
+bool condition_pcb_find(void *);
+t_PCB *get_and_remove_pcb(int);
 void desalojar();
 // void atender_syscall(void*);
-void *manejar_quantum(void*);
+void *manejar_quantum(void *);
 // int buscar_recurso(char*);
 void hubo_syscall(t_PCB *);
 
-void modificar_quantum(t_PCB*);
+void modificar_quantum(t_PCB *);
 
-void iniciar_proceso(char*);
+void iniciar_proceso(char *);
 void iniciar_colas();
 void iniciar_semaforos();
-void cargar_ready(t_PCB*, t_proceso_estado);
+void cargar_ready(t_PCB *, t_proceso_estado);
 void cargar_ready_por_pid(int);
 void stl_FIFO();
 void stl_RR();
 void stl_VRR();
 
 void enviar_new_exit(int);
-void lts_ex(t_PCB*,t_proceso_estado);
+void lts_ex(t_PCB *, t_proceso_estado,char*);
 t_PCB *crear_PCB(int);
 // void atender_wait(t_PCB*, char*);
 // void atender_signal(t_PCB*, char*);
 
-void add_queue_blocked(t_PCB*, tipo_block, char* );
-void delete_queue_blocked(t_PCB*);
+void add_queue_blocked(t_PCB *, tipo_block, char *);
+void delete_queue_blocked(t_PCB *);
 
 void finalizar_proceso(int);
 void detener_planificacion();
@@ -85,9 +87,12 @@ void iniciar_planificacion();
 void modificar_multiprogramacion(int);
 void listar_procesos_por_estado();
 
-void* planificacion (void*);
+void *planificacion(void *);
 
 bool buscar_pcb(int);
-void sacar_bloqueo(str_blocked* );
+void sacar_bloqueo(str_blocked *);
+
+void eliminar_semaforos();
+void eliminar_colas();
 
 #endif // PLANIFICACION_H

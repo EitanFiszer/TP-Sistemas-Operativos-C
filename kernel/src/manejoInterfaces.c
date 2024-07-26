@@ -59,7 +59,7 @@ void atender_io_stdin_read(t_payload_io_stdin_read *stdint_read)
     if (find_io == NULL)
     {
         log_info(logger, "NO EXITE INTERFAZ CON NOMBRE: %s", stdint_read->interfaz);
-        lts_ex(stdint_read->pcb, EXEC);
+        lts_ex(stdint_read->pcb, EXEC,"INVALID_INTERFACE");
     }
     else
     {
@@ -87,6 +87,7 @@ void atender_io_stdin_read(t_payload_io_stdin_read *stdint_read)
                 dictionary_put(operaciones_espera_dict, int_to_string(stdint_read->pcb->PID), espera);
                 log_info(logger, "INTERFAZ: %s ocupada, proceso: %d en espera de interfaz", stdint_read->interfaz, stdint_read->pcb->PID);
                 queue_push(find_io->cola_blocked_interfaz, stdint_read->pcb);
+                log_info(logger,"PID: %d - Bloqueado por: <%s>",stdint_read->pcb->PID,stdint_read->interfaz);
                 log_info(logger, "PID:%d - Estado Anterior: EXEC - Estado Actual: BLOCKED", stdint_read->pcb->PID);
             }
             else
@@ -100,7 +101,7 @@ void atender_io_stdin_read(t_payload_io_stdin_read *stdint_read)
         else
         {
             log_info(logger, "LA INTERFAZ <%s> NO ACEPTA LA OPERACION: IO_STDIN_READ", stdint_read->interfaz);
-            lts_ex(stdint_read->pcb, EXEC);
+            lts_ex(stdint_read->pcb, EXEC, "INVALID_INTERFACE");
         }
 
         pthread_mutex_unlock(&(find_io->mutex_interfaz));
@@ -112,7 +113,7 @@ void atender_io_stdout_write(t_payload_io_stdout_write *stdout_write)
     if (find_io == NULL)
     {
         log_info(logger, "NO EXITE INTERFAZ CON NOMBRE: %s", stdout_write->interfaz);
-        lts_ex(stdout_write->pcb, EXEC);
+        lts_ex(stdout_write->pcb, EXEC,"INVALID_INTERFACE");
     }
     else
     {
@@ -132,19 +133,21 @@ void atender_io_stdout_write(t_payload_io_stdout_write *stdout_write)
                 dictionary_put(operaciones_espera_dict, int_to_string(stdout_write->pcb->PID), espera);
                 log_info(logger, "INTERFAZ: %s ocupada, proceso: %d en espera de interfaz", stdout_write->interfaz, stdout_write->pcb->PID);
                 queue_push(find_io->cola_blocked_interfaz, stdout_write->pcb);
+                log_info(logger,"PID: %d - Bloqueado por: <%s>",stdout_write->pcb->PID,stdout_write->interfaz);
                 log_info(logger, "PID:%d - Estado Anterior: EXEC - Estado Actual: BLOCKED", stdout_write->pcb->PID);
             }
             else
             {
                 enviar_paquete_entre(find_io->socket_interfaz, IO_STDOUT_WRITE, buffer, size_payload);
                 find_io->pcb_usando_interfaz = stdout_write->pcb;
+                log_info(logger,"PID: %d - Bloqueado por: <%s>",stdout_write->pcb->PID,stdout_write->interfaz);
                 log_info(logger, "PID:%d - Estado Anterior: EXEC - Estado Actual: BLOCKED", find_io->pcb_usando_interfaz->PID);
             }
         }
         else
         {
             log_info(logger, "LA INTERFAZ <%s> NO ACEPTA LA OPERACION: IO_STDOUT_WRITE", stdout_write->interfaz);
-            lts_ex(stdout_write->pcb, EXEC);
+            lts_ex(stdout_write->pcb, EXEC,"INVALID_INTERFACE");
         }
 
         pthread_mutex_unlock(&(find_io->mutex_interfaz));
@@ -156,7 +159,7 @@ void atender_fs_createOrDelate(t_payload_fs_create *createOrDelate, OP_CODES_ENT
     if (find_io == NULL)
     {
         log_info(logger, "NO EXITE INTERFAZ CON NOMBRE: %s", createOrDelate->interfaz);
-        lts_ex(createOrDelate->pcb, EXEC);
+        lts_ex(createOrDelate->pcb, EXEC,"INVALID_INTERFACE");
     }
     else
     {
@@ -175,6 +178,7 @@ void atender_fs_createOrDelate(t_payload_fs_create *createOrDelate, OP_CODES_ENT
                 dictionary_put(operaciones_espera_dict, int_to_string(createOrDelate->pcb->PID), espera);
                 log_info(logger, "INTERFAZ: %s ocupada, proceso: %d en espera de interfaz", createOrDelate->interfaz, createOrDelate->pcb->PID);
                 queue_push(find_io->cola_blocked_interfaz, createOrDelate->pcb);
+                log_info(logger,"PID: %d - Bloqueado por: <%s>",createOrDelate->pcb->PID,createOrDelate->interfaz);
                 log_info(logger, "PID:%d - Estado Anterior: EXEC - Estado Actual: BLOCKED", createOrDelate->pcb->PID);
             }
             else
@@ -182,13 +186,14 @@ void atender_fs_createOrDelate(t_payload_fs_create *createOrDelate, OP_CODES_ENT
 
                 enviar_paquete_entre(find_io->socket_interfaz, code, buffer, size_payload);
                 find_io->pcb_usando_interfaz = createOrDelate->pcb;
+                log_info(logger,"PID: %d - Bloqueado por: <%s>",createOrDelate->pcb->PID,createOrDelate->interfaz);
                 log_info(logger, "PID:%d - Estado Anterior: EXEC - Estado Actual: BLOCKED", find_io->pcb_usando_interfaz->PID);
             }
         }
         else
         {
             log_info(logger, "LA INTERFAZ <%s> NO ACEPTA LA OPERACION: FS_CREATE y FS_DELATE", createOrDelate->interfaz);
-            lts_ex(createOrDelate->pcb, EXEC);
+            lts_ex(createOrDelate->pcb, EXEC,"INVALID_INTERFACE");
         }
 
         pthread_mutex_unlock(&(find_io->mutex_interfaz));
@@ -200,7 +205,7 @@ void atender_fs_truncate(t_payload_fs_truncate *fs_truncate)
     if (find_io == NULL)
     {
         log_info(logger, "NO EXITE INTERFAZ CON NOMBRE: %s", fs_truncate->interfaz);
-        lts_ex(fs_truncate->pcb, EXEC);
+        lts_ex(fs_truncate->pcb, EXEC,"INVALID_INTERFACE");
     }
     else
     {
@@ -218,19 +223,21 @@ void atender_fs_truncate(t_payload_fs_truncate *fs_truncate)
                 dictionary_put(operaciones_espera_dict, int_to_string(fs_truncate->pcb->PID), espera);
                 log_info(logger, "INTERFAZ: %s ocupada, proceso: %d en espera de interfaz", fs_truncate->interfaz, fs_truncate->pcb->PID);
                 queue_push(find_io->cola_blocked_interfaz, fs_truncate->pcb);
+                log_info(logger,"PID: %d - Bloqueado por: <%s>",fs_truncate->pcb->PID,fs_truncate->interfaz);
                 log_info(logger, "PID:%d - Estado Anterior: EXEC - Estado Actual: BLOCKED", fs_truncate->pcb->PID);
             }
             else
             {
                 enviar_paquete_entre(find_io->socket_interfaz, IO_FS_TRUNCATE /*ver que recibe io*/, buffer, size_payload);
                 find_io->pcb_usando_interfaz = fs_truncate->pcb;
+                log_info(logger,"PID: %d - Bloqueado por: <%s>",fs_truncate->pcb->PID,fs_truncate->interfaz);
                 log_info(logger, "PID:%d - Estado Anterior: EXEC - Estado Actual: BLOCKED", find_io->pcb_usando_interfaz->PID);
             }
         }
         else
         {
             log_info(logger, "LA INTERFAZ <%s> NO ACEPTA LA OPERACION: FS_TRUNCATE", fs_truncate->interfaz);
-            lts_ex(fs_truncate->pcb, EXEC);
+            lts_ex(fs_truncate->pcb, EXEC,"INVALID_INTERFACE");
         }
         pthread_mutex_lock(&(find_io->mutex_interfaz));
 
@@ -243,7 +250,7 @@ void atender_fs_writeOrRead(t_payload_fs_writeORread *writeOrRead, OP_CODES_ENTR
     if (find_io == NULL)
     {
         log_info(logger, "NO EXITE INTERFAZ CON NOMBRE: %s", writeOrRead->interfaz);
-        lts_ex(writeOrRead->pcb, EXEC);
+        lts_ex(writeOrRead->pcb, EXEC,"INVALID_INTERFACE");
     }
     else
     {
@@ -263,6 +270,7 @@ void atender_fs_writeOrRead(t_payload_fs_writeORread *writeOrRead, OP_CODES_ENTR
                 dictionary_put(operaciones_espera_dict, int_to_string(writeOrRead->pcb->PID), espera);
                 log_info(logger, "INTERFAZ: %s ocupada, proceso: %d en espera de interfaz", writeOrRead->interfaz, writeOrRead->pcb->PID);
                 queue_push(find_io->cola_blocked_interfaz, writeOrRead->pcb);
+                log_info(logger,"PID: %d - Bloqueado por: <%s>",writeOrRead->pcb->PID,writeOrRead->interfaz);
                 log_info(logger, "PID:%d - Estado Anterior: EXEC - Estado Actual: BLOCKED", writeOrRead->pcb->PID);
             }
             else
@@ -271,13 +279,14 @@ void atender_fs_writeOrRead(t_payload_fs_writeORread *writeOrRead, OP_CODES_ENTR
 
                 enviar_paquete_entre(find_io->socket_interfaz, code, buffer, size_payload);
                 find_io->pcb_usando_interfaz = writeOrRead->pcb;
+                log_info(logger,"PID: %d - Bloqueado por: <%s>",writeOrRead->pcb->PID,writeOrRead->interfaz);
                 log_info(logger, "PID:%d - Estado Anterior: EXEC - Estado Actual: BLOCKED", find_io->pcb_usando_interfaz->PID);
             }
         }
         else
         {
             log_info(logger, "LA INTERFAZ <%s> NO ACEPTA LA OPERACION: FS_WRITE y FS_READ", writeOrRead->interfaz);
-            lts_ex(writeOrRead->pcb, EXEC);
+            lts_ex(writeOrRead->pcb, EXEC,"INVALID_INTERFACE");
         }
 
         pthread_mutex_unlock(&(find_io->mutex_interfaz));
@@ -289,7 +298,7 @@ void atender_io_gen_sleep(t_payload_io_gen_sleep *genSleep)
     if (find_io == NULL)
     {
         log_info(logger, "NO EXITE INTERFAZ CON NOMBRE: %s", genSleep->interfaz);
-        lts_ex(genSleep->pcb, EXEC);
+        lts_ex(genSleep->pcb, EXEC,"INVALID_INTERFACE");
     }
     else
     {
@@ -308,6 +317,7 @@ void atender_io_gen_sleep(t_payload_io_gen_sleep *genSleep)
                 dictionary_put(operaciones_espera_dict, int_to_string(genSleep->pcb->PID), espera);
                 log_info(logger, "INTERFAZ: %s ocupada, proceso: %d en espera de interfaz", genSleep->interfaz, genSleep->pcb->PID);
                 queue_push(find_io->cola_blocked_interfaz, genSleep->pcb);
+                log_info(logger,"PID: %d - Bloqueado por: <%s>",genSleep->pcb->PID,genSleep->interfaz);
                 log_info(logger, "PID:%d - Estado Anterior: EXEC - Estado Actual: BLOCKED", genSleep->pcb->PID);
             }
             else
@@ -317,13 +327,14 @@ void atender_io_gen_sleep(t_payload_io_gen_sleep *genSleep)
 
                 enviar_paquete_entre(find_io->socket_interfaz, IO_GEN_SLEEP, buffer, size_payload);
                 find_io->pcb_usando_interfaz = genSleep->pcb;
+                log_info(logger,"PID: %d - Bloqueado por: <%s>",genSleep->pcb->PID,genSleep->interfaz);
                 log_info(logger, "PID:%d - Estado Anterior: EXEC - Estado Actual: BLOCKED", find_io->pcb_usando_interfaz->PID);
             }
         }
         else
         {
             log_info(logger, "LA INTERFAZ <%s> NO ACEPTA LA OPERACION: IO_GEN_SLEEP", genSleep->interfaz);
-            lts_ex(genSleep->pcb, EXEC);
+            lts_ex(genSleep->pcb, EXEC,"INVALID_INTERFACE");
         }
 
         pthread_mutex_unlock(&(find_io->mutex_interfaz));
@@ -346,7 +357,7 @@ void desconectar_IO(char *nombre_io_hilo)
             t_PCB *retirada = queue_pop(datos_io->cola_blocked_interfaz);
             delete_queue_blocked(retirada);
             dictionary_remove_and_destroy(operaciones_espera_dict,int_to_string(retirada->PID),removerBuffer);
-            lts_ex(retirada, BLOCKED);
+            lts_ex(retirada, BLOCKED,"INVALID_INTERFACE");
         }
         pthread_mutex_unlock(&(datos_io->mutex_interfaz));
     }
