@@ -444,6 +444,7 @@ void lts_ex(t_PCB *pcb, t_proceso_estado estado_anterior, char *motivo)
 
 void desalojar()
 {
+    // FALLA EN MEMORIA_3
     pthread_mutex_lock(&sem_q_exec);
     t_PCB *retirar_PCB = queue_pop(cola_exec);
     pthread_mutex_unlock(&sem_q_exec);

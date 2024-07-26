@@ -103,6 +103,12 @@ void crearProceso(char* nombre_archivo, int pid) {
     enviar_paquete_entre(socketKernel, INSTRUCCIONES_CARGADAS, &pid, sizeof(int));
 }
 
+void liberarProceso(Proceso* proceso) {
+    // dictionary_destroy_and_destroy_elements(proceso->tabla_de_paginas, (void*)free);
+    // dictionary_destroy(proceso->tabla_de_paginas);
+    // free(proceso);
+}
+
 void finalizarProceso(int pid) {
     Proceso* proceso = procesoPorPID(pid);
 
@@ -121,9 +127,8 @@ void finalizarProceso(int pid) {
 
     // dictionary_destroy_and_destroy_elements(tabla_de_paginas, (void*)destroy_elemento);
     free(tabla_de_paginas);
-    free(proceso->instrucciones);
-    // free(proceso->tabla_de_paginas);
-    free(proceso);    
+    free(marcos);
+    liberarProceso(proceso);
 
     log_info(logger, "Se finalizó el proceso con ID: %d", pid);
 }
