@@ -67,7 +67,7 @@ typedef enum {
     SIGNAL,
     INTERRUMPIO_PROCESO,  // DE CPU A KERNEL, replanificar por interrupcion //PAYLOAD PCB
     ERROR_OUT_OF_MEMORY,  // DE CPU A KERNEL, error de memoria
-    RESIZE_SUCCESS,       // DE CPU A KERNEL, error de memoria
+    RESIZE_SUCCESS,       
     TERMINO_EJECUCION,
     TERMINE_OPERACION, //DE IO A KERNEL, termino io de hacer operacion
     // entrada salida kernel

@@ -116,8 +116,12 @@ void *esperar_paquetes_cpu_dispatch(void *arg)
             cargar_ready(PCB, EXEC);
             break;
             // }
-            pthread_mutex_unlock(&interrupcion_syscall);
-
+            // pthread_mutex_unlock(&interrupcion_syscall);
+        case ERROR_OUT_OF_MEMORY:
+            t_PCB *PCB_err = (t_PCB *)paquete_dispatch->payload;
+            desalojar();
+            lts_ex(PCB_err,EXEC,"ERROR_OUT_OF_MEMORY"),
+            break;
         case WAIT:
             t_payload_wait_signal *paquete_wait = deserializar_wait_signal(paquete_dispatch->payload);
             interrumpir(SYSCALL);
