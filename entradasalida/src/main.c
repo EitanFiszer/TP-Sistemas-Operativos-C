@@ -11,9 +11,11 @@
 #include <string.h>
 #include <pthread.h>
 #include "hilos.h"
+#include "bitmap.h"
 
 t_log* logger;
 int socketMemoria;
+char* path_base_fs;
 
 void crearHilo(char* nombre, char* path_config, char* ultimo_path) {
     t_config* config = iniciar_config(path_config);
@@ -70,7 +72,7 @@ int main(int argc, char* argv[]) {
     
     char* ipMemoria = config_get_string_value(config, "IP_MEMORIA");
     char* puertoMemoria = config_get_string_value(config, "PUERTO_MEMORIA");
-    socketMemoria = connectAndHandshake(ipMemoria, puertoMemoria, IO, "memoria", logger);
+    // socketMemoria = connectAndHandshake(ipMemoria, puertoMemoria, IO, "memoria", logger);
     
     // Asegúrate de que hay un número par de argumentos
     if ((argc - 1) % 2 != 0) {
@@ -78,10 +80,14 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    for (int i = 1; i < argc; i += 2) {
-        log_info(logger, "Creando hilo %s", argv[i]);
-        crearHilo(argv[i], argv[i+1], argv[argc-1]);
-    }
+    // for (int i = 1; i < argc; i += 2) {
+    //     log_info(logger, "Creando hilo %s", argv[i]);
+    //     crearHilo(argv[i], argv[i+1], argv[argc-1]);
+    // }
+
+    path_base_fs = "/";
+    crear_bitmap(8);
+    getBit(8);
 
     log_destroy(logger);
     return 0;

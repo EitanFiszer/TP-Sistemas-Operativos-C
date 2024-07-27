@@ -11,7 +11,7 @@
 #include "bitmap.h"
 #include "utils.h"
 
-char* path_base_fs;
+extern char* path_base_fs;
 
 struct args {
     char* nombre;
