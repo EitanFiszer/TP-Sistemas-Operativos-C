@@ -8,9 +8,13 @@
       "cmath": "c",
       "*.tcc": "c",
       "operacionesFS.H": "cpp",
-      "type_traits": "c"
+      "type_traits": "c",
+      "random": "c"
     },
-		"C_Cpp.errorSquiggles": "disabled",
+    "C_Cpp.errorSquiggles": "disabled",
+    "liveshare.allowGuestDebugControl": true,
+    "liveshare.allowGuestTaskControl": true,
+    "liveshare.languages.allowGuestCommandControl": true,
 	},
 	"folders": [
 		{

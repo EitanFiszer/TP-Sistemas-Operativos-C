@@ -1,5 +1,6 @@
 #include "main.h"
 
+#include <signal.h>
 #include <utils/iniciar.h>
 
 registros_t registros;
@@ -23,6 +24,11 @@ struct args {
     char* puerto;
     t_log* logger;
 };
+
+void signal_callback_handler(int signum) {
+    log_info(logger, "Finalizando por CTRL+C, op %d\n", signum);
+    finalizarCPU();
+}
 
 void finalizarCPU() {
     // printf("Finalizando CPU\n");
@@ -56,8 +62,8 @@ void conexion_interrupt(void* argumentos) {
 
     while (1) {
         t_paquete_entre* paquete = recibir_paquete_entre(socket_cliente);
-        if(paquete==NULL){
-            log_error(logger,"Error al recibir paquete de kernel interrupt, finalizando conexiones");
+        if (paquete == NULL) {
+            log_error(logger, "Error al recibir paquete de kernel interrupt, finalizando conexiones");
             finalizarCPU();
         }
         switch (paquete->operacion) {
@@ -100,6 +106,8 @@ void testConnMem() {
 }
 
 int main(int argc, char* argv[]) {
+    signal(SIGINT, signal_callback_handler);
+
     // creamos logs y configs
     logger = iniciar_logger("cpu.log", "CPU");
     config = iniciar_config("cpu.config");
@@ -171,7 +179,7 @@ int main(int argc, char* argv[]) {
 
                     if (ok == -1) {
                         log_error(logger, "PROCESO TERMINÓ EJECUCIÓN: PID %d", pcb->PID);
-                        
+
                         OP_CODES_ENTRE op = getHayInterrupcion() ? INTERRUMPIR_PROCESO : TERMINO_EJECUCION;
 
                         // Devolver el PCB al kernel
@@ -200,8 +208,7 @@ int main(int argc, char* argv[]) {
                 log_error(logger, "Operacion desconocida");
                 break;
         }
-
-    }  
+    }
 
     finalizarCPU();
 }

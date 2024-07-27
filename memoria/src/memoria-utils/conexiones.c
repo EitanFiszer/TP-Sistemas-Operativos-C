@@ -18,10 +18,8 @@ extern int socketCpu;
 extern int socketIO;
 extern int server_fd;
 
-
 extern int TAM_MEMORIA;
 extern Memoria memoria;
-
 
 void esperar_paquetes_kernel() {
     sem_wait(&sem_kernel);
@@ -29,6 +27,11 @@ void esperar_paquetes_kernel() {
 
     while (1) {
         t_paquete_entre *paquete = recibir_paquete_entre(socketKernel);
+        if (paquete == NULL) {
+            log_error(logger, "No se pudo recibir el paquete del KERNEL, cerrando hilo");
+            liberarMemoria();
+            break;
+        }
 
         switch (paquete->operacion) {
             case CREAR_PROCESO:

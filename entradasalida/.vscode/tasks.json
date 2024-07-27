@@ -14,6 +14,24 @@
       "problemMatcher": ["$gcc"]
     },
     {
+      "label": "buildSinSleep",
+      "command": "make all",
+      "type": "shell",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": true,
+        "clear": false
+      },
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "problemMatcher": ["$gcc"]
+    },
+    {
       "label": "clean",
       "command": "make clean",
       "type": "shell",
