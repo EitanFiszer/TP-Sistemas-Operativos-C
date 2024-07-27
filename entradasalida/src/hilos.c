@@ -9,6 +9,9 @@
 #include <utils/server.h>
 #include "operacionesFS.h"
 #include "bitmap.h"
+#include "utils.h"
+
+char* path_base_fs;
 
 struct args {
     char* nombre;
@@ -21,14 +24,17 @@ extern int socketMemoria;
 void crearArchivodebloques(int block_count, int block_size, char* pathbase) {
     size_t tamano_total = block_size * block_count;
 
-    char filepath[256];
-    snprintf(filepath, sizeof(filepath), "%s/bloques.dat", pathbase);
+    char cwd[256];
+    getcwd(cwd, sizeof(cwd));
 
-    FILE* archivo = fopen(filepath, "wb");
-    if (!archivo) {
-        perror("Error al abrir el archivo de bloques");
-        exit(EXIT_FAILURE);
-    }
+    char* path_archivo = malloc(strlen(cwd) + strlen(pathbase) + strlen("bloques.dat") + 1);
+    strcpy(path_archivo, cwd);
+    strcat(path_archivo, pathbase);
+    strcat(path_archivo, "bloques.dat");
+
+    printf("Path archivo: %s\n", path_archivo);
+
+    FILE* archivo = crear_archivo_fs("bloques.dat");
 
     // Establecer el tamaño del archivo
     if (fseek(archivo, tamano_total - 1, SEEK_SET) != 0) {
@@ -200,25 +206,12 @@ void hilo_dialfs(void* argumentos){
     char* tipo_interfaz = config_get_string_value(config, "TIPO_INTERFAZ");
     int block_size = config_get_int_value(config, "BLOCK_SIZE");
     int block_count = config_get_int_value(config, "BLOCK_COUNT");
-    char* path_base = config_get_string_value(config, "PATH_BASE_DIALFS");
+    path_base_fs = config_get_string_value(config, "PATH_BASE_DIALFS");
 
     int resultHandshakeKernell = conexionKernell(ip_kernel, puerto_kernel, tipo_interfaz, nombre);
 
-
-
-    /*
-    char cwd[256];
-    getcwd(cwd, sizeof(cwd));
-
-    char* path_archivo = malloc(strlen(cwd) + strlen(path_instrucciones) + strlen(nombre_archivo) + 1);
-    strcpy(path_archivo, cwd);
-    strcat(path_archivo, path_instrucciones);
-    strcat(path_archivo, nombre_archivo);
-    */
-
-
-    crearArchivodebloques(block_count, block_size, path_base);
-    crear_bitmap(block_count, path_base);
+    crearArchivodebloques(block_count, block_size, path_base_fs);
+    crear_bitmap(block_count, path_base_fs);
 
     while (1) {
         t_paquete_entre* paquete_dispatch = recibir_paquete_entre(resultHandshakeKernell);
@@ -227,11 +220,11 @@ void hilo_dialfs(void* argumentos){
         switch(op) {
             case IO_FS_CREATE:
                 t_payload_fs_create* payloadcreate=deserializar_fs_create(paquete_dispatch->payload);
-                crear_archivo(path_base, payloadcreate->nombreArchivo, block_count, block_size);    
+                crear_archivo(path_base_fs, payloadcreate->nombreArchivo, block_count, block_size);    
             break;
             case IO_FS_DELETE:
                 t_payload_fs_create* payloaddelete=deserializar_fs_create(paquete_dispatch->payload);
-                delete_archivo(path_base, payloaddelete, block_count, block_size);
+                delete_archivo(path_base_fs, payloaddelete, block_count, block_size);
             break;
 
             case IO_FS_TRUNCATE:

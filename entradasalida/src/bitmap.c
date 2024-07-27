@@ -1,4 +1,5 @@
 #include "bitmap.h"
+#include "utils.h"
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
@@ -16,15 +17,8 @@ void crear_bitmap(int block_count, const char *pathbase) {
     }
 
     // Crear la ruta completa para el archivo bitmap.dat
-    char filepath[256];
-    snprintf(filepath, sizeof(filepath), "%s/bitmap.dat", pathbase);
-
-    FILE *archivo = fopen(filepath, "wb");
-    if (!archivo) {
-        perror("Error al abrir el archivo de bitmap");
-        free(bitmap);
-        exit(EXIT_FAILURE);
-    }
+  
+    FILE* archivo = crear_archivo_fs("bitmap.dat");
 
     if (fwrite(bitmap, sizeof(unsigned char), bitmap_size, archivo) != bitmap_size) {
         perror("Error al escribir en el archivo de bitmap");
