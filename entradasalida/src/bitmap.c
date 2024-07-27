@@ -4,12 +4,14 @@
 #include <string.h>
 #include <stdio.h>
 #include <commons/bitarray.h>
+#include <utils.h>
 
-void crear_bitmap(int block_count, const char *pathbase) {
+void crear_bitmap(int block_count) {
     
     int bitmap_size = (block_count + 7) / 8; // Cada bit representa un bloque, +7 para redondear hacia arriba
 
     // Crear e inicializar el bitmap con todos los bits en 0 (todos los bloques libres)
+    
     unsigned char *bitmap = (unsigned char *)calloc(bitmap_size, sizeof(unsigned char));
     if (!bitmap) {
         perror("Error al asignar memoria para el bitmap");
@@ -31,7 +33,8 @@ void crear_bitmap(int block_count, const char *pathbase) {
     fclose(archivo);
 }
 
-int getBit(const char *pathbase, int block_count) {
+int getBit(int block_count) {
+
     int bitmap_size = (block_count + 7) / 8; // Tamaño del bitmap en bytes
     unsigned char *bitmap = (unsigned char *)malloc(bitmap_size);
     if (!bitmap) {
@@ -40,10 +43,10 @@ int getBit(const char *pathbase, int block_count) {
     }
 
     // Crear la ruta completa para el archivo bitmap.dat
-    char filepath[256];
-    snprintf(filepath, sizeof(filepath), "%s/bitmap.dat", pathbase);
+    char* path_archivo=crear_ruta("bitmap.dat");
 
-    FILE* archivo = fopen(filepath, "rb");
+
+    FILE* archivo = fopen(path_archivo, "rb");
     if (!archivo) {
         perror("Error al abrir el archivo de bitmap");
         free(bitmap);
@@ -74,14 +77,11 @@ int getBit(const char *pathbase, int block_count) {
     return -1; // Retorna -1 si no hay bloques libres
 }
 
-void setBitmap(const char* pathbase, int bloque, int block_count){
+void setBitmap(int bloque, int block_count){
 
     int bitmap_size = (block_count + 7) / 8;
 
     // Leer el bitmap desde el archivo
-    char filepath[256];
-    snprintf(filepath, sizeof(filepath), "%s/bitmap.dat", pathbase);
-
     unsigned char *bitmap = (unsigned char *)malloc(bitmap_size);
 
     if (!bitmap) {
@@ -89,7 +89,9 @@ void setBitmap(const char* pathbase, int bloque, int block_count){
         exit(EXIT_FAILURE);
     }
 
-    FILE *archivo = fopen(filepath, "rb+"); // Abrir en modo lectura y escritura
+    char* path_archivo=crear_ruta("bitmap.dat");
+
+    FILE *archivo = fopen(path_archivo, "rb+"); // Abrir en modo lectura y escritura
     if (!archivo) {
         perror("Error al abrir el archivo de bitmap");
         free(bitmap);
@@ -122,14 +124,11 @@ void setBitmap(const char* pathbase, int bloque, int block_count){
     fclose(archivo);
 }  
 
-void cleanBitMap(const char* pathbase, int bloque, int block_count){
+void cleanBitMap(int bloque, int block_count){
     
     int bitmap_size = (block_count + 7) / 8;
 
     // Leer el bitmap desde el archivo
-    char filepath[256];
-    snprintf(filepath, sizeof(filepath), "%s/bitmap.dat", pathbase);
-
     unsigned char *bitmap = (unsigned char *)malloc(bitmap_size);
 
     if (!bitmap) {
@@ -137,7 +136,9 @@ void cleanBitMap(const char* pathbase, int bloque, int block_count){
         exit(EXIT_FAILURE);
     }
 
-    FILE *archivo = fopen(filepath, "rb+"); // Abrir en modo lectura y escritura
+    char* path_archivo=crear_ruta("bitmap.dat");
+
+    FILE *archivo = fopen(path_archivo, "rb+"); // Abrir en modo lectura y escritura
     if (!archivo) {
         perror("Error al abrir el archivo de bitmap");
         free(bitmap);
@@ -168,4 +169,54 @@ void cleanBitMap(const char* pathbase, int bloque, int block_count){
 
     free(bitmap);
     fclose(archivo);
+}
+
+
+bool verificar_bitmap(int bloque, int cant_bloque, int block_count) {
+
+    if(bloque+cant_bloque>block_count){
+        return false;
+    }
+
+    int bitmap_size = (block_count + 7) / 8; // Tamaño del bitmap en bytes
+    unsigned char *bitmap = (unsigned char *)malloc(bitmap_size);
+    if (!bitmap) {
+        perror("Error al asignar memoria para leer el bitmap");
+        return -1;
+    }
+
+    // Crear la ruta completa para el archivo bitmap.dat
+    char* path_archivo=crear_ruta("bitmap.dat");
+
+
+    FILE* archivo = fopen(path_archivo, "rb");
+    if (!archivo) {
+        perror("Error al abrir el archivo de bitmap");
+        free(bitmap);
+        return -1;
+    }
+
+    // Leer el bitmap desde el archivo
+    if (fread(bitmap, sizeof(unsigned char), bitmap_size, archivo) != bitmap_size) {
+        perror("Error al leer el archivo de bitmap");
+        free(bitmap);
+        fclose(archivo);
+        return -1;
+    }
+
+    fclose(archivo);
+
+    
+    for (int i = bloque; i < cant_bloque; i++) {
+        int byte_index = i / 8;
+        int bit_index = i % 8;
+
+        if ((bitmap[byte_index] & (1 << bit_index))) {
+            free(bitmap);
+            return false; // Retorna false si hay un 1
+        }
+    }
+
+    free(bitmap);
+    return true; // Retorna true si no hay 1
 }

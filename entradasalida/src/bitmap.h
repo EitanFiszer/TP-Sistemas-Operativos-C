@@ -5,9 +5,10 @@
 
 
 
-void crear_bitmap(int block_count, const char* path);
-int getBit(const char* path, int block_count);
-void setBitmap(const char* path, int bloque, int block_count);
-void cleanBitMap(const char* path, int bloque, int block_count);
+void crear_bitmap(int block_count);
+int getBit(int block_count);
+void setBitmap(int bloque, int block_count);
+void cleanBitMap(int bloque, int block_count);
+bool verificar_bitmap(int bloque, int cant_bloques, int block_count);
 
 #endif

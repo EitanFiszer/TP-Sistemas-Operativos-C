@@ -5,33 +5,29 @@
 #include <string.h>
 
 #include "bitmap.h"
+#include "utils.h"
 
-void crear_archivo(const char* pathbase, const char* nombre, int block_count, int block_size) {
-    // Crear la ruta completa para el archivo de metadata
-    char filepath[256];
-    snprintf(filepath, sizeof(filepath), "%s/%s", pathbase, nombre);
-
-    struct {
+typedef struct {
         int bloque_inicial;
         int tam_archivo;
-    } metadata;
+} t_metadata;
 
-    metadata.bloque_inicial = getBit(pathbase, block_count);
+void crear_archivo(const char* nombre, int block_count, int block_size) {
+    t_metadata metadata;
+
+    metadata.bloque_inicial = getBit(block_count);
+
     if (metadata.bloque_inicial == -1) {
         fprintf(stderr, "No hay bloques libres disponibles.\n");
         exit(EXIT_FAILURE);
     }
-    setBitmap(pathbase, block_count, metadata.bloque_inicial);
+    setBitmap(block_count, metadata.bloque_inicial);
 
     metadata.tam_archivo = block_size;
 
-    FILE* archivo = fopen(filepath, "wb");
-    if (!archivo) {
-        perror("Error al abrir el archivo de metadata");
-        exit(EXIT_FAILURE);
-    }
-
-    if (fwrite(&metadata, sizeof(metadata), 1, archivo) != 1) {
+    FILE* archivo= crear_archivo_fs(nombre);
+  
+    if (fwrite(&metadata, sizeof(t_metadata), 1, archivo) != 1) {
         perror("Error al escribir en el archivo de metadata");
         fclose(archivo);
         exit(EXIT_FAILURE);
@@ -40,10 +36,11 @@ void crear_archivo(const char* pathbase, const char* nombre, int block_count, in
     fclose(archivo);
 }
 
-void delete_archivo(const char* pathbase, const char* nombre, int block_count, int block_size) {
+void delete_archivo(const char* nombre, int block_count, int block_size) {
+    t_metadata metadata;
+
     // Crear la ruta completa para el archivo de metadata
-    char filepath[256];
-    snprintf(filepath, sizeof(filepath), "%s/%s", pathbase, nombre);
+    char* filepath=crear_ruta(nombre);
 
     // Leer el archivo de metadata
     FILE* archivo = fopen(filepath, "rb");
@@ -51,14 +48,8 @@ void delete_archivo(const char* pathbase, const char* nombre, int block_count, i
         perror("Error al abrir el archivo de metadata");
         exit(EXIT_FAILURE);
     }
-
-    // Leer la metadata del archivo
-    struct {
-        int bloque_inicial;
-        int tam_archivo;
-    } metadata;
-
-    if (fread(&metadata, sizeof(metadata), 1, archivo) != 1) {
+  
+    if (fread(&metadata, sizeof(t_metadata), 1, archivo) != 1) {
         perror("Error al leer el archivo de metadata");
         fclose(archivo);
         exit(EXIT_FAILURE);
@@ -72,7 +63,7 @@ void delete_archivo(const char* pathbase, const char* nombre, int block_count, i
 
     for (int i = 0; i < cant_bloques; i++) {
         int bloque = bloque_inicial + i;
-        cleanBitMap(pathbase, bloque, block_count);
+        cleanBitMap(bloque, block_count);
     }
 
     // Eliminar el archivo de metadata
@@ -81,3 +72,60 @@ void delete_archivo(const char* pathbase, const char* nombre, int block_count, i
         exit(EXIT_FAILURE);
     }
 }
+
+void truncate_archivo(const char* nombre, int block_count, int block_size, int tam) {
+        t_metadata metadata;
+
+        int cant_bloques=tam/block_size;
+
+        if(cant_bloques>block_count){
+            fprintf(stderr, "El tamaño no es valido");
+            exit(EXIT_FAILURE);
+        }
+
+    char* path_archivo= crear_ruta(nombre);
+
+    FILE* archivo= fopen(path_archivo,"rb+");
+        if (!archivo) {
+        perror("Error al abrir el archivo de metadata");
+        exit(EXIT_FAILURE);
+    }
+
+    if (fread(&metadata, sizeof(t_metadata), 1, archivo) != 1) {
+        perror("Error al leer el archivo de metadata");
+        fclose(archivo);
+        exit(EXIT_FAILURE);
+    }
+
+    int cant_bloques_arch= metadata.tam_archivo/block_count;
+
+    if (metadata.tam_archivo>=tam){
+        int bloques_modificados= cant_bloques_arch-cant_bloques;
+
+        for(int i=0; i<bloques_modificados; i++){
+            cleanBitMap(i+ metadata.bloque_inicial+ bloques_modificados ,block_count);
+        }
+        
+    }else{
+        if(verificar_bitmap(metadata.bloque_inicial,cant_bloques,block_count)){
+            int bloques_modificados=cant_bloques-cant_bloques_arch;
+            for(int i=0; i<bloques_modificados;i++){
+                setBitmap(i+metadata.bloque_inicial+bloques_modificados, block_count);
+            }
+        }else{
+            perror("No hay espacio");
+            exit(EXIT_FAILURE);
+        }
+
+    }
+        metadata.tam_archivo=tam;
+        if(fwrite(&metadata,sizeof(t_metadata),1, archivo)!= 1){
+            perror("Error al escribir en el archivo de metadata");
+            fclose(archivo);
+            exit(EXIT_FAILURE);
+        }
+}
+
+
+    
+

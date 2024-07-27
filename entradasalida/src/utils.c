@@ -3,6 +3,18 @@
 extern char* path_base_fs;
 
 FILE* crear_archivo_fs(char* nombre) {
+    
+    char* path_archivo=crear_ruta(nombre);
+
+    FILE* archivo = fopen(path_archivo, "wb+");
+    if (!archivo) {
+        perror("Error al crear el archivo");
+        return NULL;
+    }
+    return archivo;
+}
+
+char* crear_ruta(char* nombre){
     char cwd[256];
     getcwd(cwd, sizeof(cwd));
 
@@ -11,10 +23,5 @@ FILE* crear_archivo_fs(char* nombre) {
     strcat(path_archivo, path_base_fs);
     strcat(path_archivo, nombre);
 
-    FILE* archivo = fopen(path_archivo, "wb+");
-    if (!archivo) {
-        perror("Error al crear el archivo");
-        return NULL;
-    }
-    return archivo;
+    return path_archivo;
 }
