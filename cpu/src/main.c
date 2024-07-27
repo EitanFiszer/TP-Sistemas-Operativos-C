@@ -171,9 +171,11 @@ int main(int argc, char* argv[]) {
 
                     if (ok == -1) {
                         log_error(logger, "PROCESO TERMINÓ EJECUCIÓN: PID %d", pcb->PID);
-                        // Devolver el PCB al kernel
                         
-                        enviar_pcb_kernel(pcb, TERMINO_EJECUCION);
+                        OP_CODES_ENTRE op = getHayInterrupcion() ? INTERRUMPIR_PROCESO : TERMINO_EJECUCION;
+
+                        // Devolver el PCB al kernel
+                        enviar_pcb_kernel(pcb, op);
                         break;
                     }
 
