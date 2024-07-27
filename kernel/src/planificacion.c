@@ -309,7 +309,14 @@ void stl_RR()
             queue_push(cola_ready, retirar_ready);
             pthread_mutex_unlock(&sem_q_ready);
             log_info(logger, "PID:%d - Estado Anterior: EXEC - Estado Actual: READY, FIN DE QUANTUM", retirar_ready->PID);
+            
+            pthread_mutex_lock(&sem_q_exec);
+            queue_pop(cola_exec);
+            pthread_mutex_unlock(&sem_q_exec);
+
             sem_post(&sem_cont_ready);
+
+            pthread_mutex_unlock(&sem_CPU_libre);
         }
         else
         {
