@@ -77,8 +77,15 @@ void ejecutarInstruccion(instruccionCPU_t* instruccion, t_PCB* pcb, t_log* logge
     log_info(logger, "PID: %d - Ejecutando: %s - %s", pcb->PID, inst, paramsString);
 
     if(string_equals_ignore_case(inst, "SET")) {
+        char* registro = params[0];
+
         instruccionSet(params[0], atoi(params[1]), &registros);
-        pcb->program_counter++;
+        
+        if (string_equals_ignore_case(registro, "PC")) {
+            pcb->program_counter = registros.PC;
+        } else {
+          pcb->program_counter++;
+        }
     } else if(string_equals_ignore_case(inst, "SUM")){
         instruccionSum(pcb, params[0], params[1], &registros);
     } else if(string_equals_ignore_case(inst, "SUB")) {

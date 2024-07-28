@@ -55,6 +55,8 @@ void instruccionSet(char* reg, void* valor, registros_t* registros) {
         registros->SI = (uint32_t)valor;
     } else if (string_equals_ignore_case(reg, "DI")) {
         registros->DI = (uint32_t)valor;
+    } else if (string_equals_ignore_case(reg, "PC")) {
+        registros->PC = (uint32_t)valor;
     }
 }
 
