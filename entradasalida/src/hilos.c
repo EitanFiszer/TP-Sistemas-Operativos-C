@@ -76,6 +76,11 @@ void hilo_generica(void* argumentos) {
 
     while (1) {
         t_paquete_entre* paquete_entre = recibir_paquete_entre(resultHandshakeKernell);
+        if (paquete_entre == NULL) {
+            log_error(logger, "Error al recibir paquete, finalizando hilo");
+            return;
+        }
+
         OP_CODES_ENTRE op = paquete_entre->operacion;
 
         switch (op) {
@@ -110,6 +115,11 @@ void hilo_stdin(void* argumentos) {
 
     while (1) {
         t_paquete_entre* paquete_entre = recibir_paquete_entre(resultHandshakeKernell);
+        if (paquete_entre == NULL) {
+            log_error(logger, "Error al recibir paquete, finalizando hilo");
+            return;
+        }
+
         OP_CODES_ENTRE op = paquete_entre->operacion;
 
 
@@ -156,6 +166,11 @@ void hilo_stdout(void* argumentos) {
 
     while (1) {
         t_paquete_entre* paquete_dispatch = recibir_paquete_entre(resultHandshakeKernell);
+        if (paquete_dispatch == NULL) {
+            log_error(logger, "Error al recibir paquete, finalizando hilo");
+            return;
+        }
+
         OP_CODES_ENTRE op = paquete_dispatch->operacion;
 
         // AGREGAR DESERIALIZACIÓN Y SERIALIZACIÓN
@@ -205,6 +220,11 @@ void hilo_dialfs(void* argumentos){
 
     while (1) {
         t_paquete_entre* paquete_dispatch = recibir_paquete_entre(resultHandshakeKernell);
+        if (paquete_dispatch == NULL) {
+            log_error(logger, "Error al recibir paquete, finalizando hilo");
+            return;
+        }
+
         OP_CODES_ENTRE op = paquete_dispatch->operacion;
         
         switch(op) {
