@@ -210,16 +210,16 @@ void hilo_dialfs(void* argumentos){
         switch(op) {
             case IO_FS_CREATE:
                 t_payload_fs_create* payloadcreate=deserializar_fs_create(paquete_dispatch->payload);
-                crear_archivo(payloadcreate->nombreArchivo, block_count, block_size);    
+                crear_archivo(payloadcreate->nombreArchivo);    
             break;
             case IO_FS_DELETE:
                 t_payload_fs_create* payloaddelete=deserializar_fs_create(paquete_dispatch->payload);
-                delete_archivo(payloaddelete->nombreArchivo, block_count, block_size);
+                delete_archivo(payloaddelete->nombreArchivo);
             break;
 
             case IO_FS_TRUNCATE:
                 t_payload_fs_truncate* payloadtruncate=deserializar_fs_truncate(paquete_dispatch->payload);
-                truncate_archivo(payloadtruncate->nombreArchivo,block_count,block_size,payloadtruncate->regTam);
+                truncate_archivo(payloadtruncate->nombreArchivo, payloadtruncate->regTam);
             break;
 
             case IO_FS_WRITE:

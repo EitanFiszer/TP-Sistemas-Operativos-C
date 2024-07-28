@@ -17,6 +17,8 @@
 t_log* logger;
 int socketMemoria;
 char* path_base_fs;
+int block_count;
+int block_size;
 
 void crearHilo(char* nombre, char* path_config, char* ultimo_path) {
     t_config* config = iniciar_config(path_config);
@@ -87,7 +89,19 @@ int main(int argc, char* argv[]) {
     // }
 
     path_base_fs = "/";
+    block_count = 8;
+    block_size = 8;
+
+    crear_bitmap(8);
+    crear_archivo("file.txtt"); //0  
+    crear_archivo("file.txt"); //1
+    truncate_archivo("file.txt",1);
+    delete_archivo("file.txt");
+    truncate_archivo("file.txtt",9); //0 
+    int o=getBit(8); //-1
 
     log_destroy(logger);
     return 0;
 }
+
+

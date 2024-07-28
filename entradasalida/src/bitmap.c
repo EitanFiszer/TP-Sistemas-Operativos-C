@@ -9,8 +9,9 @@
 #include "utils.h"
 
 extern t_log* logger;
+extern int block_count;
 
-t_bitarray* crear_bitarray(int block_count){
+t_bitarray* crear_bitarray(){
     int tamString = ceil((double)block_count / 8);
     int tamStringBytes;
 
@@ -27,9 +28,9 @@ t_bitarray* crear_bitarray(int block_count){
     return bitarray;
 }
 
-void crear_bitmap(int block_count) {
+void crear_bitmap() {
     
-    t_bitarray* bitarray = crear_bitarray(block_count);
+    t_bitarray* bitarray = crear_bitarray();
 
     log_info(logger, "Se inicializó el bitarray con un tamaño de %lu", bitarray_get_max_bit(bitarray));
 
@@ -47,11 +48,11 @@ void crear_bitmap(int block_count) {
     fclose(archivo);
 }
 
-int getBit(int block_count) {
+int getBit() {
     // Crear la ruta completa para el archivo bitmap.dat
     char* path_archivo = crear_ruta("bitmap.dat");
         
-    t_bitarray* bitarray = crear_bitarray(block_count);
+    t_bitarray* bitarray = crear_bitarray();
 
     FILE* archivo = fopen(path_archivo, "rb");
     if (!archivo) {
@@ -81,11 +82,11 @@ int getBit(int block_count) {
     return -1;  // Retorna -1 si no hay bloques libres
 }
 
-void setBitmap(int bloque, int block_count) {
+void setBitmap(int bloque) {
 
     char* path_archivo = crear_ruta("bitmap.dat");
         
-    t_bitarray* bitarray = crear_bitarray(block_count);
+    t_bitarray* bitarray = crear_bitarray();
 
 
     FILE* archivo = fopen(path_archivo, "rb+");  // Abrir en modo lectura y escritura
@@ -114,10 +115,10 @@ void setBitmap(int bloque, int block_count) {
 }
 
 
-void cleanBitMap(int bloque, int block_count) {
+void cleanBitMap(int bloque) {
         char* path_archivo = crear_ruta("bitmap.dat");
         
-    t_bitarray* bitarray = crear_bitarray(block_count);
+    t_bitarray* bitarray = crear_bitarray();
 
 
     FILE* archivo = fopen(path_archivo, "rb+");  // Abrir en modo lectura y escritura
@@ -147,7 +148,7 @@ void cleanBitMap(int bloque, int block_count) {
 
 
 //dado un indice y una cant de bloques comprueba que los siguientes bloques esten en 0
-bool verificar_bitmap(int bloque, int cant_bloque, int block_count) {
+bool verificar_bitmap(int bloque, int cant_bloque) {
     int limite= bloque+cant_bloque; 
     if (bloque + cant_bloque >= block_count) {
         return false;
@@ -156,7 +157,7 @@ bool verificar_bitmap(int bloque, int cant_bloque, int block_count) {
     // Crear la ruta completa para el archivo bitmap.dat
     char* path_archivo = crear_ruta("bitmap.dat");
 
-    t_bitarray* bitarray=crear_bitarray(block_count);
+    t_bitarray* bitarray=crear_bitarray();
 
     FILE* archivo = fopen(path_archivo, "rb");
     if (!archivo) {
@@ -185,3 +186,4 @@ bool verificar_bitmap(int bloque, int cant_bloque, int block_count) {
     bitarray_destroy(bitarray);
     return true;  // Retorna true si no hay 1
 }
+
