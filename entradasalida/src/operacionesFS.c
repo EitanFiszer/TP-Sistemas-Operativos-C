@@ -21,7 +21,8 @@ void crear_archivo(const char* nombre, int block_count, int block_size) {
         fprintf(stderr, "No hay bloques libres disponibles.\n");
         exit(EXIT_FAILURE);
     }
-    setBitmap(block_count, metadata.bloque_inicial);
+
+    setBitmap(metadata.bloque_inicial,block_count);
 
     metadata.tam_archivo = block_size;
 
@@ -76,9 +77,9 @@ void delete_archivo(const char* nombre, int block_count, int block_size) {
 void truncate_archivo(const char* nombre, int block_count, int block_size, int tam) {
         t_metadata metadata;
 
-        int cant_bloques=tam/block_size;
+        int cant_bloques_ingresados=(tam+block_size-1)/block_size;  //cantidad de bloques que se desea ocupar
 
-        if(cant_bloques>block_count){
+        if(cant_bloques_ingresados>block_count){ //si es mayor al block count se pasa
             fprintf(stderr, "El tamaño no es valido");
             exit(EXIT_FAILURE);
         }
@@ -97,35 +98,42 @@ void truncate_archivo(const char* nombre, int block_count, int block_size, int t
         exit(EXIT_FAILURE);
     }
 
-    int cant_bloques_arch= metadata.tam_archivo/block_count;
+    int cant_bloques_arch = (metadata.tam_archivo+block_size-1)/block_size; //cant de bloques que ya ocupa el archivo
+    int ultimo_bloque=metadata.bloque_inicial+cant_bloques_arch-1;
 
-    if (metadata.tam_archivo>=tam){
-        int bloques_modificados= cant_bloques_arch-cant_bloques;
+    if (cant_bloques_arch>cant_bloques_ingresados){ //Se desea achicar el archivo
+        int bloques_modificados = cant_bloques_arch-cant_bloques_ingresados; //cuantos bloques se liberan
 
         for(int i=0; i<bloques_modificados; i++){
-            cleanBitMap(i+ metadata.bloque_inicial+ bloques_modificados ,block_count);
+            cleanBitMap(ultimo_bloque,block_count);
+            ultimo_bloque=ultimo_bloque-1;
         }
-        
-    }else{
-        if(verificar_bitmap(metadata.bloque_inicial,cant_bloques,block_count)){
-            int bloques_modificados=cant_bloques-cant_bloques_arch;
-            for(int i=0; i<bloques_modificados;i++){
-                setBitmap(i+metadata.bloque_inicial+bloques_modificados, block_count);
+
+    }if(cant_bloques_arch<cant_bloques_ingresados){ //Se desea agrandar el archivo
+        int bloques_modificados=cant_bloques_ingresados-cant_bloques_arch; //cuantos bloques se ocupan
+        if(verificar_bitmap(ultimo_bloque,bloques_modificados,block_count)){
+            for(int i=1; i<bloques_modificados+1;i++){
+                setBitmap(ultimo_bloque+i, block_count);
             }
         }else{
             perror("No hay espacio");
+            fclose(archivo);
             exit(EXIT_FAILURE);
         }
-
     }
         metadata.tam_archivo=tam;
-        if(fwrite(&metadata,sizeof(t_metadata),1, archivo)!= 1){
+        fseek(archivo, 0, SEEK_SET);
+
+        
+        if (fwrite(&metadata, sizeof(t_metadata), 1, archivo) != 1) {
             perror("Error al escribir en el archivo de metadata");
             fclose(archivo);
             exit(EXIT_FAILURE);
         }
+
+    fclose(archivo);
 }
 
 
-    
+
 

@@ -12,6 +12,7 @@
 #include <pthread.h>
 #include "hilos.h"
 #include "bitmap.h"
+#include "operacionesFS.h"
 
 t_log* logger;
 int socketMemoria;
@@ -86,8 +87,6 @@ int main(int argc, char* argv[]) {
     // }
 
     path_base_fs = "/";
-    crear_bitmap(8);
-    getBit(8);
 
     log_destroy(logger);
     return 0;
