@@ -156,7 +156,7 @@ int obtenerTamanoProceso(int pid) {
 int redimensionarProceso(int pid, int nuevoTam) {
     Proceso* proceso = procesoPorPID(pid);
 
-    if (proceso == NULL || nuevoTam <= 0 || nuevoTam > TAM_MEMORIA) {
+    if (proceso == NULL || nuevoTam < 0 || nuevoTam > TAM_MEMORIA) {
         return -1;
     }
 
