@@ -120,10 +120,13 @@ void finalizarProceso(int pid) {
     t_dictionary* tabla_de_paginas = proceso->tabla_de_paginas;
     t_list* marcos = dictionary_elements(tabla_de_paginas);
 
-    for (int i = 0; i < dictionary_size(tabla_de_paginas); i++) {
+    // Marcar como libres los marcos ocupados por el proceso
+    for (int i = 0; i < list_size(marcos); i++) {
         int marco = (int)list_get(marcos, 0);
         bitarray_set_bit(marcosLibres, marco);
     }
+
+    // mostrarMarcosLibres();
 
     // dictionary_destroy_and_destroy_elements(tabla_de_paginas, (void*)destroy_elemento);
     free(tabla_de_paginas);
@@ -190,6 +193,9 @@ int redimensionarProceso(int pid, int nuevoTam) {
             bitarray_set_bit(marcosLibres, marco);
         }
     }
+
+    // mostrarMarcosLibres();
+
     return RESIZE_SUCCESS;
 }
 
@@ -201,4 +207,11 @@ Proceso* procesoPorPID(int pid) {
     }
 
     return NULL;
+}
+
+void mostrarMarcosLibres() {
+    for (int i = 0; i < bitarray_get_max_bit(marcosLibres); i++) {
+        printf("%d", bitarray_test_bit(marcosLibres, i));
+    }
+    printf("\n");
 }

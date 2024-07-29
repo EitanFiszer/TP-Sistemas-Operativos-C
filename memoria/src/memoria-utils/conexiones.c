@@ -103,6 +103,7 @@ void esperar_paquetes_cpu() {
             
             #pragma region SOLICITAR_DIRECCION_FISICA
             case SOLICITAR_DIRECCION_FISICA:
+              usleep(retardo_respuesta * 1000);
               t_payload_solicitar_direccion_fisica *payloadSolicitar = paquete_cpu->payload;
 
               int marco = buscarDireccionFisicaEnTablaDePaginas(payloadSolicitar->PID, payloadSolicitar->pagina);
@@ -116,6 +117,7 @@ void esperar_paquetes_cpu() {
 
             #pragma region SOLICITAR_DATO_MEMORIA
             case SOLICITAR_DATO_MEMORIA:
+                usleep(retardo_respuesta * 1000);
                 t_payload_solicitar_dato_memoria *payloadSolicitarDato = deserializar_solicitar_dato_memoria(paquete_cpu->payload);
                 int direccion = payloadSolicitarDato->direccion;
                 log_info(logger, "Se llamó a SOLICITAR_DATO_MEMORIA para dirección: %d", direccion);
@@ -136,6 +138,7 @@ void esperar_paquetes_cpu() {
             
             #pragma region RESIZE_MEMORIA
             case RESIZE_MEMORIA:
+                usleep(retardo_respuesta * 1000);
                 t_payload_resize_memoria *payloadResize = deserializar_resize_memoria(paquete_cpu->payload);
                 int pidResize = payloadResize->pid;
                 int nuevoTam = payloadResize->tam;
@@ -168,6 +171,7 @@ void esperar_paquetes_cpu() {
             #pragma endregion
             #pragma region ENVIAR_DATO_MEMORIA
             case ENVIAR_DATO_MEMORIA:
+              usleep(retardo_respuesta * 1000);
               t_payload_enviar_dato_memoria *payloadEnviar = deserializar_enviar_dato_memoria(paquete_cpu->payload);
               int direccionEnviar = payloadEnviar->direccion;
               void* datoEnviar = payloadEnviar->dato;
@@ -203,7 +207,8 @@ void esperar_paquetes_io() {
     } 
 
     switch (op_code) {
-      case ESCRIBIR_MEMORIA: 
+      case ESCRIBIR_MEMORIA:
+        usleep(retardo_respuesta * 1000); 
         t_payload_escribir_memoria *payloadStdin = deserializar_escribir_memoria(paquete_io->payload);
         int pid = payloadStdin->direccion;
         char* string = payloadStdin->cadena;
