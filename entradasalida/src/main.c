@@ -15,10 +15,6 @@
 #include "operacionesFS.h"
 
 t_log* logger;
-int socketMemoria;
-char* path_base_fs;
-int block_count;
-int block_size;
 
 void crearHilo(char* nombre, char* path_config, char* ultimo_path) {
     t_config* config = iniciar_config(path_config);
@@ -43,7 +39,7 @@ void crearHilo(char* nombre, char* path_config, char* ultimo_path) {
     } else if (strcmp(interfaz, "STDOUT") == 0) {
         funcion = hilo_stdout;
     } else if (strcmp(interfaz, "DIALFS") == 0) {
-        funcion = hilo_dialfs; // Define esta función si es necesario
+        funcion = hilo_dialfs;
     } else {
         log_error(logger, "Tipo de interfaz desconocido: %s", interfaz);
         config_destroy(config);
@@ -87,18 +83,6 @@ int main(int argc, char* argv[]) {
     //     log_info(logger, "Creando hilo %s", argv[i]);
     //     crearHilo(argv[i], argv[i+1], argv[argc-1]);
     // }
-
-    path_base_fs = "/";
-    block_count = 8;
-    block_size = 8;
-
-    crear_bitmap(8);
-    crear_archivo("file.txtt"); //0  
-    crear_archivo("file.txt"); //1
-    truncate_archivo("file.txt",1);
-    delete_archivo("file.txt");
-    truncate_archivo("file.txtt",9); //0 
-    int o=getBit(8); //-1
 
     log_destroy(logger);
     return 0;
