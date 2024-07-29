@@ -69,7 +69,9 @@ void TLBagregarFIFO(int pid, int pagina, int marco) {
     entrada->pagina = pagina;
     entrada->marco = marco;
 
-    list_remove(TLB, punteroFifo);
+    if(list_size(TLB) > 0) {
+      list_remove(TLB, punteroFifo);
+    }
     list_add(TLB, entrada);
 
     punteroFifo = (punteroFifo + 1) % TLB_MAX_SIZE;
