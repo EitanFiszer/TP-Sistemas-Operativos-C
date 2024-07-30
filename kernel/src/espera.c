@@ -2,7 +2,6 @@
 bool bool_error_memoria=false;
 bool bool_syscall=false;
 bool bool_interrupted_by_user=false;
-bool bool_interrumpi=false;
 void atender_cliente(void *socket)
 {
     char *nombre_io_hilo = NULL;
@@ -115,8 +114,7 @@ void *esperar_paquetes_cpu_dispatch(void *arg)
             }else if(bool_interrupted_by_user){
                 bool_interrupted_by_user =false;
             }
-            else if(bool_interrumpi){
-                bool_interrumpi = false;
+            else{
                 desalojar();
                 cargar_ready(PCB, EXEC);
             }
@@ -280,7 +278,6 @@ void interrumpir(t_motivo_interrupcion motivo)
         bool_syscall =true;
     }else if(motivo == FIN_QUANTUM){
         log_info(logger, "INTERRUMPIENDO PROCESO POR FIN DE QUANTUM");
-        bool_interrumpi=true;
     }else if(motivo == ERROR_OUT_OF_MEMORY_I){
         log_info(logger, "INTERRUMPIENDO PROCESO POR ERROR_OUT_OF_MEMORY");
         bool_error_memoria = true;

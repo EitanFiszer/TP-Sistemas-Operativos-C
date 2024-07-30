@@ -125,7 +125,7 @@ void hilo_stdin(void* argumentos) {
     char* puerto_kernel = config_get_string_value(config, "PUERTO_KERNEL");
     char* tipo_interfaz = config_get_string_value(config, "TIPO_INTERFAZ");
     char* puerto_memoria = config_get_string_value(config, "PUERTO_MEMORIA");
-    char* ip_memoria = onfig_get_string_value(config, "IP_MEMORIA");
+    char* ip_memoria = config_get_string_value(config, "IP_MEMORIA");
 
     int socketKernell = conexionKernell(ip_kernel, puerto_kernel, tipo_interfaz, nombre);
     int socketMemoria = conexionMemoria(ip_memoria, puerto_memoria, tipo_interfaz, nombre);
@@ -181,7 +181,7 @@ void hilo_stdout(void* argumentos) {
     char* puerto_kernel = config_get_string_value(config, "PUERTO_KERNEL");
     char* tipo_interfaz = config_get_string_value(config, "TIPO_INTERFAZ");
     char* puerto_memoria = config_get_string_value(config, "PUERTO_MEMORIA");
-    char* ip_memoria = onfig_get_string_value(config, "IP_MEMORIA");
+    char* ip_memoria = config_get_string_value(config, "IP_MEMORIA");
 
     int socketKernell = conexionKernell(ip_kernel, puerto_kernel, tipo_interfaz, nombre);
     int socketMemoria = conexionMemoria(ip_memoria, puerto_memoria, tipo_interfaz, nombre);

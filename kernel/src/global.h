@@ -39,7 +39,7 @@ extern pthread_mutex_t sem_q_blocked;
 extern bool bool_error_memoria;
 extern bool bool_syscall;
 extern bool bool_interrupted_by_user;
-extern bool bool_interrumpi;
+
 
 typedef enum {
     SYSCALL,
