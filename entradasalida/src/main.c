@@ -71,7 +71,7 @@ int main(int argc, char* argv[]) {
     
     char* ipMemoria = config_get_string_value(config, "IP_MEMORIA");
     char* puertoMemoria = config_get_string_value(config, "PUERTO_MEMORIA");
-    // socketMemoria = connectAndHandshake(ipMemoria, puertoMemoria, IO, "memoria", logger);
+    int socketMemoria = connectAndHandshake(ipMemoria, puertoMemoria, IO, "memoria", logger);
     
     // Asegúrate de que hay un número par de argumentos
     if ((argc - 1) % 2 != 0) {
@@ -79,10 +79,10 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    // for (int i = 1; i < argc; i += 2) {
-    //     log_info(logger, "Creando hilo %s", argv[i]);
-    //     crearHilo(argv[i], argv[i+1], argv[argc-1]);
-    // }
+    for (int i = 1; i < argc; i += 2) {
+        log_info(logger, "Creando hilo %s", argv[i]);
+        crearHilo(argv[i], argv[i+1], argv[argc-1]);
+    }
 
     log_destroy(logger);
     return 0;

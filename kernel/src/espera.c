@@ -115,8 +115,10 @@ void *esperar_paquetes_cpu_dispatch(void *arg)
                 bool_interrupted_by_user =false;
             }
             else{
+                cancelar_quantum();
                 desalojar();
                 cargar_ready(PCB, EXEC);
+
             }
             // if(no hubo syscall)
             // pthread_mutex_trylock(&interrupcion_syscall);
@@ -136,6 +138,7 @@ void *esperar_paquetes_cpu_dispatch(void *arg)
         case ERROR_OUT_OF_MEMORY:
             interrumpir(ERROR_OUT_OF_MEMORY_I);
             enviar_paquete_cpu_dispatch(CONFIRMAR_SYSCALL,NULL,0);
+            cancelar_quantum();
             desalojar();
 
             
@@ -157,9 +160,9 @@ void *esperar_paquetes_cpu_dispatch(void *arg)
             break;
 
         case TERMINO_EJECUCION:
+            cancelar_quantum();
             desalojar();
             t_PCB *pcb_dispatch = (t_PCB *)paquete_dispatch->payload;
-            log_info(logger, "Finaliza el proceso %d - Motivo: SUCCESS", pcb_dispatch->PID);
             lts_ex(pcb_dispatch, EXEC,"SUCCESS");
             /// PROCESO TERMINADO SE DESALOJA Y SE ENVIA A EXIT
             break;
@@ -295,7 +298,6 @@ void interrumpir(t_motivo_interrupcion motivo)
     enviar_paquete(paquete_fin_de_q, resultHandshakeInterrupt);
     eliminar_paquete(paquete_fin_de_q);
     free(fin_q);
-    log_info(logger, "Se interrumpio el proceso");
 }
 void finalizar_kernel()
 {
