@@ -26,6 +26,10 @@ extern int socketMemoria;
 void crearArchivodebloques(int block_count, int block_size, char* pathbase) {
     size_t tamano_total = block_size * block_count;
 
+    // chequear si el archivo ya existía
+    char* ruta = crear_ruta("bloques.dat");
+    if (access(ruta, F_OK) == 0) return;
+    
     FILE* archivo = crear_archivo_fs("bloques.dat");
 
     // Establecer el tamaño del archivo
