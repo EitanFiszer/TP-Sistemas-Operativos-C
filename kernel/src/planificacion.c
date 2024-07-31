@@ -348,6 +348,7 @@ void *manejar_quantum(void *arg)
 //     sem_post(&sem_cont_ready);
 //     temporal_destroy(tempo_quantum);
 // }
+*/
 
 void stl_VRR()
 {

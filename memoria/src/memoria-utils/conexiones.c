@@ -55,7 +55,6 @@ void esperar_paquetes_kernel() {
 }
 
 void esperar_paquetes_cpu() {
-    sem_wait(&sem_cpu);    
     log_info(logger,"Esperando paquetes de CPU en el socket %d\n", socketCpu);
     while (1) {
         t_paquete_entre *paquete_cpu = recibir_paquete_entre(socketCpu);
@@ -186,44 +185,44 @@ void esperar_paquetes_cpu() {
     liberarMemoria();
 }
 
-void esperar_paquetes_io() {
-  sem_wait(&sem_io);    
-  log_info(logger,"Esperando paquetes de IO en el socket %d\n", socketIO);
-  while (1) {
-    t_paquete_entre *paquete_io = recibir_paquete_entre(socketIO);
-    OP_CODES_ENTRE op_code = paquete_io->operacion;
+// void esperar_paquetes_io() {
+//   sem_wait(&sem_io);    
+//   log_info(logger,"Esperando paquetes de IO en el socket %d\n", socketIO);
+//   while (1) {
+//     t_paquete_entre *paquete_io = recibir_paquete_entre(socketIO);
+//     OP_CODES_ENTRE op_code = paquete_io->operacion;
     
-    if (paquete_io == NULL || paquete_io->payload == NULL) {
-        log_error(logger, "No se pudo recibir el paquete de la IO, cerrando hilo");
-        break;
-    } 
+//     if (paquete_io == NULL || paquete_io->payload == NULL) {
+//         log_error(logger, "No se pudo recibir el paquete de la IO, cerrando hilo");
+//         break;
+//     } 
 
-    switch (op_code) {
-      case ESCRIBIR_MEMORIA:
-        usleep(retardo_respuesta * 1000); 
-        t_payload_escribir_memoria *payloadStdin = deserializar_escribir_memoria(paquete_io->payload);
-        int pid = payloadStdin->direccion;
-        char* string = payloadStdin->cadena;
-        int sizeString = payloadStdin->size_cadena;
+//     switch (op_code) {
+//       case ESCRIBIR_MEMORIA:
+//         usleep(retardo_respuesta * 1000); 
+//         t_payload_escribir_memoria *payloadStdin = deserializar_escribir_memoria(paquete_io->payload);
+//         int pid = payloadStdin->direccion;
+//         char* string = payloadStdin->cadena;
+//         int sizeString = payloadStdin->size_cadena;
 
-        break;
-      case SOLICITAR_DATO_MEMORIA:
-        usleep(retardo_respuesta * 1000);
-        t_payload_solicitar_dato_memoria *payloadSolicitarDato = deserializar_solicitar_dato_memoria(paquete_io->payload);
-        int direccion = payloadSolicitarDato->direccion;
-        log_info(logger, "Se llamó a SOLICITAR_DATO_MEMORIA para dirección: %d", direccion);
-        int tamDato = payloadSolicitarDato->tam;
-        // Obtener dato de memoria
-        void* dato = obtenerDatoMemoria(direccion, tamDato);
+//         break;
+//       case SOLICITAR_DATO_MEMORIA:
+//         usleep(retardo_respuesta * 1000);
+//         t_payload_solicitar_dato_memoria *payloadSolicitarDato = deserializar_solicitar_dato_memoria(paquete_io->payload);
+//         int direccion = payloadSolicitarDato->direccion;
+//         log_info(logger, "Se llamó a SOLICITAR_DATO_MEMORIA para dirección: %d", direccion);
+//         int tamDato = payloadSolicitarDato->tam;
+//         // Obtener dato de memoria
+//         void* dato = obtenerDatoMemoria(direccion, tamDato);
         
-        enviar_paquete_entre(socketIO, DATO_MEMORIA, dato, sizeof(dato));
-        break;
-      default:
-        log_info(logger, "Operación desconocida de IO");
-        break;
-    }
-  }
-}
+//         enviar_paquete_entre(socketIO, DATO_MEMORIA, dato, sizeof(dato));
+//         break;
+//       default:
+//         log_info(logger, "Operación desconocida de IO");
+//         break;
+//     }
+//   }
+// }
 
 void atender_cliente_io(void *socket) {
     char *nombre_io_hilo = NULL;

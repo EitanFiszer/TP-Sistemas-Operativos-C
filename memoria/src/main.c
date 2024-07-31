@@ -66,36 +66,33 @@ Handshake esperar_cliente_memoria(int socket_servidor, t_log* logger) {
     return handshakeCliente;
 }
 
-void iniciarSemaforos() {
-    sem_init(&sem_cpu, 0, 0);
-    sem_init(&sem_kernel, 0, 0);
-    sem_init(&sem_io, 0, 0);
-}
-
 void esperarConexiones() {
-    pthread_t hiloEsperaIO;
-    pthread_create(&hiloEsperaIO, NULL, (void*)esperar_clientes_io, NULL);
-    pthread_detach(hiloEsperaIO);
-
     while (1) {
         Handshake res = esperar_cliente_memoria(server_fd, logger);
-        int cliente = res.socket;
-        ID modulo = res.modulo;
+        int modulo = res.modulo;
+        int *cliente = malloc(sizeof(int));
+        *cliente = res.socket;
 
         switch (modulo) {
             case CPU:
-                log_info(logger, "Se conectó un CPU en el socket %d", cliente);
+                log_info(logger, "Se conectó un CPU en el socket %d", *cliente);
                 pthread_t hiloEsperaCpu;
                 socketCpu = cliente;
                 pthread_create(&hiloEsperaCpu, NULL, (void*)esperar_paquetes_cpu, NULL);   
                 pthread_detach(hiloEsperaCpu);
                 break;
             case KERNEL:
-                log_info(logger, "Se conectó un Kernel en el socket %d", cliente);
+                log_info(logger, "Se conectó un Kernel en el socket %d", *cliente);
                 pthread_t hiloEsperaKernel;
                 socketKernel = cliente;
                 pthread_create(&hiloEsperaKernel, NULL, (void*)esperar_paquetes_kernel, NULL);
                 pthread_detach(hiloEsperaKernel);
+                break;
+            case IO:
+                log_info(logger, "Se conectó un IO en el socket %d", *cliente);
+                pthread_t hiloEsperaIO;
+                pthread_create(&hiloEsperaIO, NULL, (void*)atender_cliente_io, cliente);
+                pthread_detach(hiloEsperaIO);
                 break;
             default:
                 // log_info(logger, "Operación desconocida de KERNEL");
@@ -121,13 +118,10 @@ int main(int argc, char* argv[]) {
     char* string = NULL;
     marcosLibres = iniciarBitarray(string);
     server_fd = iniciar_servidor(puerto_escucha, logger);
-    iniciarSemaforos();
     inicializarMemoria();
 
     log_info(logger, "[MEMORIA] Escuchando en el puerto: %s", puerto_escucha);
-
     esperarConexiones();
-
     // probarTodo();
 
     liberarMemoria();
