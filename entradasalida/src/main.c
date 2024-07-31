@@ -71,11 +71,10 @@ void crearHilo(char* nombre, char* path_config, char* ultimo_path) {
 
 int main(int argc, char* argv[]) {
     logger = log_create("entradasalida.log", "Entrada_Salida", 1, LOG_LEVEL_INFO);
-    t_config* config = config_create("EntradaSalida.config");
+    t_config* config = config_create("../EntradaSalida.config");
     
     char* ipMemoria = config_get_string_value(config, "IP_MEMORIA");
     char* puertoMemoria = config_get_string_value(config, "PUERTO_MEMORIA");
-    // socketMemoria = connectAndHandshake(ipMemoria, puertoMemoria, IO, "memoria", logger);
     
     // Asegúrate de que hay un número par de argumentos
     if ((argc - 1) % 2 != 0) {
@@ -83,22 +82,23 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    // for (int i = 1; i < argc; i += 2) {
-    //     log_info(logger, "Creando hilo %s", argv[i]);
-    //     crearHilo(argv[i], argv[i+1], argv[argc-1]);
-    // }
+    socketMemoria = connectAndHandshake(ipMemoria, puertoMemoria, IO, "memoria", logger);
+    for (int i = 1; i < argc; i += 2) {
+        log_info(logger, "Creando hilo %s", argv[i]);
+        crearHilo(argv[i], argv[i+1], argv[argc-1]);
+    }
 
-    path_base_fs = "/";
-    block_count = 8;
-    block_size = 8;
+    // path_base_fs = "/";
+    // block_count = 8;
+    // block_size = 8;
 
-    crear_bitmap(8);
-    crear_archivo("file.txtt"); //0  
-    crear_archivo("file.txt"); //1
-    truncate_archivo("file.txt",1);
-    delete_archivo("file.txt");
-    truncate_archivo("file.txtt",9); //0 
-    int o=getBit(8); //-1
+    // crear_bitmap(8);
+    // crear_archivo("file.txtt"); //0  
+    // crear_archivo("file.txt"); //1
+    // truncate_archivo("file.txt",1);
+    // delete_archivo("file.txt");
+    // truncate_archivo("file.txtt",9); //0 
+    // int o=getBit(8); //-1
 
     log_destroy(logger);
     return 0;

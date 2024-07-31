@@ -300,34 +300,17 @@ void stl_RR()
         log_info(logger, "PID:%d - Estado Anterior: READY - Estado Actual: EXEC", retirar_ready->PID);
         log_info(logger, "QUANTUM PROCESO A EJECUTAR: %d", retirar_ready->quantum);
 
-        if (retirar_ready->quantum <= 0)
-        {
-            retirar_ready->estado = READY;
-            retirar_ready->quantum = quantum;
-            log_info(logger, "QUANTUM RECARGADO PROCESO A EJECUTAR: %d", retirar_ready->quantum);
-            pthread_mutex_lock(&sem_q_ready);
-            queue_push(cola_ready, retirar_ready);
-            pthread_mutex_unlock(&sem_q_ready);
-            log_info(logger, "PID:%d - Estado Anterior: EXEC - Estado Actual: READY, FIN DE QUANTUM", retirar_ready->PID);
-            
-            pthread_mutex_lock(&sem_q_exec);
-            queue_pop(cola_exec);
-            pthread_mutex_unlock(&sem_q_exec);
+        
+        retirar_ready->quantum = quantum;
+    
+        //tempo_quantum = temporal_create();          --- SE USA EN VRR ----
 
-            sem_post(&sem_cont_ready);
+        pthread_create(&hilo_quantum, NULL, manejar_quantum, (void *)retirar_ready);
 
-            pthread_mutex_unlock(&sem_CPU_libre);
-        }
-        else
-        {
-            tempo_quantum = temporal_create();
+        enviar_paquete_cpu_dispatch(EXEC_PROCESO, retirar_ready, sizeof(t_PCB));
 
-            pthread_create(&hilo_quantum, NULL, manejar_quantum, (void *)retirar_ready);
-
-            enviar_paquete_cpu_dispatch(EXEC_PROCESO, retirar_ready, sizeof(t_PCB));
-
-            pthread_join(hilo_quantum, NULL);
-        }
+        pthread_join(hilo_quantum, NULL);
+        
     }
 }
 
@@ -341,7 +324,7 @@ void *manejar_quantum(void *arg)
     return NULL;
 }
 
-void hubo_syscall(t_PCB *pcb)
+/*void hubo_syscall(t_PCB *pcb)
 {
     pthread_cancel(hilo_quantum);
     int64_t tiempo_gastado = temporal_gettime(tempo_quantum);
@@ -362,7 +345,7 @@ void hubo_syscall(t_PCB *pcb)
 
     sem_post(&sem_cont_ready);
     temporal_destroy(tempo_quantum);
-}
+}*/
 
 void stl_VRR()
 {

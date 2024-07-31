@@ -103,7 +103,7 @@ void *esperar_paquetes_cpu_dispatch(void *arg)
         }
         switch (paquete_dispatch->operacion)
         {
-        case INTERRUMPIO_PROCESO:
+        case INTERRUMPIO_PROCESO:     // A CHEQUEAR
             log_info(logger, "RECIBIENDO PROCESO DESALOJADO");
             t_PCB *PCB = (t_PCB *)paquete_dispatch->payload;
             if(bool_error_memoria){
@@ -120,20 +120,7 @@ void *esperar_paquetes_cpu_dispatch(void *arg)
                 desalojar();
                 cargar_ready(PCB, EXEC);
             }
-            // if(no hubo syscall)
-            // pthread_mutex_trylock(&interrupcion_syscall);
-            // if (interrumpio_syscall)
-            // {
-            //     log_info(logger, "PROCESO DESALOJADO POR SYSCALL");
-            //     interrumpio_syscall = false;
-            // break;
-            // }
-            // else
-            // {
-
-            
             break;
-            // }
             // pthread_mutex_unlock(&interrupcion_syscall);
         case ERROR_OUT_OF_MEMORY:
             interrumpir(ERROR_OUT_OF_MEMORY_I);

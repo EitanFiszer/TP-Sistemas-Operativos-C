@@ -85,7 +85,7 @@ int main() {
     signal(SIGINT, signal_callback_handler);
     // decir_hola("Kernel");
     logger = iniciar_logger_kernel("kernel.log", "Kernel");
-    config = iniciar_config("kernel.config");
+    config = iniciar_config("../kernel.config");
     leer_configs(config);
     // inicializar_recursos();
     // leer_recursos(config);

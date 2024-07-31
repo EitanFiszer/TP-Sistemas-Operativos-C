@@ -11,10 +11,7 @@ extern int TAM_MEMORIA;
 extern int TAM_PAGINA;
 extern int socketCpu;
 extern int socketKernel;
-
-extern pthread_t hiloEsperaCpu;
-extern pthread_t hiloEsperaKernel;
-extern pthread_t hiloEsperaIO;
+extern int server_fd;
 
 t_bitarray* iniciarBitarray(char* string) {
     int tamBitArray = TAM_MEMORIA / TAM_PAGINA;
@@ -41,12 +38,22 @@ t_bitarray* iniciarBitarray(char* string) {
     return frames;
 }
 
-void iniciarHilos() {
-    pthread_create(&hiloEsperaCpu, NULL, (void*)esperar_paquetes_cpu, NULL);   
-    pthread_create(&hiloEsperaKernel, NULL, (void*)esperar_paquetes_kernel, NULL);
-    pthread_create(&hiloEsperaIO, NULL, (void*)esperar_paquetes_io, NULL);
+void esperar_clientes_io(void *args) {
+    while (1) {
+        pthread_t hilo_atender_cliente;
+        int *fd_conexion_ptr = malloc(sizeof(int));
 
-    // pthread_detach(hiloEsperaCpu);
-    // pthread_detach(hiloEsperaKernel);
-    // pthread_detach(hiloEsperaIO);
+        Handshake res = esperar_cliente(server_fd, logger);
+        int modulo = res.modulo;
+        *fd_conexion_ptr = res.socket;
+        switch (modulo) {
+            case IO:
+                log_info(logger, "Se conecto un I/O con el socket %d", *fd_conexion_ptr);
+                pthread_create(&hilo_atender_cliente, NULL, (void *)atender_cliente_io, fd_conexion_ptr);
+                pthread_detach(hilo_atender_cliente);
+                break;
+            default:
+                break;
+        }
+    }
 }

@@ -19,8 +19,4 @@ t_log* logger;
 t_config* config;
 t_bitarray *marcosLibres;
 
-pthread_t hiloEsperaCpu;
-pthread_t hiloEsperaKernel;
-pthread_t hiloEsperaIO;
-
 void liberarMemoria();
