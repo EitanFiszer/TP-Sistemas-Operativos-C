@@ -7,6 +7,7 @@
 #include <utils/envios.h>
 #include <utils/serializacion.h>
 #include <utils/server.h>
+#include <readline/readline.h>
 #include "operacionesFS.h"
 #include "bitmap.h"
 #include "utils.h"
@@ -123,9 +124,11 @@ void hilo_stdin(void* argumentos) {
                 t_payload_io_stdin_read_de_kernel_a_io* operacionRecibida = deserializar_io_stdin_read_de_kernel_a_io(paquete_entre->payload);
 
                 int inputSize = operacionRecibida->tam;
-                char* input;
-                log_info(logger,"Ingrese texto: ");
-                fgets(input, inputSize,stdin);
+
+                printf("Ingrese texto: \n");
+                char *fullInput = readline(">");
+                char *input = malloc(inputSize);
+                strncpy(input, fullInput, inputSize);
                 
                 t_payload_escribir_memoria* payload = malloc(sizeof(t_payload_escribir_memoria));
                 payload->direccion = operacionRecibida->direccionFisica;
