@@ -20,7 +20,9 @@ t_log* logger;
 char* ip_kernel;
 char* ip_memoria;
 
-
+char* path_base2;
+int block_count2;
+int block_size2;
 
 void crearHilo(char* nombre, char* path_config, char* ultimo_path) {
     t_config* config = iniciar_config(path_config);
@@ -74,7 +76,7 @@ void crearHilo(char* nombre, char* path_config, char* ultimo_path) {
 
 int main(int argc, char* argv[]) {
     logger = log_create("entradasalida.log", "Entrada_Salida", 1, LOG_LEVEL_INFO);
-    t_config* config = config_create("../EntradaSalida.config");
+/*    t_config* config = config_create("../EntradaSalida.config");
     
     //lee las ip
     ip_memoria = config_get_string_value(config, "IP_MEMORIA");
@@ -90,7 +92,13 @@ int main(int argc, char* argv[]) {
         log_info(logger, "Creando hilo %s", argv[i]);
         crearHilo(argv[i], argv[i+1], argv[argc-1]);
     }
+*/
 
+    path_base2="/FS/";
+    block_size2=16;
+    block_count2=8;
+    inicializar_FS();
+    leerDiccionario();
     log_destroy(logger);
     return 0;
 }
