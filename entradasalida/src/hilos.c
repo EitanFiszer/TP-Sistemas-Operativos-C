@@ -25,11 +25,11 @@ char* path_base_fs;
 extern t_log* logger;
 extern char* ip_kernel;
 extern char* ip_memoria;
-
-
+extern char* puerto_kernel;
+extern char* puerto_memoria;
 
 int conexionKernell(char* puerto, char* tipo_interfaz, char* nombre) {
-    int resultHandshake = connectAndHandshake(ip_kernel, puerto, IO, "kernel", logger);
+    int resultHandshake = connectAndHandshake(ip_kernel, puerto_kernel, IO, "kernel", logger);
 
     t_payload_interfaz_creada* payload = malloc(sizeof(t_payload_interfaz_creada));
 
@@ -44,8 +44,7 @@ int conexionKernell(char* puerto, char* tipo_interfaz, char* nombre) {
 }
 
 int conexionMemoria(char* puerto, char* tipo_interfaz, char* nombre) {
-    int resultHandshake = connectAndHandshake(ip_memoria, puerto, IO, "memoria", logger);
-
+    int resultHandshake = connectAndHandshake(ip_memoria, puerto_memoria, IO, "memoria", logger);
     t_payload_interfaz_creada* payload = malloc(sizeof(t_payload_interfaz_creada));
 
     payload->tipo_interfaz = tipo_interfaz;
@@ -101,9 +100,9 @@ void hilo_stdin(void* argumentos) {
 
     t_config* config = config_create(path_config);
 
-    char* puerto_kernel = config_get_string_value(config, "PUERTO_KERNEL");
     char* tipo_interfaz = config_get_string_value(config, "TIPO_INTERFAZ");
-    char* puerto_memoria = config_get_string_value(config, "PUERTO_MEMORIA");
+
+    log_info(logger, "MEMORIA: %s:%s -- KERNEL: %s:%s", ip_memoria, puerto_memoria, ip_kernel, puerto_kernel);
 
     int socketKernell = conexionKernell(puerto_kernel, tipo_interfaz, nombre);
     int socketMemoria = conexionMemoria(puerto_memoria, tipo_interfaz, nombre);
@@ -117,7 +116,6 @@ void hilo_stdin(void* argumentos) {
         }
 
         OP_CODES_ENTRE op = paquete_entre->operacion;
-
 
         switch (op) {
             case IO_STDIN_READ:
@@ -155,9 +153,9 @@ void hilo_stdout(void* argumentos) {
 
     t_config* config = config_create(path_config);
 
-    char* puerto_kernel = config_get_string_value(config, "PUERTO_KERNEL");
     char* tipo_interfaz = config_get_string_value(config, "TIPO_INTERFAZ");
-    char* puerto_memoria = config_get_string_value(config, "PUERTO_MEMORIA");
+
+    log_info(logger, "MEMORIA: %s:%s -- KERNEL: %s:%s", ip_memoria, puerto_memoria, ip_kernel, puerto_kernel);
 
     int socketKernell = conexionKernell(puerto_kernel, tipo_interfaz, nombre);
     int socketMemoria = conexionMemoria(puerto_memoria, tipo_interfaz, nombre);
@@ -204,9 +202,6 @@ void hilo_dialfs(void* argumentos){
     char* nombre = nombreYpath->nombre;
 
     t_config* config = config_create(path_config);
-
-    char* puerto_kernel = config_get_string_value(config, "PUERTO_KERNEL");
-    char* puerto_memoria = config_get_string_value(config, "PUERTO_KERNEL");
     char* tipo_interfaz = config_get_string_value(config, "TIPO_INTERFAZ");
     int tiempo_unidad_trabajo = config_get_int_value(config, "TIEMPO_UNIDAD_TRABAJO");
     int retraso_compactacion = config_get_int_value(config, "RETRASO_COMPACTACION");
@@ -214,6 +209,8 @@ void hilo_dialfs(void* argumentos){
     block_size = config_get_int_value(config, "BLOCK_SIZE");
     block_count = config_get_int_value(config, "BLOCK_COUNT");
     path_base_fs = config_get_string_value(config, "PATH_BASE_DIALFS");
+
+    log_info(logger, "MEMORIA: %s:%s -- KERNEL: %s:%s", ip_memoria, puerto_memoria, ip_kernel, puerto_kernel);
 
     int socketKernell = conexionKernell(puerto_kernel, tipo_interfaz, nombre);
     int socketMemoria = conexionMemoria(puerto_memoria, tipo_interfaz, nombre);

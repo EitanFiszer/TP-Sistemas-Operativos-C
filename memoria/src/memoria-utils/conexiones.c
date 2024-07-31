@@ -10,19 +10,16 @@
 extern t_log *logger;
 extern char *path_instrucciones;
 extern int retardo_respuesta;
-extern sem_t sem_kernel;
-extern sem_t sem_cpu;
-extern sem_t sem_io;
 extern int socketKernel;
 extern int socketCpu;
 extern int socketIO;
 extern int server_fd;
-
 extern int TAM_MEMORIA;
 extern Memoria memoria;
 
+t_dictionary *interfaces_dict;
+
 void esperar_paquetes_kernel() {
-    sem_wait(&sem_kernel);
     printf("Esperando paquetes de KERNEL en el socket %d\n", socketKernel);
 
     while (1) {
@@ -186,7 +183,6 @@ void esperar_paquetes_cpu() {
 }
 
 // void esperar_paquetes_io() {
-//   sem_wait(&sem_io);    
 //   log_info(logger,"Esperando paquetes de IO en el socket %d\n", socketIO);
 //   while (1) {
 //     t_paquete_entre *paquete_io = recibir_paquete_entre(socketIO);
@@ -227,8 +223,10 @@ void esperar_paquetes_cpu() {
 void atender_cliente_io(void *socket) {
     char *nombre_io_hilo = NULL;
     int socket_cliente_IO = *(int *)socket;
+    interfaces_dict = dictionary_create();
     free(socket);
     // bool salir = true;
+    log_info(logger, "Atendiendo cliente IO en el socket %d", socket_cliente_IO);
     while (1) {
         if (socket_cliente_IO == -1) {
             log_error(logger, "Cliente IO desconectado, socket: %d", socket_cliente_IO);
@@ -245,6 +243,8 @@ void atender_cliente_io(void *socket) {
           }
           break;
         }
+
+        log_info(logger, "Operación de IO socket %d: %d", socket_cliente_IO, paqueteEntre->operacion);
 
         switch (paqueteEntre->operacion) {
           case IO_INTERFAZ_CREADA: 

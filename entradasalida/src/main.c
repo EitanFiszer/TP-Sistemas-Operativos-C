@@ -19,6 +19,8 @@
 t_log* logger;
 char* ip_kernel;
 char* ip_memoria;
+char* puerto_kernel;
+char* puerto_memoria;
 
 char* path_base2;
 int block_count2;
@@ -76,15 +78,21 @@ void crearHilo(char* nombre, char* path_config, char* ultimo_path) {
 
 int main(int argc, char* argv[]) {
     logger = log_create("entradasalida.log", "Entrada_Salida", 1, LOG_LEVEL_INFO);
-/*    t_config* config = config_create("../EntradaSalida.config");
+    t_config* config = config_create("EntradaSalida.config");
     
     //lee las ip
     ip_memoria = config_get_string_value(config, "IP_MEMORIA");
     ip_kernel = config_get_string_value(config, "IP_KERNEL");
+    puerto_memoria = config_get_string_value(config, "PUERTO_MEMORIA");
+    puerto_kernel = config_get_string_value(config, "PUERTO_KERNEL");
     
     //Número par de argumentos
     if ((argc - 1) % 2 != 0) {
-        log_error(logger, "Número incorrecto de argumentos.");
+        log_error(logger, "Número incorrecto de argumentos. %d args", argc);
+        for (int i = 0; i < argc; i++) {
+            log_error(logger, "Arg %d: %s", i, argv[i]);
+        }
+
         return 1;
     }
 
@@ -92,13 +100,12 @@ int main(int argc, char* argv[]) {
         log_info(logger, "Creando hilo %s", argv[i]);
         crearHilo(argv[i], argv[i+1], argv[argc-1]);
     }
-*/
 
-    path_base2="/FS/";
-    block_size2=16;
-    block_count2=8;
-    inicializar_FS();
-    leerDiccionario();
+    // path_base2="/FS/";
+    // block_size2=16;
+    // block_count2=8;
+    // inicializar_FS();
+    // leerDiccionario();
     log_destroy(logger);
     return 0;
 }

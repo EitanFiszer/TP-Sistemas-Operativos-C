@@ -3,7 +3,7 @@
 #include "conexionesIO.h"
 
 extern t_log* logger;
-t_dictionary *interfaces_dict;
+extern t_dictionary *interfaces_dict;
 
 void desconectar_IO(char *nombre_io_hilo) {
     int *socketIO = dictionary_remove(interfaces_dict, nombre_io_hilo);

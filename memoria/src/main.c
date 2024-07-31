@@ -13,10 +13,6 @@ int socketCpu;
 int socketKernel;
 int socketIO;
 
-sem_t sem_cpu;
-sem_t sem_kernel;
-sem_t sem_io;
-
 Memoria memoria;
 
 void signal_callback_handler(int signum) {
@@ -77,14 +73,14 @@ void esperarConexiones() {
             case CPU:
                 log_info(logger, "Se conectó un CPU en el socket %d", *cliente);
                 pthread_t hiloEsperaCpu;
-                socketCpu = cliente;
+                socketCpu = *cliente;
                 pthread_create(&hiloEsperaCpu, NULL, (void*)esperar_paquetes_cpu, NULL);   
                 pthread_detach(hiloEsperaCpu);
                 break;
             case KERNEL:
                 log_info(logger, "Se conectó un Kernel en el socket %d", *cliente);
                 pthread_t hiloEsperaKernel;
-                socketKernel = cliente;
+                socketKernel = *cliente;
                 pthread_create(&hiloEsperaKernel, NULL, (void*)esperar_paquetes_kernel, NULL);
                 pthread_detach(hiloEsperaKernel);
                 break;
@@ -107,7 +103,7 @@ int main(int argc, char* argv[]) {
     signal(SIGINT, signal_callback_handler);
 
     logger = iniciar_logger("memoria.log", "Memoria");
-    config = iniciar_config("../memoria.config");
+    config = iniciar_config("memoria.config");
 
     char* puerto_escucha = config_get_string_value(config, "PUERTO_ESCUCHA");
     retardo_respuesta = config_get_int_value(config, "RETARDO_RESPUESTA");
