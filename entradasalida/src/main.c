@@ -96,16 +96,29 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    for (int i = 1; i < argc; i += 2) {
+   /* for (int i = 1; i < argc; i += 2) {
         log_info(logger, "Creando hilo %s", argv[i]);
         crearHilo(argv[i], argv[i+1], argv[argc-1]);
     }
+    */
 
-    // path_base2="/FS/";
-    // block_size2=16;
-    // block_count2=8;
-    // inicializar_FS();
-    // leerDiccionario();
+    path_base2="/FS/";
+    block_size2=16;
+    block_count2=8;
+    inicializar_FS();
+    
+    crear_archivo("A"); //1
+    truncate_archivo("A",64); //1111
+    crear_archivo("B"); //11111
+    truncate_archivo("B",32); //111111
+    crear_archivo("C"); // 1111111
+    crear_archivo("D"); // 11111111
+    delete_archivo("A"); //0000 11 1 1
+
+    truncate_archivo("C",64); // 11 1 1111 0
+
+    leerDiccionario();
+    leerbitmap();
     log_destroy(logger);
     return 0;
 }

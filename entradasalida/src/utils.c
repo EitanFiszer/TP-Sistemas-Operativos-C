@@ -122,12 +122,14 @@ int espacioLIbre(char* nombres, int bloques_delArchivo){
 
 void leerDiccionario(){
     t_metadata* FCB;
-    t_list* lista = dictionary_elements(diccionarioFS);
-    for(int i=0; i<lista->elements_count; i++){
-        FCB=lista->head->data;
+    t_list* lista = dictionary_keys(diccionarioFS);
+    char* nombre;
+    for(int i=0; i<list_size(lista); i++){
+        nombre=list_get(lista,i);
+        FCB=dictionary_get(diccionarioFS, nombre);
+        log_info(logger,"%s",nombre);
         log_info(logger,"%d",FCB->bloque_inicial);
         log_info(logger,"%d",FCB->tam_archivo);
-        lista->head=lista->head->next;
     }
 }
 

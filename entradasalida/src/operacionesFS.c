@@ -198,7 +198,9 @@ void truncate_archivo(char* nombre, int tam) {
             if(espacio>=cant_bloques_ingresados){
                 compactacion_bitmap(espacio,cant_bloques_arch);
                 compactacion_metadata(nombre, espacio);
+                fclose(archivo);
                 log_info(logger, "COMPACTACION");
+                truncate_archivo(nombre,tam);
                 
                 return;
             };
@@ -228,35 +230,26 @@ void truncate_archivo(char* nombre, int tam) {
 }
 
 void compactacion_metadata(char* nombre, int espacio){
-    DIR *d;
-    struct dirent *dir;
-    d = opendir(crear_ruta(""));
+    char* name;
     t_metadata* FCB;
-
-    if (d) {
-        int acumulador_bloques=0;
-        while ((dir = readdir(d)) != NULL) {
-            if((string_starts_with(dir->d_name,".")) || (string_ends_with(dir->d_name,"dat"))){
-                continue;
+    t_list* lista = dictionary_keys(diccionarioFS);
+    int acumulador_bloques=0;
+    for(int i=0;i<list_size(lista);i++){
+        name = list_get(lista,i);
+        FCB = dictionary_get(diccionarioFS,name);
+        if(strcmp(nombre,name)){
+            FCB->bloque_inicial=acumulador_bloques;
+            dictionary_put(diccionarioFS,name,FCB);
+            int cantidad_bloques=(FCB->tam_archivo+block_size2-1)/block_size2;
+            if(cantidad_bloques==0){
+                cantidad_bloques=1;
             }
-            FCB=dictionary_get(diccionarioFS,dir->d_name);
-            if(strcmp(nombre,dir->d_name)){
-                FCB->bloque_inicial=acumulador_bloques;
-                dictionary_put(diccionarioFS,dir->d_name,FCB);
-
-                int cantidad_bloques=(FCB->tam_archivo+block_size2-1)/block_size2;
-                if(cantidad_bloques==0){
-                    cantidad_bloques=1;
-                }
-                acumulador_bloques=acumulador_bloques+cantidad_bloques;
-            }else{
-                FCB->bloque_inicial=block_count2-espacio;
-                dictionary_put(diccionarioFS,dir->d_name,FCB);
-            }
+            acumulador_bloques=acumulador_bloques+cantidad_bloques;
+        }else{
+            FCB->bloque_inicial=block_count2-espacio;
+            dictionary_put(diccionarioFS,name,FCB);
         }
-        closedir(d);
     }
-
 }
 
 
