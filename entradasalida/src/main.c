@@ -74,7 +74,7 @@ void crearHilo(char* nombre, char* path_config, char* ultimo_path) {
 
 int main(int argc, char* argv[]) {
     logger = log_create("entradasalida.log", "Entrada_Salida", 1, LOG_LEVEL_INFO);
-    t_config* config = config_create("EntradaSalida.config");
+    t_config* config = config_create("../EntradaSalida.config");
     
     //lee las ip
     ip_memoria = config_get_string_value(config, "IP_MEMORIA");

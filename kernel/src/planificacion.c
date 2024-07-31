@@ -69,6 +69,7 @@ void *planificacion(void *args)
 void modificar_quantum(t_PCB *pcb)
 {
     pthread_cancel(hilo_quantum);
+    log_info(logger,"quantum cancelado");
     int64_t tiempo_gastado = temporal_gettime(tempo_quantum);
     pcb->quantum -= tiempo_gastado;
 }
@@ -283,51 +284,35 @@ void stl_RR()
         }
         pthread_mutex_unlock(&mutex_planificacion);
         sem_wait(&sem_cont_ready);
-        log_info(logger, "HAY ELEMENTOS EN LA COLA READY");
+        // log_info(logger, "HAY ELEMENTOS EN LA COLA READY");
 
         pthread_mutex_lock(&sem_CPU_libre);
-        log_info(logger, "Bloqueando CPU");
+        // log_info(logger, "Bloqueando CPU");
 
         pthread_mutex_lock(&sem_q_ready);
         t_PCB *retirar_ready = queue_pop(cola_ready);
         pthread_mutex_unlock(&sem_q_ready);
 
         retirar_ready->estado = EXEC;
+        retirar_ready->quantum = quantum;
 
         pthread_mutex_lock(&sem_q_exec);
         queue_push(cola_exec, retirar_ready);
         pthread_mutex_unlock(&sem_q_exec);
         log_info(logger, "PID:%d - Estado Anterior: READY - Estado Actual: EXEC", retirar_ready->PID);
-        log_info(logger, "QUANTUM PROCESO A EJECUTAR: %d", retirar_ready->quantum);
+        // log_info(logger, "QUANTUM PROCESO A EJECUTAR: %d", retirar_ready->quantum);
 
-        if (retirar_ready->quantum <= 0)
-        {
-            retirar_ready->estado = READY;
-            retirar_ready->quantum = quantum;
-            log_info(logger, "QUANTUM RECARGADO PROCESO A EJECUTAR: %d", retirar_ready->quantum);
-        //     pthread_mutex_lock(&sem_q_ready);
-        //     queue_push(cola_ready, retirar_ready);
-        //     pthread_mutex_unlock(&sem_q_ready);
-        //     log_info(logger, "PID:%d - Estado Anterior: EXEC - Estado Actual: READY, FIN DE QUANTUM", retirar_ready->PID);
-            
-        //     pthread_mutex_lock(&sem_q_exec);
-        //     queue_pop(cola_exec);
-        //     pthread_mutex_unlock(&sem_q_exec);
+        
+        retirar_ready->quantum = quantum;
+    
+        //tempo_quantum = temporal_create();          --- SE USA EN VRR ----
 
-        //     sem_post(&sem_cont_ready);
+        pthread_create(&hilo_quantum, NULL, manejar_quantum, (void *)retirar_ready);
 
-        //     pthread_mutex_unlock(&sem_CPU_libre);
-        }
-        // else
-        // {
-            tempo_quantum = temporal_create();
+        enviar_paquete_cpu_dispatch(EXEC_PROCESO, retirar_ready, sizeof(t_PCB));
 
-            pthread_create(&hilo_quantum, NULL, manejar_quantum, (void *)retirar_ready);
-
-            enviar_paquete_cpu_dispatch(EXEC_PROCESO, retirar_ready, sizeof(t_PCB));
-
-            pthread_join(hilo_quantum, NULL);
-        // }
+        pthread_join(hilo_quantum, NULL);
+        
     }
 }
 
@@ -335,34 +320,35 @@ void *manejar_quantum(void *arg)
 {
     t_PCB *pcb = (t_PCB *)arg;
 
-    sleep(((unsigned int)(pcb->quantum)) / 1000);   
+    sleep(((unsigned int)(pcb->quantum)) / 1000);
     interrumpir(FIN_QUANTUM);
     temporal_destroy(tempo_quantum);
     return NULL;
 }
 
-void hubo_syscall(t_PCB *pcb)
+/*void hubo_syscall(t_PCB *pcb)
 {
     pthread_cancel(hilo_quantum);
     int64_t tiempo_gastado = temporal_gettime(tempo_quantum);
     pcb->quantum -= tiempo_gastado;
 
-    if (strcmp(algoritmo_planificacion, "VRR") == 0)
-    {
-        pthread_mutex_lock(&sem_q_ready_priori);
-        queue_push(cola_ready_priori, pcb);
-        pthread_mutex_unlock(&sem_q_ready_priori);
-    }
-    else
-    {
-        pthread_mutex_lock(&sem_q_ready);
-        queue_push(cola_ready, pcb);
-        pthread_mutex_unlock(&sem_q_ready);
-    }
+//     if (strcmp(algoritmo_planificacion, "VRR") == 0)
+//     {
+//         pthread_mutex_lock(&sem_q_ready_priori);
+//         queue_push(cola_ready_priori, pcb);
+//         pthread_mutex_unlock(&sem_q_ready_priori);
+//     }
+//     else
+//     {
+//         pthread_mutex_lock(&sem_q_ready);
+//         queue_push(cola_ready, pcb);
+//         pthread_mutex_unlock(&sem_q_ready);
+//     }
 
-    sem_post(&sem_cont_ready);
-    temporal_destroy(tempo_quantum);
-}
+//     sem_post(&sem_cont_ready);
+//     temporal_destroy(tempo_quantum);
+// }
+*/
 
 void stl_VRR()
 {
@@ -412,7 +398,7 @@ void stl_VRR()
             queue_push(cola_ready, retirar_ready);
             pthread_mutex_unlock(&sem_q_ready);
             log_info(logger, "PID:%d - Estado Anterior: EXEC - Estado Actual: READY, FIN DE QUANTUM", retirar_ready->PID);
-            
+
             pthread_mutex_lock(&sem_q_exec);
             queue_pop(cola_exec);
             pthread_mutex_unlock(&sem_q_exec);
@@ -471,7 +457,7 @@ void lts_ex(t_PCB *pcb, t_proceso_estado estado_anterior, char *motivo)
 
     enviar_paquete_memoria(FINALIZAR_PROCESO, &pcb->PID, sizeof(int));
 
-    log_info(logger,"Finaliza el proceso <%d> - Motivo: <%s>", pcb->PID, motivo);
+    log_info(logger, "Finaliza el proceso <%d> - Motivo: <%s>", pcb->PID, motivo);
 
     switch (estado_anterior)
     {
@@ -491,9 +477,12 @@ void lts_ex(t_PCB *pcb, t_proceso_estado estado_anterior, char *motivo)
         break;
     }
 }
-void cancelar_quantum(){
-    if(strcmp(algoritmo_planificacion,"VRR")==0||strcmp(algoritmo_planificacion,"RR")==0){
-         pthread_cancel(hilo_quantum);
+void cancelar_quantum()
+{
+    if (strcmp(algoritmo_planificacion, "VRR") == 0 || strcmp(algoritmo_planificacion, "RR") == 0)
+    {
+        pthread_cancel(hilo_quantum);
+        log_info(logger,"quantum cancelado");
     }
 }
 void desalojar()
@@ -567,7 +556,7 @@ bool buscar_pcb(int pid)
             {
                 if (pcb->PID == pid)
                 {
-                    lts_ex(pcb, READY,"INTERRUPTED_BY_USER");
+                    lts_ex(pcb, READY, "INTERRUPTED_BY_USER");
                     encontrado = true;
                 }
                 else
@@ -591,7 +580,7 @@ bool buscar_pcb(int pid)
             if (dat_bloc->pcb->PID == pid)
             {
                 sacar_bloqueo(dat_bloc);
-                lts_ex(dat_bloc->pcb, BLOCKED,"INTERRUPTED_BY_USER");
+                lts_ex(dat_bloc->pcb, BLOCKED, "INTERRUPTED_BY_USER");
                 encontrado = true;
             }
             else
@@ -602,24 +591,27 @@ bool buscar_pcb(int pid)
     }
     pthread_mutex_unlock(&sem_q_blocked);
 
-
     // RECORRER EXEC
     pthread_mutex_lock(&sem_q_exec);
-      if(!queue_is_empty(cola_exec)){
+    if (!queue_is_empty(cola_exec))
+    {
         pcb = queue_pop(cola_exec);
-        if(pcb->PID!=pid){
-            queue_push(cola_exec,pcb);
-        }else{
-            encontrado=true;
+        if (pcb->PID != pid)
+        {
+            queue_push(cola_exec, pcb);
+        }
+        else
+        {
+            encontrado = true;
             interrumpir(INTERRUPTED_BY_USER);
-            lts_ex(pcb, EXEC,"INTERRUPTED_BY_USER");
+            lts_ex(pcb, EXEC, "INTERRUPTED_BY_USER");
             log_info(logger, "DESALOJANDO PROCESO DEJANDO CPU_LIBRE");
             pthread_mutex_unlock(&sem_CPU_libre);
             log_info(logger, "CPU_LIBRE, PID SACADO: %d", pcb->PID);
         }
-      }  
+    }
     pthread_mutex_unlock(&sem_q_exec);
-    
+
     return encontrado;
 }
 
@@ -642,6 +634,10 @@ void finalizar_proceso(int pid)
     if (encontrado)
     {
         printf("Finaliza el proceso <%d> - Motivo: INTERRUPTED_BY_USER\n", pid);
+    }
+    else
+    {
+        printf("No se pudo encontrar proceso pid %d", pid);
     }
 }
 void detener_planificacion()
@@ -803,7 +799,7 @@ void listar_procesos_por_estado()
 
 void add_queue_blocked(t_PCB *pcb, tipo_block tipo, char *key)
 {
-    str_blocked* dat_bloc= malloc(sizeof(str_blocked));
+    str_blocked *dat_bloc = malloc(sizeof(str_blocked));
     dat_bloc->pcb = pcb;
     dat_bloc->tipo = tipo;
     dat_bloc->key = key;

@@ -2,6 +2,7 @@
 bool bool_error_memoria=false;
 bool bool_syscall=false;
 bool bool_interrupted_by_user=false;
+bool bool_interrumpi=false;
 void atender_cliente(void *socket)
 {
     char *nombre_io_hilo = NULL;
@@ -102,7 +103,7 @@ void *esperar_paquetes_cpu_dispatch(void *arg)
         }
         switch (paquete_dispatch->operacion)
         {
-        case INTERRUMPIO_PROCESO:
+        case INTERRUMPIO_PROCESO:     // A CHEQUEAR
             log_info(logger, "RECIBIENDO PROCESO DESALOJADO");
             t_PCB *PCB = (t_PCB *)paquete_dispatch->payload;
             if(bool_error_memoria){
@@ -114,35 +115,19 @@ void *esperar_paquetes_cpu_dispatch(void *arg)
             }else if(bool_interrupted_by_user){
                 bool_interrupted_by_user =false;
             }
-            else{
-                cancelar_quantum();
+            else if(bool_interrumpi){
+                bool_interrumpi = false;
                 desalojar();
                 cargar_ready(PCB, EXEC);
-
             }
-            // if(no hubo syscall)
-            // pthread_mutex_trylock(&interrupcion_syscall);
-            // if (interrumpio_syscall)
-            // {
-            //     log_info(logger, "PROCESO DESALOJADO POR SYSCALL");
-            //     interrumpio_syscall = false;
-            // break;
-            // }
-            // else
-            // {
-
-            
             break;
-            // }
             // pthread_mutex_unlock(&interrupcion_syscall);
         case ERROR_OUT_OF_MEMORY:
             interrumpir(ERROR_OUT_OF_MEMORY_I);
             enviar_paquete_cpu_dispatch(CONFIRMAR_SYSCALL,NULL,0);
-            cancelar_quantum();
             desalojar();
-
-            
             break;
+            
         case WAIT:
             t_payload_wait_signal *paquete_wait = malloc(sizeof(t_payload_wait_signal));
             paquete_wait = deserializar_wait_signal(paquete_dispatch->payload);
@@ -160,9 +145,9 @@ void *esperar_paquetes_cpu_dispatch(void *arg)
             break;
 
         case TERMINO_EJECUCION:
-            cancelar_quantum();
             desalojar();
             t_PCB *pcb_dispatch = (t_PCB *)paquete_dispatch->payload;
+            log_info(logger, "Finaliza el proceso %d - Motivo: SUCCESS", pcb_dispatch->PID);
             lts_ex(pcb_dispatch, EXEC,"SUCCESS");
             /// PROCESO TERMINADO SE DESALOJA Y SE ENVIA A EXIT
             break;
@@ -281,6 +266,7 @@ void interrumpir(t_motivo_interrupcion motivo)
         bool_syscall =true;
     }else if(motivo == FIN_QUANTUM){
         log_info(logger, "INTERRUMPIENDO PROCESO POR FIN DE QUANTUM");
+        bool_interrumpi=true;
     }else if(motivo == ERROR_OUT_OF_MEMORY_I){
         log_info(logger, "INTERRUMPIENDO PROCESO POR ERROR_OUT_OF_MEMORY");
         bool_error_memoria = true;
@@ -298,6 +284,7 @@ void interrumpir(t_motivo_interrupcion motivo)
     enviar_paquete(paquete_fin_de_q, resultHandshakeInterrupt);
     eliminar_paquete(paquete_fin_de_q);
     free(fin_q);
+    log_info(logger, "Se interrumpio el proceso");
 }
 void finalizar_kernel()
 {

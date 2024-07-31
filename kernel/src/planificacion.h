@@ -59,7 +59,7 @@ void desalojar();
 // void atender_syscall(void*);
 void *manejar_quantum(void *);
 // int buscar_recurso(char*);
-void hubo_syscall(t_PCB *);
+// void hubo_syscall(t_PCB *);
 
 void modificar_quantum(t_PCB *);
 void cancelar_quantum();

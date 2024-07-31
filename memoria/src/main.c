@@ -17,10 +17,6 @@ sem_t sem_cpu;
 sem_t sem_kernel;
 sem_t sem_io;
 
-pthread_t hiloEsperaCpu;
-pthread_t hiloEsperaKernel;
-pthread_t hiloEsperaIO;
-
 Memoria memoria;
 
 void signal_callback_handler(int signum) {
@@ -70,114 +66,48 @@ Handshake esperar_cliente_memoria(int socket_servidor, t_log* logger) {
     return handshakeCliente;
 }
 
-void iniciarSemaforos() {
-    sem_init(&sem_cpu, 0, 0);
-    sem_init(&sem_kernel, 0, 0);
-    sem_init(&sem_io, 0, 0);
-}
-
 void esperarConexiones() {
-    bool seConectoKernel = false;
-    bool seConectoCpu = false;
-    bool seConectoIO = false;
-
-    while (!seConectoKernel || !seConectoCpu || !seConectoIO) {
+    while (1) {
         Handshake res = esperar_cliente_memoria(server_fd, logger);
-        int cliente = res.socket;
-        ID modulo = res.modulo;
+        int modulo = res.modulo;
+        int *cliente = malloc(sizeof(int));
+        *cliente = res.socket;
 
         switch (modulo) {
             case CPU:
-                if (seConectoCpu) {
-                    log_error(logger, "Ya se conectó un CPU");
-                    break;
-                }
-                log_info(logger, "Se conectó un CPU en el socket %d", cliente);
+                log_info(logger, "Se conectó un CPU en el socket %d", *cliente);
+                pthread_t hiloEsperaCpu;
                 socketCpu = cliente;
-                sem_post(&sem_cpu);
-                seConectoCpu = true;
+                pthread_create(&hiloEsperaCpu, NULL, (void*)esperar_paquetes_cpu, NULL);   
+                pthread_detach(hiloEsperaCpu);
                 break;
             case KERNEL:
-                if (seConectoKernel) {
-                    log_error(logger, "Ya se conectó un Kernel");
-                    break;
-                }
-                log_info(logger, "Se conectó un Kernel en el socket %d", cliente);
+                log_info(logger, "Se conectó un Kernel en el socket %d", *cliente);
+                pthread_t hiloEsperaKernel;
                 socketKernel = cliente;
-                sem_post(&sem_kernel);
-                seConectoKernel = true;
+                pthread_create(&hiloEsperaKernel, NULL, (void*)esperar_paquetes_kernel, NULL);
+                pthread_detach(hiloEsperaKernel);
                 break;
             case IO:
-                if (seConectoIO) {
-                    log_error(logger, "Ya se conectó un IO");
-                    break;
-                }
-                log_info(logger, "Se conectó un IO en el socket %d", cliente);
-                socketIO = cliente;
-                sem_post(&sem_io);
-                seConectoIO = true;
+                log_info(logger, "Se conectó un IO en el socket %d", *cliente);
+                pthread_t hiloEsperaIO;
+                pthread_create(&hiloEsperaIO, NULL, (void*)atender_cliente_io, cliente);
+                pthread_detach(hiloEsperaIO);
                 break;
             default:
-                log_info(logger, "Operación desconocida de KERNEL");
+                // log_info(logger, "Operación desconocida de KERNEL");
                 break;
         }
     }
 
     printf("Memoria inicializada, esperando hilos\n");
-
-    // esperar a los hilos
-    pthread_detach(hiloEsperaKernel);
-    pthread_detach(hiloEsperaCpu);
-    pthread_join(hiloEsperaIO, NULL);
-}
-
-void probarTodo_() {
-    t_payload_enviar_dato_memoria* payload = malloc(sizeof(t_payload_enviar_dato_memoria));
-    payload->direccion = 0;
-    int num = 5;
-    payload->dato = &num;
-    payload->tamDato = sizeof(int);
-    // payload->dato = "Hola";
-    // payload->tamDato = strlen("Hola") + 1;
-
-    int size_payload;
-    void* buffer = serializar_enviar_dato_memoria(payload, &size_payload);
-    t_payload_enviar_dato_memoria* payload_deserializado = deserializar_enviar_dato_memoria(buffer);
-
-    printf("Dato int: %d\n", *(int*)payload_deserializado->dato);
-
-    escribirMemoria(payload_deserializado->direccion, payload_deserializado->dato, payload_deserializado->tamDato);
-
-    void* dato = obtenerDatoMemoria(payload_deserializado->direccion, payload_deserializado->tamDato);
-
-    printf("Dato leído: %d\n", (int)dato);
-    // printf("Dato leído: %s\n", (char*)&dato);
-}
-
-void probarTodo() {
-    t_payload_wait_signal* payload = malloc(sizeof(t_payload_wait_signal));
-    payload->recurso = "RA";
-    t_PCB* pcb = malloc(sizeof(t_PCB));
-    pcb->PID = 1;
-    pcb->estado = NEW;
-    pcb->program_counter = 0;
-    pcb->quantum = 2000;
-
-    payload->pcb = pcb;
-
-    int size_payload;
-    void* buffer = serializar_wait_signal(payload, &size_payload);
-    t_payload_wait_signal* payload_deserializado = deserializar_wait_signal(buffer);
-
-    printf("Recurso: %s\n", payload_deserializado->recurso);
-    printf("PCB PID: %d, QUANTUM: %d\n", payload_deserializado->pcb->PID, payload_deserializado->pcb->quantum);
 }
 
 int main(int argc, char* argv[]) {
     signal(SIGINT, signal_callback_handler);
 
     logger = iniciar_logger("memoria.log", "Memoria");
-    config = iniciar_config("memoria.config");
+    config = iniciar_config("../memoria.config");
 
     char* puerto_escucha = config_get_string_value(config, "PUERTO_ESCUCHA");
     retardo_respuesta = config_get_int_value(config, "RETARDO_RESPUESTA");
@@ -188,14 +118,10 @@ int main(int argc, char* argv[]) {
     char* string = NULL;
     marcosLibres = iniciarBitarray(string);
     server_fd = iniciar_servidor(puerto_escucha, logger);
-    iniciarSemaforos();
     inicializarMemoria();
-    iniciarHilos();
 
     log_info(logger, "[MEMORIA] Escuchando en el puerto: %s", puerto_escucha);
-
     esperarConexiones();
-
     // probarTodo();
 
     liberarMemoria();
