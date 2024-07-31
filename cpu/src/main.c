@@ -173,15 +173,14 @@ int main(int argc, char* argv[]) {
         t_PCB* pcb = (t_PCB*)paq->payload;
         switch (paq->operacion) {
             case EXEC_PROCESO:
-                while (getHayInterrupcion() == false) {
+                while (1) {
                     char* instruccionRecibida;
                     int ok = fetchInstruccion(pcb, socketMemoria, &instruccionRecibida, logger);
-
+                    if(getHayInterrupcion()) break;
                     if (ok == -1) {
                         log_error(logger, "PROCESO TERMINÓ EJECUCIÓN: PID %d", pcb->PID);
 
-                        OP_CODES_ENTRE op = getHayInterrupcion() ? INTERRUMPIR_PROCESO : TERMINO_EJECUCION;
-
+                        OP_CODES_ENTRE op = TERMINO_EJECUCION;
                         // Devolver el PCB al kernel
                         enviar_pcb_kernel(pcb, op);
                         break;

@@ -125,14 +125,8 @@ void esperar_paquetes_cpu() {
                 int tamDato = payloadSolicitarDato->tam;
                 // Obtener dato de memoria
                 void* dato = obtenerDatoMemoria(direccion, tamDato);
-                // printf("Dato: %d\n", (int)dato);
-
-                // Enviar dato a CPU
-                t_payload_dato_memoria payloadDato = {
-                    .dato = (int)dato
-                };
-                enviar_paquete_entre(socketCpu, DATO_MEMORIA, &payloadDato, sizeof(t_payload_dato_memoria));
-
+                
+                enviar_paquete_entre(socketCpu, DATO_MEMORIA, dato, sizeof(dato));
               break;
             #pragma endregion SOLICITAR_DATO_MEMORIA
             
@@ -178,10 +172,8 @@ void esperar_paquetes_cpu() {
               int tamDatoEnviar = payloadEnviar->tamDato;
               printf("Escribiendo dato %d en dirección %d\n", *(int*)datoEnviar, direccionEnviar);
               escribirMemoria(direccionEnviar, datoEnviar, tamDatoEnviar);
-
-              t_payload_dato_memoria* payloadDatoEnviar = malloc(sizeof(t_payload_dato_memoria));
-              payloadDatoEnviar->dato = datoEnviar;
-              enviar_paquete_entre(socketCpu, DATO_MEMORIA, payloadDatoEnviar, sizeof(t_payload_dato_memoria));
+              
+              enviar_paquete_entre(socketCpu, DATO_MEMORIA, datoEnviar, sizeof(datoEnviar));
               break;
             #pragma endregion
             default:
@@ -214,6 +206,17 @@ void esperar_paquetes_io() {
         char* string = payloadStdin->cadena;
         int sizeString = payloadStdin->size_cadena;
 
+        break;
+      case SOLICITAR_DATO_MEMORIA:
+        usleep(retardo_respuesta * 1000);
+        t_payload_solicitar_dato_memoria *payloadSolicitarDato = deserializar_solicitar_dato_memoria(paquete_io->payload);
+        int direccion = payloadSolicitarDato->direccion;
+        log_info(logger, "Se llamó a SOLICITAR_DATO_MEMORIA para dirección: %d", direccion);
+        int tamDato = payloadSolicitarDato->tam;
+        // Obtener dato de memoria
+        void* dato = obtenerDatoMemoria(direccion, tamDato);
+        
+        enviar_paquete_entre(socketIO, DATO_MEMORIA, dato, sizeof(dato));
         break;
       default:
         log_info(logger, "Operación desconocida de IO");

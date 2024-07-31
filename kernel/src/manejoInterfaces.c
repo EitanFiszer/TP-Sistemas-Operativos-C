@@ -65,7 +65,7 @@ void atender_io_stdin_read(t_payload_io_stdin_read *stdint_read)
     else
     {
         pthread_mutex_lock(&(find_io->mutex_interfaz));
-        if (strcmp(find_io->tipo_interfaz, "IO_STDIN") == 0)
+        if (strcmp(find_io->tipo_interfaz, "STDIN") == 0)
         {
             add_queue_blocked(stdint_read->pcb, IOB, stdint_read->interfaz);
             if (strcmp(algoritmo_planificacion, "RR") == 0 || strcmp(algoritmo_planificacion, "VRR") == 0)
@@ -121,7 +121,7 @@ void atender_io_stdout_write(t_payload_io_stdout_write *stdout_write)
     }
     else
     {
-        if (strcmp(find_io->tipo_interfaz, "IO_STDOUT_WRITE") == 0)
+        if (strcmp(find_io->tipo_interfaz, "STDOUT") == 0)
         {
             add_queue_blocked(stdout_write->pcb, IOB, stdout_write->interfaz);
             if (strcmp(algoritmo_planificacion, "RR") == 0 || strcmp(algoritmo_planificacion, "VRR") == 0)

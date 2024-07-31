@@ -34,6 +34,10 @@ void crear_bitmap() {
 
     log_info(logger, "Se inicializó el bitarray con un tamaño de %lu", bitarray_get_max_bit(bitarray));
 
+    // chequear si el archivo ya existía
+    char* ruta = crear_ruta("bitmap.dat");
+    if (access(ruta, F_OK) == 0) return;
+
     // Crear la ruta completa para el archivo bitmap.dat
     FILE* archivo = crear_archivo_fs("bitmap.dat");
 

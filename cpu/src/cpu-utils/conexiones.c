@@ -69,7 +69,7 @@ int enviar_dato_memoria(int dirFisica, void* dato, int tamDato) {
     }
 
     t_payload_dato_memoria* payloadRecibido = (t_payload_dato_memoria*)paqueteRecibido->payload;
-    void* resultado = payloadRecibido->dato;
+    void* resultado = payloadRecibido;
 
     if (resultado == NULL) {
         return -1;
