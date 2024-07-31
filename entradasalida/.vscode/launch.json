@@ -9,7 +9,7 @@
       "request": "launch",
       "program": "${workspaceFolder}/bin/${workspaceFolderBasename}",
       // "args": ["Int1","IntGen.config","Int2","IntStdin.config","Int3","IntStdout.config"],
-      "args": ["SLP1","SLP1.config"],
+      "args": ["SLP1", "SLP1.config"],
       // "args": ["ESPERA", "ESPERA.config", "FS", "FS.config", "GENERICA", "GENERICA.config", "IO_GEN_SLEEP", "IO_GEN_SLEEP.config", "MONITOR", "MONITOR.config", "SLP1", "SLP1.config", "TECLADO", "TECLADO.config"],
       "stopAtEntry": false,
       "cwd": "${workspaceFolder}",

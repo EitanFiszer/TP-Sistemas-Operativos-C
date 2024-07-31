@@ -284,7 +284,7 @@ void interrumpir(t_motivo_interrupcion motivo)
     enviar_paquete(paquete_fin_de_q, resultHandshakeInterrupt);
     eliminar_paquete(paquete_fin_de_q);
     free(fin_q);
-    log_info(logger, "Se interrumpio el proceso");
+    log_info(logger, "Se interrumpio el proceso por motivo %d", motivo);
 }
 void finalizar_kernel()
 {

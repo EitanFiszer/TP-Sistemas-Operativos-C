@@ -71,6 +71,7 @@ void modificar_quantum(t_PCB *pcb)
     pthread_cancel(hilo_quantum);
     log_info(logger,"quantum cancelado");
     int64_t tiempo_gastado = temporal_gettime(tempo_quantum);
+    log_info(logger, "TIEMPO GASTADO: %d", tiempo_gastado);
     pcb->quantum -= tiempo_gastado;
 }
 
@@ -305,7 +306,7 @@ void stl_RR()
         
         retirar_ready->quantum = quantum;
     
-        //tempo_quantum = temporal_create();          --- SE USA EN VRR ----
+        tempo_quantum = temporal_create();         /* --- SE USA EN VRR ----*/
 
         pthread_create(&hilo_quantum, NULL, manejar_quantum, (void *)retirar_ready);
 
@@ -477,14 +478,16 @@ void lts_ex(t_PCB *pcb, t_proceso_estado estado_anterior, char *motivo)
         break;
     }
 }
-void cancelar_quantum()
+
+/*void cancelar_quantum()
 {
     if (strcmp(algoritmo_planificacion, "VRR") == 0 || strcmp(algoritmo_planificacion, "RR") == 0)
     {
         pthread_cancel(hilo_quantum);
         log_info(logger,"quantum cancelado");
     }
-}
+}*/
+
 void desalojar()
 {
     // FALLA EN MEMORIA_3
