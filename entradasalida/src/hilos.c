@@ -11,48 +11,25 @@
 #include "bitmap.h"
 #include "utils.h"
 
-int block_size;
-int block_count;
-char* path_base_fs;
 
 struct args {
     char* nombre;
     char* path_config;
 };
 
+int block_count;
+int block_size;
+char* path_base_fs;
+
+
 extern t_log* logger;
-extern int socketMemoria;
-
-void crearArchivodebloques(int block_count, int block_size, char* pathbase) {
-    size_t tamano_total = block_size * block_count;
-
-    // chequear si el archivo ya existía
-    char* ruta = crear_ruta("bloques.dat");
-    if (access(ruta, F_OK) == 0) return;
-    
-    FILE* archivo = crear_archivo_fs("bloques.dat");
-
-    // Establecer el tamaño del archivo
-    if (fseek(archivo, tamano_total - 1, SEEK_SET) != 0) {
-        perror("Error al ajustar el tamaño del archivo");
-        fclose(archivo);
-        exit(EXIT_FAILURE);
-    }
-
-    // Escribir un byte nulo al final para establecer el tamaño
-    if (fwrite("", 1, 1, archivo) != 1) {
-        perror("Error al escribir el byte final");
-        fclose(archivo);
-        exit(EXIT_FAILURE);
-    }
-
-    fclose(archivo);
-}
+extern char* ip_kernel;
+extern char* ip_memoria;
 
 
 
-int conexionKernell(char* ip, char* puerto, char* tipo_interfaz, char* nombre) {
-    int resultHandshake = connectAndHandshake(ip, puerto, IO, "kernel", logger);
+int conexionKernell(char* puerto, char* tipo_interfaz, char* nombre) {
+    int resultHandshake = connectAndHandshake(ip_kernel, puerto, IO, "kernel", logger);
 
     t_payload_interfaz_creada* payload = malloc(sizeof(t_payload_interfaz_creada));
 
@@ -66,8 +43,8 @@ int conexionKernell(char* ip, char* puerto, char* tipo_interfaz, char* nombre) {
     return resultHandshake;
 }
 
-int conexionMemoria(char* ip, char* puerto, char* tipo_interfaz, char* nombre) {
-    int resultHandshake = connectAndHandshake(ip, puerto, IO, "memoria", logger);
+int conexionMemoria(char* puerto, char* tipo_interfaz, char* nombre) {
+    int resultHandshake = connectAndHandshake(ip_memoria, puerto, IO, "memoria", logger);
 
     t_payload_interfaz_creada* payload = malloc(sizeof(t_payload_interfaz_creada));
 
@@ -88,11 +65,10 @@ void hilo_generica(void* argumentos) {
 
     t_config* config = config_create(path_config);
     int tiempo_unidad_trabajo = config_get_int_value(config, "TIEMPO_UNIDAD_TRABAJO");
-    char* ip_kernel = config_get_string_value(config, "IP_KERNEL");
     char* puerto_kernel = config_get_string_value(config, "PUERTO_KERNEL");
     char* tipo_interfaz = config_get_string_value(config, "TIPO_INTERFAZ");
 
-    int resultHandshakeKernell = conexionKernell(ip_kernel, puerto_kernel, tipo_interfaz, nombre);
+    int resultHandshakeKernell = conexionKernell(puerto_kernel, tipo_interfaz, nombre);
 
     while (1) {
         t_paquete_entre* paquete_entre = recibir_paquete_entre(resultHandshakeKernell);
@@ -125,14 +101,12 @@ void hilo_stdin(void* argumentos) {
 
     t_config* config = config_create(path_config);
 
-    char* ip_kernel = config_get_string_value(config, "IP_KERNEL");
     char* puerto_kernel = config_get_string_value(config, "PUERTO_KERNEL");
     char* tipo_interfaz = config_get_string_value(config, "TIPO_INTERFAZ");
     char* puerto_memoria = config_get_string_value(config, "PUERTO_MEMORIA");
-    char* ip_memoria = config_get_string_value(config, "IP_MEMORIA");
 
-    int socketKernell = conexionKernell(ip_kernel, puerto_kernel, tipo_interfaz, nombre);
-    int socketMemoria = conexionMemoria(ip_memoria, puerto_memoria, tipo_interfaz, nombre);
+    int socketKernell = conexionKernell(puerto_kernel, tipo_interfaz, nombre);
+    int socketMemoria = conexionMemoria(puerto_memoria, tipo_interfaz, nombre);
 
 
     while (1) {
@@ -181,14 +155,12 @@ void hilo_stdout(void* argumentos) {
 
     t_config* config = config_create(path_config);
 
-    char* ip_kernel = config_get_string_value(config, "IP_KERNEL");
     char* puerto_kernel = config_get_string_value(config, "PUERTO_KERNEL");
     char* tipo_interfaz = config_get_string_value(config, "TIPO_INTERFAZ");
     char* puerto_memoria = config_get_string_value(config, "PUERTO_MEMORIA");
-    char* ip_memoria = config_get_string_value(config, "IP_MEMORIA");
 
-    int socketKernell = conexionKernell(ip_kernel, puerto_kernel, tipo_interfaz, nombre);
-    int socketMemoria = conexionMemoria(ip_memoria, puerto_memoria, tipo_interfaz, nombre);
+    int socketKernell = conexionKernell(puerto_kernel, tipo_interfaz, nombre);
+    int socketMemoria = conexionMemoria(puerto_memoria, tipo_interfaz, nombre);
 
     while (1) {
         t_paquete_entre* paquete_dispatch = recibir_paquete_entre(socketKernell);
@@ -225,6 +197,7 @@ void hilo_stdout(void* argumentos) {
     }
 }
 
+
 void hilo_dialfs(void* argumentos){
     struct args* nombreYpath = argumentos;
     char* path_config = nombreYpath->path_config;
@@ -232,9 +205,7 @@ void hilo_dialfs(void* argumentos){
 
     t_config* config = config_create(path_config);
 
-    char* ip_kernel = config_get_string_value(config, "IP_KERNEL");
     char* puerto_kernel = config_get_string_value(config, "PUERTO_KERNEL");
-    char* ip_memoria = config_get_string_value(config, "IP_KERNEL");
     char* puerto_memoria = config_get_string_value(config, "PUERTO_KERNEL");
     char* tipo_interfaz = config_get_string_value(config, "TIPO_INTERFAZ");
     int tiempo_unidad_trabajo = config_get_int_value(config, "TIEMPO_UNIDAD_TRABAJO");
@@ -244,10 +215,10 @@ void hilo_dialfs(void* argumentos){
     block_count = config_get_int_value(config, "BLOCK_COUNT");
     path_base_fs = config_get_string_value(config, "PATH_BASE_DIALFS");
 
-    int socketKernell = conexionKernell(ip_kernel, puerto_kernel, tipo_interfaz, nombre);
-    int socketMemoria = conexionMemoria(ip_memoria, puerto_memoria, tipo_interfaz, nombre);
-    crearArchivodebloques(block_count, block_size, path_base_fs);
-    crear_bitmap();
+    int socketKernell = conexionKernell(puerto_kernel, tipo_interfaz, nombre);
+    int socketMemoria = conexionMemoria(puerto_memoria, tipo_interfaz, nombre);
+    
+    inicializar_FS();
 
     while (1) {
         t_paquete_entre* paquete_dispatch = recibir_paquete_entre(conexionKernell);
@@ -289,5 +260,6 @@ void hilo_dialfs(void* argumentos){
             default:
                 log_error(logger, "Operacion: <NO DEFINIDA>");
         }
+
     }
 }

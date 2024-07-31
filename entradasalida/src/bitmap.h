@@ -6,6 +6,7 @@
 
 
 void crear_bitmap();
+t_bitarray* cargar_bitmap();
 int getBit();
 void setBitmap(int bloque);
 void cleanBitMap(int bloque);

@@ -2,15 +2,17 @@
 	"settings": {
 		"debug.onTaskErrors": "abort",
 		"files.associations": {
-      "*.css": "css",
-      "*.h": "c",
-      "TLB.C": "cpp",
-      "cmath": "c",
-      "*.tcc": "c",
-      "operacionesFS.H": "cpp",
-      "type_traits": "c",
-      "random": "c"
-    },
+			"*.css": "css",
+			"*.h": "c",
+			"TLB.C": "cpp",
+			"cmath": "c",
+			"*.tcc": "c",
+			"operacionesFS.H": "cpp",
+			"type_traits": "c",
+			"random": "c",
+			"cstdlib": "c",
+			"memory": "c"
+		},
     "C_Cpp.errorSquiggles": "disabled",
     "liveshare.allowGuestDebugControl": true,
     "liveshare.allowGuestTaskControl": true,

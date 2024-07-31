@@ -13,8 +13,14 @@
 #include "hilos.h"
 #include "bitmap.h"
 #include "operacionesFS.h"
-
+#include <dirent.h>
+#include <utils.h>
+ 
 t_log* logger;
+char* ip_kernel;
+char* ip_memoria;
+
+
 
 void crearHilo(char* nombre, char* path_config, char* ultimo_path) {
     t_config* config = iniciar_config(path_config);
@@ -65,15 +71,16 @@ void crearHilo(char* nombre, char* path_config, char* ultimo_path) {
     config_destroy(config);
 }
 
+
 int main(int argc, char* argv[]) {
     logger = log_create("entradasalida.log", "Entrada_Salida", 1, LOG_LEVEL_INFO);
     t_config* config = config_create("EntradaSalida.config");
     
-    char* ipMemoria = config_get_string_value(config, "IP_MEMORIA");
-    char* puertoMemoria = config_get_string_value(config, "PUERTO_MEMORIA");
-    int socketMemoria = connectAndHandshake(ipMemoria, puertoMemoria, IO, "memoria", logger);
+    //lee las ip
+    ip_memoria = config_get_string_value(config, "IP_MEMORIA");
+    ip_kernel = config_get_string_value(config, "IP_KERNEL");
     
-    // Asegúrate de que hay un número par de argumentos
+    //Número par de argumentos
     if ((argc - 1) % 2 != 0) {
         log_error(logger, "Número incorrecto de argumentos.");
         return 1;
