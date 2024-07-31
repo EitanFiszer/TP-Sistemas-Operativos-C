@@ -19,7 +19,6 @@ struct args {
 
 int block_count;
 int block_size;
-char* path_base_fs;
 
 
 extern t_log* logger;
@@ -27,6 +26,7 @@ extern char* ip_kernel;
 extern char* ip_memoria;
 extern char* puerto_kernel;
 extern char* puerto_memoria;
+extern char* path_base2;
 
 int conexionKernell(char* puerto, char* tipo_interfaz, char* nombre) {
     int resultHandshake = connectAndHandshake(ip_kernel, puerto_kernel, IO, "kernel", logger);
@@ -208,7 +208,7 @@ void hilo_dialfs(void* argumentos){
 
     block_size = config_get_int_value(config, "BLOCK_SIZE");
     block_count = config_get_int_value(config, "BLOCK_COUNT");
-    path_base_fs = config_get_string_value(config, "PATH_BASE_DIALFS");
+    path_base2 = config_get_string_value(config, "PATH_BASE_DIALFS");
 
     log_info(logger, "MEMORIA: %s:%s -- KERNEL: %s:%s", ip_memoria, puerto_memoria, ip_kernel, puerto_kernel);
 
