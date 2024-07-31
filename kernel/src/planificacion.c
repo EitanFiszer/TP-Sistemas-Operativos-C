@@ -66,8 +66,14 @@ void *planificacion(void *args)
     return NULL;
 }
 
-void modificar_quantum(t_PCB *pcb)
-{
+// SOLO SE USA EN RR
+void reiniciar_quantum(t_PCB *pcb) {
+  pthread_cancel(hilo_quantum);
+  log_info(logger,"quantum reiniciado");
+}
+
+// SOLO SE USA EN VRR PARA MODIFICAR EL QUANTUM Y CALCULAR EL SOBRANTE
+void modificar_quantum(t_PCB *pcb) {
     pthread_cancel(hilo_quantum);
     log_info(logger,"quantum cancelado");
     int64_t tiempo_gastado = temporal_gettime(tempo_quantum);
@@ -302,11 +308,8 @@ void stl_RR()
         pthread_mutex_unlock(&sem_q_exec);
         log_info(logger, "PID:%d - Estado Anterior: READY - Estado Actual: EXEC", retirar_ready->PID);
         // log_info(logger, "QUANTUM PROCESO A EJECUTAR: %d", retirar_ready->quantum);
-
-        
-        retirar_ready->quantum = quantum;
     
-        tempo_quantum = temporal_create();         /* --- SE USA EN VRR ----*/
+        // tempo_quantum = temporal_create();         
 
         pthread_create(&hilo_quantum, NULL, manejar_quantum, (void *)retirar_ready);
 
@@ -320,7 +323,6 @@ void stl_RR()
 void *manejar_quantum(void *arg)
 {
     t_PCB *pcb = (t_PCB *)arg;
-
     sleep(((unsigned int)(pcb->quantum)) / 1000);
     interrumpir(FIN_QUANTUM);
     temporal_destroy(tempo_quantum);
@@ -333,22 +335,22 @@ void *manejar_quantum(void *arg)
     int64_t tiempo_gastado = temporal_gettime(tempo_quantum);
     pcb->quantum -= tiempo_gastado;
 
-//     if (strcmp(algoritmo_planificacion, "VRR") == 0)
-//     {
-//         pthread_mutex_lock(&sem_q_ready_priori);
-//         queue_push(cola_ready_priori, pcb);
-//         pthread_mutex_unlock(&sem_q_ready_priori);
-//     }
-//     else
-//     {
-//         pthread_mutex_lock(&sem_q_ready);
-//         queue_push(cola_ready, pcb);
-//         pthread_mutex_unlock(&sem_q_ready);
-//     }
+     if (strcmp(algoritmo_planificacion, "VRR") == 0)
+     {
+         pthread_mutex_lock(&sem_q_ready_priori);
+         queue_push(cola_ready_priori, pcb);
+         pthread_mutex_unlock(&sem_q_ready_priori);
+     }
+     else
+     {
+         pthread_mutex_lock(&sem_q_ready);
+         queue_push(cola_ready, pcb);
+         pthread_mutex_unlock(&sem_q_ready);
+     }
 
-//     sem_post(&sem_cont_ready);
-//     temporal_destroy(tempo_quantum);
-// }
+     sem_post(&sem_cont_ready);
+     temporal_destroy(tempo_quantum);
+ }
 */
 
 void stl_VRR()
@@ -408,17 +410,17 @@ void stl_VRR()
 
             pthread_mutex_unlock(&sem_CPU_libre);
         }
-        // if (quantum < 0)
-        // {
-        //     // replanifico FIN DE QUANTUM
-        //     retirar_ready->estado = READY;
-        //     retirar_ready->quantum = quantum;
+        /* if (quantum < 0)
+         {
+             // replanifico FIN DE QUANTUM
+             retirar_ready->estado = READY;
+             retirar_ready->quantum = quantum;
 
-        //     pthread_mutex_lock(&sem_q_ready);
-        //     queue_push(cola_ready, retirar_ready);
-        //     pthread_mutex_unlock(&sem_q_ready);
-        //     log_info(logger, "PID:%d - Estado Anterior: EXEC - Estado Actual: READY, FIN DE QUANTUM", retirar_ready->PID);
-        // }
+             pthread_mutex_lock(&sem_q_ready);
+             queue_push(cola_ready, retirar_ready);
+             pthread_mutex_unlock(&sem_q_ready);
+             log_info(logger, "PID:%d - Estado Anterior: EXEC - Estado Actual: READY, FIN DE QUANTUM", retirar_ready->PID);
+         }*/
         else
         {
             // empiezo a cronometrar el tiempo
@@ -490,14 +492,15 @@ void lts_ex(t_PCB *pcb, t_proceso_estado estado_anterior, char *motivo)
 
 void desalojar()
 {
+  
+    pthread_cancel(hilo_quantum); // BENDITA LINEA
     // FALLA EN MEMORIA_3
     pthread_mutex_lock(&sem_q_exec);
     t_PCB *retirar_PCB = queue_pop(cola_exec);
+    log_info(logger, "CPU_LIBRE, PID SACADO: %d", retirar_PCB->PID);
     pthread_mutex_unlock(&sem_q_exec);
 
-    log_info(logger, "DESALOJANDO PROCESO DEJANDO CPU_LIBRE");
     pthread_mutex_unlock(&sem_CPU_libre);
-    log_info(logger, "CPU_LIBRE, PID SACADO: %d", retirar_PCB->PID);
     free(retirar_PCB);
 }
 
