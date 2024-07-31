@@ -115,7 +115,7 @@ void *esperar_paquetes_cpu_dispatch(void *arg)
                 bool_interrupted_by_user =false;
             }
             else{
-                cancelar_quantum();
+                // cancelar_quantum();
                 desalojar();
                 cargar_ready(PCB, EXEC);
 
@@ -137,8 +137,8 @@ void *esperar_paquetes_cpu_dispatch(void *arg)
             // pthread_mutex_unlock(&interrupcion_syscall);
         case ERROR_OUT_OF_MEMORY:
             interrumpir(ERROR_OUT_OF_MEMORY_I);
-            enviar_paquete_cpu_dispatch(CONFIRMAR_SYSCALL,NULL,0);
             cancelar_quantum();
+            enviar_paquete_cpu_dispatch(CONFIRMAR_SYSCALL,NULL,0);
             desalojar();
 
             
