@@ -30,7 +30,7 @@ void guardar_dictionary_recursos(t_config *config)
 
 void atender_wait(t_PCB *pcb, char *nombre_recurso)
 {
-    log_info(logger,"Atendiendo wait recurso: %s", nombre_recurso);
+    log_info("Atendiendo wait recurso: %s", nombre_recurso);
     t_recurso *recurso_encontrado = dictionary_get(diccionario_recursos, nombre_recurso);
 
     if (recurso_encontrado == NULL)
@@ -40,6 +40,9 @@ void atender_wait(t_PCB *pcb, char *nombre_recurso)
         desalojar();
         // log_info(logger, "PID:%d - Estado Anterior: EXEC - Estado Actual: EXIT", pcb->PID);
         lts_ex(pcb, EXEC,"INVALID_RESOURCE");
+
+        //CAPAZ FALTA CANCELAR QUANTUM
+        //modificar_quantum(pcb);
     }
     else
     {
