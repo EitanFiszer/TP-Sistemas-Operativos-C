@@ -175,8 +175,8 @@ int main(int argc, char* argv[]) {
             case EXEC_PROCESO:
                 while (1) {
                     char* instruccionRecibida;
-                    int ok = fetchInstruccion(pcb, socketMemoria, &instruccionRecibida, logger);
                     if(getHayInterrupcion()) break;
+                    int ok = fetchInstruccion(pcb, socketMemoria, &instruccionRecibida, logger);
                     if (ok == -1) {
                         log_error(logger, "PROCESO TERMINÓ EJECUCIÓN: PID %d", pcb->PID);
 

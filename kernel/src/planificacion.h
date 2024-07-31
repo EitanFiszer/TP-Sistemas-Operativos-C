@@ -62,7 +62,8 @@ void *manejar_quantum(void *);
 // void hubo_syscall(t_PCB *);
 
 void modificar_quantum(t_PCB *);
-void cancelar_quantum();
+void reiniciar_quantum(t_PCB *);
+// void cancelar_quantum();
 void iniciar_proceso(char *);
 void iniciar_colas();
 void iniciar_semaforos();
