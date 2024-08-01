@@ -1,5 +1,6 @@
 #include <commons/collections/dictionary.h>
 #include <commons/log.h>
+#include <stdlib.h>
 #include "conexionesIO.h"
 
 extern t_log* logger;

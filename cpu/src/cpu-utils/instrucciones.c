@@ -196,15 +196,7 @@ void instruccionIoSTDInRead(char* interfaz, char* regDire, char* regTam, registr
 
     int dirFisica = calcularDireccionFisica(pcb->PID, dirLogica);
 
-    solicitar_io_stdin(tam, pcb, interfaz, regTam, dirFisica);
-
-
-    // TODO: REVISAR
-    // if (string == NULL) {
-    //     return;
-    // }
-
-    // int ok = enviar_dato_memoria(dirFisica, string);
+    solicitar_io_stdin(tam, pcb, interfaz, dirFisica);
 
     int ok = 0;
 
@@ -243,7 +235,11 @@ void instruccionIoFSDelete(char* interfaz, char* nombreArchivo, t_PCB* pcb) {
 el FS montado en dicha interfaz, actualizando al valor que se encuentra en el registro indicado por Registro Tamaño.*/
 void instruccionIoFSTruncate(char* interfaz, char* nombreArchivo, char* regTam, registros_t* registros, t_PCB* pcb) {
     pcb->program_counter = pcb->program_counter + 1; 
-    solicitar_fs_truncate(interfaz, nombreArchivo, regTam, pcb, registros);
+
+    int dir_tam=calcularDireccionFisica(pcb->PID,valorDelRegistro(regTam, registros));
+    int tamtruncate=solicitar_dato_memoria(dir_tam,sizeof(int));
+
+    solicitar_fs_truncate(interfaz, nombreArchivo, tamtruncate, pcb);
 }
 
 /*Esta instrucción solicita al Kernel que mediante la interfaz seleccionada, se lea desde Memoria la cantidad de 
@@ -251,7 +247,13 @@ bytes indicadas por el Registro Tamaño a partir de la dirección lógica que se
 se escriban en el archivo a partir del valor del Registro Puntero Archivo.*/
 void instruccionIoFSWrite(char* interfaz, char* nombreArchivo, char* regDire, char* regTam, char* regPuntero, registros_t* registros, t_PCB* pcb) {
     pcb->program_counter = pcb->program_counter + 1;
-    solicitar_fs_writeORread(interfaz, nombreArchivo, regDire, regTam, regPuntero, IO_FS_WRITE, pcb);
+
+    int dirLogica = valorDelRegistro(regDire, registros);
+    int tam = valorDelRegistro(regTam, registros);
+    int puntero = valorDelRegistro(regPuntero, registros);
+    int direccionFisica = calcularDireccionFisica(pcb->PID, dirLogica);
+
+    solicitar_fs_writeORread(interfaz, nombreArchivo, direccionFisica, tam, puntero, IO_FS_WRITE, pcb);
 }
 
 /*Esta instrucción solicita al Kernel que mediante la interfaz seleccionada, se lea desde el archivo a partir del 

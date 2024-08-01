@@ -128,7 +128,7 @@ void solicitar_signal(char* recurso, t_PCB* pcb) {
     t_paquete_entre* paqueteRecibido = recibir_paquete_entre(socketKernel); // Confirmar SYSCALL EJECUTADA
 }
 
-void solicitar_io_stdin(int tam, t_PCB* pcb, char* interfaz, char* regTam, int dirFisica) {
+void solicitar_io_stdin(int tam, t_PCB* pcb, char* interfaz, int dirFisica) {
     t_payload_io_stdin_read* payload = malloc(sizeof(t_payload_io_stdin_read));
     payload->tam = tam;
     payload->pcb = pcb;
@@ -168,16 +168,13 @@ void solicitar_fs_createORdelete(char* interfaz, char* nombreArchivo, OP_CODES_E
     t_paquete_entre* paqueteRecibido = recibir_paquete_entre(socketKernel); // Confirmar SYSCALL EJECUTADA
 }
 
-void solicitar_fs_truncate(char* interfaz, char* nombreArchivo, char* regTam, t_PCB* pcb, registros_t* registros){
+void solicitar_fs_truncate(char* interfaz, char* nombreArchivo, int tam, t_PCB* pcb){
     t_payload_fs_truncate* payload = malloc(sizeof(t_payload_fs_truncate));
     payload->interfaz = interfaz;
     payload->nombreArchivo = nombreArchivo;
     payload->pcb = pcb;
+    payload->tam = tam;
 
-    int dir_tam=calcularDireccionFisica(pcb->PID,valorDelRegistro(regTam, registros));
-    int tamtruncate=solicitar_dato_memoria(dir_tam,sizeof(int));
-
-    payload->tam = tamtruncate;
     int size_payload;
     void* buffer = serializar_fs_truncate(payload, &size_payload);
     enviar_paquete_entre(socketKernel, IO_FS_TRUNCATE, buffer, size_payload);
@@ -185,13 +182,13 @@ void solicitar_fs_truncate(char* interfaz, char* nombreArchivo, char* regTam, t_
     t_paquete_entre* paqueteRecibido = recibir_paquete_entre(socketKernel); // Confirmar SYSCALL EJECUTADA
 }
 
-void solicitar_fs_writeORread(char* interfaz, char* nombreArchivo, char* regTam, char* regDire, char* regPuntero, OP_CODES_ENTRE oper, t_PCB* pcb){
+void solicitar_fs_writeORread(char* interfaz, char* nombreArchivo, int tam, int direccion, int puntero, OP_CODES_ENTRE oper, t_PCB* pcb){
     t_payload_fs_writeORread* payload = malloc(sizeof(t_payload_fs_writeORread));
     payload->interfaz = interfaz;
     payload->nombreArchivo = nombreArchivo;
-    payload->regTam = regTam;
-    payload->regDire = regDire;
-    payload->regPuntero = regPuntero;
+    payload->tam = tam;
+    payload->dirFisica = direccion;
+    payload->punteroArchivo = puntero;
     payload->pcb = pcb;
 
     int size_payload;
