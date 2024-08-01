@@ -73,15 +73,10 @@ void atender_io_stdin_read(t_payload_io_stdin_read *stdint_read)
             } else if (strcmp(algoritmo_planificacion, "VRR") == 0){
               modificar_quantum(stdint_read->pcb);
             }
-            t_payload_io_stdin_read_de_kernel_a_io *payload = malloc(sizeof(t_payload_io_stdin_read_de_kernel_a_io));
 
             int size_payload;
 
-            payload->direccionFisica = stdint_read->dirFisica;
-            payload->interfaz = stdint_read->interfaz;
-            payload->tam = stdint_read->tam;
-
-            void *buffer = serializar_stdin_read_de_kernel_a_io(payload, &size_payload);
+            void *buffer = serializar_io_stdin_read(stdint_read, &size_payload);
 
             if (!find_io->libre)
             {

@@ -27,7 +27,7 @@ extern char* ip_kernel;
 extern char* ip_memoria;
 extern char* puerto_kernel;
 extern char* puerto_memoria;
-extern char* path_base2;
+char* path_base_fs;
 
 int conexionKernell(char* puerto, char* tipo_interfaz, char* nombre) {
     int resultHandshake = connectAndHandshake(ip_kernel, puerto_kernel, IO, "kernel", logger);
@@ -82,10 +82,10 @@ void hilo_generica(void* argumentos) {
         switch (op) {
             case IO_GEN_SLEEP:
                 t_payload_io_gen_sleep* operacionRecibida = deserializar_io_gen_sleep(paquete_entre->payload);
+                int pid = operacionRecibida->pcb->PID;
                 int tiempo_gen = operacionRecibida->tiempo;
-                log_info(logger, "Operacion: <IO_GEN_SLEEP> - PID: %d, INTERFAZ: %s, TIEMPO %d", operacionRecibida->pcb->PID, operacionRecibida->interfaz, tiempo_gen);
+                log_info(logger, "PID: %d - Operacion: <IO_GEN_SLEEP>",pid);
                 sleep(tiempo_unidad_trabajo / 1000 * tiempo_gen);
-                log_info(logger, "Operacion: <IO_GEN_SLEEP> - PID: %d, INTERFAZ: %s, TIEMPO %d - FINALIZADA", operacionRecibida->pcb->PID, operacionRecibida->interfaz, tiempo_gen);
                 enviar_paquete_entre(resultHandshakeKernell, TERMINE_OPERACION, NULL, 0);
                 break;
             default:
@@ -103,8 +103,6 @@ void hilo_stdin(void* argumentos) {
 
     char* tipo_interfaz = config_get_string_value(config, "TIPO_INTERFAZ");
 
-    log_info(logger, "MEMORIA: %s:%s -- KERNEL: %s:%s", ip_memoria, puerto_memoria, ip_kernel, puerto_kernel);
-
     int socketKernell = conexionKernell(puerto_kernel, tipo_interfaz, nombre);
     int socketMemoria = conexionMemoria(puerto_memoria, tipo_interfaz, nombre);
 
@@ -121,9 +119,12 @@ void hilo_stdin(void* argumentos) {
         switch (op) {
             case IO_STDIN_READ:
 
-                t_payload_io_stdin_read_de_kernel_a_io* operacionRecibida = deserializar_io_stdin_read_de_kernel_a_io(paquete_entre->payload);
+                t_payload_io_stdin_read* operacionRecibida = deserializar_io_stdin_read(paquete_entre->payload);
 
                 int inputSize = operacionRecibida->tam;
+                int pid = operacionRecibida->pcb->PID;
+
+                log_info(logger, "PID: %d - Operacion: <IO_STDIN_READ>",pid);
 
                 printf("Ingrese texto: \n");
                 char *fullInput = readline(">");
@@ -131,15 +132,14 @@ void hilo_stdin(void* argumentos) {
                 strncpy(input, fullInput, inputSize);
                 
                 t_payload_escribir_memoria* payload = malloc(sizeof(t_payload_escribir_memoria));
-                payload->direccion = operacionRecibida->direccionFisica;
+                payload->direccion = operacionRecibida->dirFisica;
                 payload->cadena = input;
                 payload->size_cadena = strlen(input) + 1;  // +1 para incluir el '\0'
 
                 int size_payload;
                 void* payloadSerializado = serializar_escribir_memoria(payload, &size_payload);
                 enviar_paquete_entre(socketMemoria, ESCRIBIR_MEMORIA, payloadSerializado, size_payload);
-
-                enviar_paquete_entre(socketMemoria, TERMINE_OPERACION, NULL, 0);
+                enviar_paquete_entre(socketKernell, TERMINE_OPERACION, NULL, 0);
 
 
                 break;
@@ -158,8 +158,6 @@ void hilo_stdout(void* argumentos) {
 
     char* tipo_interfaz = config_get_string_value(config, "TIPO_INTERFAZ");
 
-    log_info(logger, "MEMORIA: %s:%s -- KERNEL: %s:%s", ip_memoria, puerto_memoria, ip_kernel, puerto_kernel);
-
     int socketKernell = conexionKernell(puerto_kernel, tipo_interfaz, nombre);
     int socketMemoria = conexionMemoria(puerto_memoria, tipo_interfaz, nombre);
 
@@ -176,9 +174,13 @@ void hilo_stdout(void* argumentos) {
             case IO_STDOUT_WRITE:
                 t_payload_io_stdout_write* operacionRecibida = deserializar_io_stdout_write(paquete_dispatch->payload);
 
+                int pid= operacionRecibida->pcb->PID;
+                log_info(logger, "PID: %d - Operacion: <IO_STDOUT_WRITE>",pid);
+                
                 t_payload_solicitar_dato_memoria* payloadMandar = malloc(sizeof(t_payload_solicitar_dato_memoria));
                 payloadMandar->direccion = operacionRecibida->direccionFisica;
                 payloadMandar->tam=operacionRecibida->tam;
+            
 
                 enviar_paquete_entre(socketMemoria, SOLICITAR_DATO_MEMORIA, payloadMandar, sizeof(t_payload_solicitar_dato_memoria));
 
@@ -210,9 +212,7 @@ void hilo_dialfs(void* argumentos){
 
     block_size = config_get_int_value(config, "BLOCK_SIZE");
     block_count = config_get_int_value(config, "BLOCK_COUNT");
-    path_base2 = config_get_string_value(config, "PATH_BASE_DIALFS");
-
-    log_info(logger, "MEMORIA: %s:%s -- KERNEL: %s:%s", ip_memoria, puerto_memoria, ip_kernel, puerto_kernel);
+    path_base_fs = config_get_string_value(config, "PATH_BASE_DIALFS");
 
     int socketKernell = conexionKernell(puerto_kernel, tipo_interfaz, nombre);
     int socketMemoria = conexionMemoria(puerto_memoria, tipo_interfaz, nombre);
@@ -232,12 +232,16 @@ void hilo_dialfs(void* argumentos){
             case IO_FS_CREATE:
                 sleep(tiempo_unidad_trabajo/1000);
                 t_payload_fs_create* payloadcreate=deserializar_fs_create(paquete_dispatch->payload);
+                int pid_create = payloadcreate->pcb->PID;
+                log_info(logger, "PID: %d - Crear Archivo: %s",pid_create,payloadcreate->nombreArchivo);
                 crear_archivo(payloadcreate->nombreArchivo);   
                 enviar_paquete_entre(socketKernell, TERMINE_OPERACION, NULL, 0); 
             break;
             case IO_FS_DELETE:
                 sleep(tiempo_unidad_trabajo/1000);
                 t_payload_fs_create* payloaddelete=deserializar_fs_create(paquete_dispatch->payload);
+                int pid_delete = payloaddelete->pcb->PID;
+                log_info(logger, "PID: %d - Eliminar Archivo: %s",pid_delete,payloadcreate->nombreArchivo);
                 delete_archivo(payloaddelete->nombreArchivo);
                 enviar_paquete_entre(socketKernell, TERMINE_OPERACION, NULL, 0);
 
@@ -246,7 +250,9 @@ void hilo_dialfs(void* argumentos){
             case IO_FS_TRUNCATE:
                 sleep(tiempo_unidad_trabajo/1000);
                 t_payload_fs_truncate* payloadtruncate=deserializar_fs_truncate(paquete_dispatch->payload);
-                truncate_archivo(payloadtruncate->nombreArchivo, payloadtruncate->regTam, retraso_compactacion);
+                int pid_truncate=payloadtruncate->pcb->PID;
+                log_info(logger, "PID: %d - Truncar Archivo: %s - Tamaño: %d",pid_truncate,payloadtruncate->nombreArchivo, payloadtruncate->tam);
+                truncate_archivo(payloadtruncate->nombreArchivo, payloadtruncate->tam, retraso_compactacion);
                 enviar_paquete_entre(socketKernell, TERMINE_OPERACION, NULL, 0);
             break;
 

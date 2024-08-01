@@ -21,14 +21,15 @@ t_payload_resize_memoria* deserializar_resize_memoria(void* buffer) {
     return payload;
 }
 
+/*
 void* serializar_stdin_read_de_kernel_a_io(t_payload_io_stdin_read_de_kernel_a_io* payload, int* size_payload) {
-    /*
+    
     typedef struct {
       char* interfaz;
       int direccionFisica;
 	    int tam;
     } t_payload_io_stdin_read_de_kernel_a_io;
-    */
+    
     int size_interfaz = strlen(payload->interfaz) + 1;
     *size_payload = sizeof(int) + size_interfaz + sizeof(int) * 2;
     void* buffer = malloc(*size_payload);
@@ -42,7 +43,9 @@ void* serializar_stdin_read_de_kernel_a_io(t_payload_io_stdin_read_de_kernel_a_i
     memcpy(buffer + desplazamiento, &payload->tam, sizeof(int));
     return buffer;
 }
+*/
 
+/*
 t_payload_io_stdin_read_de_kernel_a_io* deserializar_io_stdin_read_de_kernel_a_io(void* buffer) {
     t_payload_io_stdin_read_de_kernel_a_io* payload = malloc(sizeof(t_payload_io_stdin_read_de_kernel_a_io));
     int desplazamiento = 0;
@@ -57,7 +60,7 @@ t_payload_io_stdin_read_de_kernel_a_io* deserializar_io_stdin_read_de_kernel_a_i
     memcpy(&payload->tam, buffer + desplazamiento, sizeof(int));
     return payload;
 }
-
+*/
 
 void* serializar_io_stdin_read(t_payload_io_stdin_read* payload, int* size_payload) {
     /*
@@ -68,6 +71,7 @@ void* serializar_io_stdin_read(t_payload_io_stdin_read* payload, int* size_paylo
   	int dirFisica;
  t_payload_io_stdin_read;
     */
+
     int size_pcb = sizeof(t_PCB);
     int size_interfaz = strlen(payload->interfaz) + 1;
     *size_payload = sizeof(int) + size_pcb + size_interfaz + sizeof(int);
@@ -483,19 +487,16 @@ t_payload_fs_truncate *deserializar_fs_truncate(void *buffer){
     memcpy(payload->nombreArchivo, buffer + offset, size_nombreArchivo);
     offset += size_nombreArchivo;
 
-    int size_regTam = strlen(buffer + offset) + 1;
-    payload->regTam = malloc(size_regTam);
-    memcpy(payload->regTam, buffer + offset, size_regTam);
-    offset += size_regTam;
+    memcpy(payload->tam, buffer + offset, sizeof(int));
+    offset += sizeof(int);
 
     return payload;
 }
 void *serializar_fs_truncate(t_payload_fs_truncate *payload, int *size_payload){
     int size_interfaz = strlen(payload->interfaz) + 1;
     int size_nombreArchivo = strlen(payload->nombreArchivo) + 1;
-    int size_regTam = strlen(payload->regTam) + 1;
 
-    *size_payload = size_interfaz + size_nombreArchivo + size_regTam;
+    *size_payload = size_interfaz + size_nombreArchivo + sizeof(int);
 
     void* buffer = malloc(*size_payload);
     int offset = 0;
@@ -506,8 +507,8 @@ void *serializar_fs_truncate(t_payload_fs_truncate *payload, int *size_payload){
     memcpy(buffer + offset, payload->nombreArchivo, size_nombreArchivo);
     offset += size_nombreArchivo;
 
-    memcpy(buffer + offset, payload->regTam, size_regTam);
-    offset += size_regTam;
+    memcpy(buffer + offset, payload->tam, sizeof(int));
+    offset += sizeof(int);
 
     return buffer;
 }

@@ -184,7 +184,7 @@ typedef struct {
 typedef struct {
     char* interfaz;
     char* nombreArchivo;
-    char* regTam;
+    int tam;
     t_PCB* pcb;
 } t_payload_fs_truncate;  // hacer serializacion
 
