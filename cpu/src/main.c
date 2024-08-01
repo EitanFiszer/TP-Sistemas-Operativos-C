@@ -73,7 +73,7 @@ void conexion_interrupt(void* argumentos) {
                 pthread_mutex_unlock(&mutex_interrupcion);
                 break;
             default:
-                log_error(logger, "Operacion desconocida");
+                log_error(logger, "Operacion desconocida %d", paquete->operacion);
                 break;
         }
     }
@@ -204,7 +204,7 @@ int main(int argc, char* argv[]) {
                 }
                 break;
             default:
-                log_error(logger, "Operacion desconocida");
+                log_error(logger, "Operacion desconocida %d", paq->operacion);
                 break;
         }
     }

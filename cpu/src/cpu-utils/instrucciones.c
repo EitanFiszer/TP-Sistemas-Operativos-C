@@ -104,6 +104,7 @@ void instruccionIoGenSleep(t_PCB* pcb, char* interfaz, int tiempo) {
     enviar_paquete_entre(socketKernel, IO_GEN_SLEEP, payloadSerializado, size_payload);
 
     t_paquete_entre* paqueteRecibido = recibir_paquete_entre(socketKernel); // Confirmar SYSCALL EJECUTADA
+    log_info(logger, "Syscall recibida %d", paqueteRecibido->operacion);
 }
 
 // Lee el valor de memoria correspondiente a la Dirección Lógica que se encuentra en el Registro Dirección y lo almacena en el Registro Datos.
