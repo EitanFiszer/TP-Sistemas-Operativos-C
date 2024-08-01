@@ -1,5 +1,6 @@
 #include "conexiones.h"
 #include <utils/envios.h>
+#include "mmu.h"
 
 extern t_log* logger;
 extern int socketMemoria;
@@ -167,12 +168,16 @@ void solicitar_fs_createORdelete(char* interfaz, char* nombreArchivo, OP_CODES_E
     t_paquete_entre* paqueteRecibido = recibir_paquete_entre(socketKernel); // Confirmar SYSCALL EJECUTADA
 }
 
-void solicitar_fs_truncate(char* interfaz, char* nombreArchivo, char* regTam, t_PCB* pcb){
+void solicitar_fs_truncate(char* interfaz, char* nombreArchivo, char* regTam, t_PCB* pcb, registros_t* registros){
     t_payload_fs_truncate* payload = malloc(sizeof(t_payload_fs_truncate));
     payload->interfaz = interfaz;
     payload->nombreArchivo = nombreArchivo;
-    payload->regTam = regTam;
     payload->pcb = pcb;
+
+    int dir_tam=calcularDireccionFisica(pcb->PID,valorDelRegistro(regTam, registros));
+    int tamtruncate=solicitar_dato_memoria(dir_tam,sizeof(int));
+
+    payload->tam = tamtruncate;
     int size_payload;
     void* buffer = serializar_fs_truncate(payload, &size_payload);
     enviar_paquete_entre(socketKernel, IO_FS_TRUNCATE, buffer, size_payload);

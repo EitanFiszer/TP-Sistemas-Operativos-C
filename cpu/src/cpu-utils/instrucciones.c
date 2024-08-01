@@ -243,7 +243,7 @@ void instruccionIoFSDelete(char* interfaz, char* nombreArchivo, t_PCB* pcb) {
 el FS montado en dicha interfaz, actualizando al valor que se encuentra en el registro indicado por Registro Tamaño.*/
 void instruccionIoFSTruncate(char* interfaz, char* nombreArchivo, char* regTam, registros_t* registros, t_PCB* pcb) {
     pcb->program_counter = pcb->program_counter + 1; 
-    solicitar_fs_truncate(interfaz, nombreArchivo, regTam, pcb);
+    solicitar_fs_truncate(interfaz, nombreArchivo, regTam, pcb, registros);
 }
 
 /*Esta instrucción solicita al Kernel que mediante la interfaz seleccionada, se lea desde Memoria la cantidad de 
