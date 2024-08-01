@@ -104,9 +104,14 @@ int main(int argc, char* argv[]) {
     */
 
     path_base2="/FS/";
-    block_size2=16;
+    block_size2=8;
     block_count2=8;
     inicializar_FS();
+    crear_archivo("A");
+    truncate_archivo("A",32,1000);
+    char* dato= "H";
+    escribir_archivo("A",0,strlen(dato),dato);
+    
 
     leerDiccionario();
     leerbitmap();
