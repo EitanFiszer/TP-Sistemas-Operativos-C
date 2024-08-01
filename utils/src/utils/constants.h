@@ -224,7 +224,7 @@ typedef struct {
 
 typedef struct {
     int direccion;
-    char* cadena;
+    void* dato;
     int size_cadena;
 } t_payload_escribir_memoria;
 

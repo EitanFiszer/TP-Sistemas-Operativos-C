@@ -133,7 +133,7 @@ void hilo_stdin(void* argumentos) {
                 
                 t_payload_escribir_memoria* payload = malloc(sizeof(t_payload_escribir_memoria));
                 payload->direccion = operacionRecibida->dirFisica;
-                payload->cadena = input;
+                payload->dato = (void*)input;
                 payload->size_cadena = strlen(input) + 1;  // +1 para incluir el '\0'
 
                 int size_payload;

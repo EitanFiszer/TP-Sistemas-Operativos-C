@@ -589,7 +589,7 @@ void* serializar_escribir_memoria(t_payload_escribir_memoria* payload, int* size
     desplazamiento += sizeof(int);
     memcpy(buffer + desplazamiento, &size_cadena, sizeof(int));
     desplazamiento += sizeof(int);
-    memcpy(buffer + desplazamiento, payload->cadena, size_cadena);
+    memcpy(buffer + desplazamiento, payload->dato, size_cadena);
     return buffer;
 }
 
@@ -601,7 +601,7 @@ t_payload_escribir_memoria* deserializar_escribir_memoria(void* buffer) {
     memcpy(&(payload->size_cadena), buffer + desplazamiento, sizeof(int));
     desplazamiento += sizeof(int);
     payload->cadena = malloc(payload->size_cadena);
-    memcpy(payload->cadena, buffer + desplazamiento, payload->size_cadena);
+    memcpy(payload->dato, buffer + desplazamiento, payload->size_cadena);
     return payload;
 }
 
