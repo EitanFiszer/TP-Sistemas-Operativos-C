@@ -226,6 +226,7 @@ typedef struct {
     int direccion;
     void* dato;
     int size_cadena;
+    int pid;
 } t_payload_escribir_memoria;
 
 typedef struct {

@@ -579,12 +579,17 @@ void* serializar_escribir_memoria(t_payload_escribir_memoria* payload, int* size
       int direccion;
       char* cadena;
       int size_cadena;
+      int pid;
     } t_payload_escribir_memoria;
     */
-    int size_cadena = strlen(payload->cadena) + 1;
-    *size_payload = sizeof(int) * 2 + size_cadena;
+
+    int size_cadena = payload->size_cadena;
+    *size_payload = sizeof(int) * 3 + size_cadena;
     void* buffer = malloc(*size_payload);
     int desplazamiento = 0;
+
+    memcpy(buffer + desplazamiento, &(payload->pid), sizeof(int));
+    desplazamiento += sizeof(int);
     memcpy(buffer + desplazamiento, &(payload->direccion), sizeof(int));
     desplazamiento += sizeof(int);
     memcpy(buffer + desplazamiento, &size_cadena, sizeof(int));
@@ -596,11 +601,14 @@ void* serializar_escribir_memoria(t_payload_escribir_memoria* payload, int* size
 t_payload_escribir_memoria* deserializar_escribir_memoria(void* buffer) {
     t_payload_escribir_memoria* payload = malloc(sizeof(t_payload_escribir_memoria));
     int desplazamiento = 0;
+
+    memcpy(&(payload->pid), buffer + desplazamiento, sizeof(int));
+    desplazamiento += sizeof(int);
     memcpy(&(payload->direccion), buffer + desplazamiento, sizeof(int));
     desplazamiento += sizeof(int);
     memcpy(&(payload->size_cadena), buffer + desplazamiento, sizeof(int));
     desplazamiento += sizeof(int);
-    payload->cadena = malloc(payload->size_cadena);
+    payload->dato = malloc(payload->size_cadena);
     memcpy(payload->dato, buffer + desplazamiento, payload->size_cadena);
     return payload;
 }
