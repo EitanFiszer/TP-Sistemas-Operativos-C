@@ -1,6 +1,7 @@
 #ifndef CONSTANTS_H
 #define CONSTANTS_H
 
+#include <stddef.h>
 #include "./PCB.h"
 
 typedef enum {
@@ -83,6 +84,18 @@ typedef enum {
     CONFIRMAR_SYSCALL // DE KERNEL A CPU, confirmacion de wait o signal
 
 } OP_CODES_ENTRE;
+
+typedef struct {
+    int bloque_inicial;
+    int tam_archivo;
+} t_metadata;
+
+typedef struct {
+    t_metadata* map;
+    size_t size;
+    int fd;
+    t_metadata metadata;
+} t_diccionario;
 
 typedef enum {
     GEN_SLEEP,
@@ -235,5 +248,6 @@ typedef struct {
     char* op;
     int tiempo;
 } t_payload_instruccion_io;
+
 
 #endif /* CONSTANTS_H */

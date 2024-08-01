@@ -11,7 +11,11 @@
 			"type_traits": "c",
 			"random": "c",
 			"cstdlib": "c",
-			"memory": "c"
+			"memory": "c",
+			"array": "c",
+			"string_view": "c",
+			"initializer_list": "c",
+			"utility": "c"
 		},
     "C_Cpp.errorSquiggles": "disabled",
     "liveshare.allowGuestDebugControl": true,

@@ -31,6 +31,7 @@
         "cicloinstruccion.h": "c",
         "dictionary.h": "c",
         "recursos.h": "c",
-        "stdbool.h": "c"
+        "stdbool.h": "c",
+        "utils.h": "c"
     }
 }

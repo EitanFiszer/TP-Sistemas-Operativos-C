@@ -189,7 +189,7 @@ void hilo_stdout(void* argumentos) {
                 log_info(logger, "Valor leído de memoria: %s", (char*)dato);
                 printf("Valor leído de memoria en la dirección %u: %s\n", operacionRecibida->direccionFisica, (char*)dato);
 
-                enviar_paquete_entre(conexionKernell, TERMINE_OPERACION, NULL, 0);
+                enviar_paquete_entre(socketKernell, TERMINE_OPERACION, NULL, 0);
 
                 break;
             default:
@@ -197,7 +197,6 @@ void hilo_stdout(void* argumentos) {
         }
     }
 }
-
 
 void hilo_dialfs(void* argumentos){
     struct args* nombreYpath = argumentos;
@@ -221,7 +220,7 @@ void hilo_dialfs(void* argumentos){
     inicializar_FS();
 
     while (1) {
-        t_paquete_entre* paquete_dispatch = recibir_paquete_entre(conexionKernell);
+        t_paquete_entre* paquete_dispatch = recibir_paquete_entre(socketKernell);
         if (paquete_dispatch == NULL) {
             log_error(logger, "Error al recibir paquete, finalizando hilo");
             return;
@@ -247,7 +246,7 @@ void hilo_dialfs(void* argumentos){
             case IO_FS_TRUNCATE:
                 sleep(tiempo_unidad_trabajo/1000);
                 t_payload_fs_truncate* payloadtruncate=deserializar_fs_truncate(paquete_dispatch->payload);
-                truncate_archivo(payloadtruncate->nombreArchivo, payloadtruncate->regTam);
+                truncate_archivo(payloadtruncate->nombreArchivo, payloadtruncate->regTam, retraso_compactacion);
                 enviar_paquete_entre(socketKernell, TERMINE_OPERACION, NULL, 0);
             break;
 

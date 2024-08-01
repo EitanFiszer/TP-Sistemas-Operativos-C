@@ -58,8 +58,6 @@ t_bitarray* cargar_bitmap() {
     void* bitmap = mmap(NULL, block_count2, PROT_READ|PROT_WRITE, MAP_SHARED, fd ,0);
 
 	t_bitarray* bitarray = bitarray_create_with_mode((char*) bitmap, block_count2/8, LSB_FIRST);
-
-    //munmap(bitmap, block_count);
     
     close(fd);
     return bitarray;
@@ -119,4 +117,11 @@ void compactacion_bitmap(int espacio, int cant_bloques_arch){
     for(int i=0; i<(block_count2-espacio)+cant_bloques_arch; i++){
         setBitmap(i);
     }
+}
+
+void leerbitmap(){
+    for(int i=0; i<block_count2; i++){
+        printf("%d",bitarray_test_bit(bitmap,i));
+    }
+    printf("\n");
 }

@@ -15,6 +15,7 @@
 #include "operacionesFS.h"
 #include <dirent.h>
 #include <utils.h>
+#include <diccionario.h>
  
 t_log* logger;
 char* ip_kernel;
@@ -108,14 +109,14 @@ int main(int argc, char* argv[]) {
     inicializar_FS();
     
     crear_archivo("A"); //1
-    truncate_archivo("A",64); //1111
+    truncate_archivo("A",64,5000); //1111
     crear_archivo("B"); //11111
-    truncate_archivo("B",32); //111111
+    truncate_archivo("B",32,5000); //111111
     crear_archivo("C"); // 1111111
     crear_archivo("D"); // 11111111
     delete_archivo("A"); //0000 11 1 1
 
-    truncate_archivo("C",64); // 11 1 1111 0
+    truncate_archivo("C",64,5000); // 11 1 1111 0
 
     leerDiccionario();
     leerbitmap();

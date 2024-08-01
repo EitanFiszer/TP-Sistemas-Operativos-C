@@ -10,6 +10,11 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdbool.h>
+#include <fcntl.h>
+#include <sys/mman.h>
+#include <diccionario.h>
+#include <utils/constants.h>
+
 
 //extern int block_count;
 extern int block_count2;
@@ -20,10 +25,6 @@ extern t_log* logger;
 t_dictionary* diccionarioFS;
 t_bitarray* bitmap;
 
-typedef struct {
-        int bloque_inicial;
-        int tam_archivo;
-} t_metadata;
 
 //CREA EN CASO DE QUE NO EXISTE EL BLOQUES.DAT
 void crearArchivodebloques() {
@@ -56,19 +57,16 @@ void crearArchivodebloques() {
 void inicializar_FS(){
     crear_bitmap();
     bitmap=cargar_bitmap();
-    diccionarioFS=dictionary_create();
-    cargar_diccionario();
+    diccionarioFS=incializar_el_diccionario();
     crearArchivodebloques();
 }
 
 //CREA ARCHIVO METADATA
-void crear_archivo(char* nombre) {
+void crear_archivo(char* nombre) {    
+    int bloque_inicial = getBit(block_count2);
     t_metadata metadata;
-    t_metadata* FCB;
-    
-    metadata.bloque_inicial = getBit(block_count2);
 
-    if (metadata.bloque_inicial == -1) {
+    if (bloque_inicial == -1) {
         log_info(logger, "NO HAY ESPACIO");
         exit(EXIT_FAILURE);
     }
@@ -79,59 +77,41 @@ void crear_archivo(char* nombre) {
         return;
     } 
 
-    setBitmap(metadata.bloque_inicial);
-
-    metadata.tam_archivo = 0;
-
-    FCB = malloc(sizeof(t_metadata));
-    FCB->bloque_inicial = metadata.bloque_inicial;
-    FCB->tam_archivo = metadata.tam_archivo;
-    dictionary_put(diccionarioFS,nombre, FCB);
-
+    setBitmap(bloque_inicial);
+    metadata.bloque_inicial=bloque_inicial;
+    metadata.tam_archivo=0;
     FILE* archivo= crear_archivo_fs(nombre);
-    
-    if (fwrite(&metadata, sizeof(t_metadata), 1, archivo) != 1) {
+    if  (fwrite(&metadata, sizeof(t_metadata), 1, archivo) != 1) {
         perror("Error al escribir en el archivo de metadata");
         fclose(archivo);
         exit(EXIT_FAILURE);
     }
-
     fclose(archivo);
 
+    cargar_diccionario_nuevo(nombre, bloque_inicial);
 }
 
 //BORRA ARCHIVO METADATA
 void delete_archivo(char* nombre) {
-    t_metadata metadata;
 
     // Crear la ruta completa para el archivo de metadata
     char* filepath=crear_ruta(nombre);
 
-    // Leer el archivo de metadata
-    FILE* archivo = fopen(filepath, "rb");
-    if (!archivo) {
-        perror("Error al abrir el archivo de metadata");
-        exit(EXIT_FAILURE);
+    t_diccionario* FCB = dictionary_get(diccionarioFS,nombre);
+    if(!FCB){
+        log_info(logger,"NO SE ENCONTRO EL ARCHIVO INGRESADO");
+        return;
     }
-  
-    if (fread(&metadata, sizeof(t_metadata), 1, archivo) != 1) {
-        perror("Error al leer el archivo de metadata");
-        fclose(archivo);
-        exit(EXIT_FAILURE);
-    }
-
-    fclose(archivo);
-
+    
     // Marcar el bloque como libre en el bitmap
-    int bloque_inicial = metadata.bloque_inicial;
-    int cant_bloques = ((metadata.tam_archivo + block_size2 -1) / block_size2);
+    int bloque_inicial = FCB->metadata.bloque_inicial;
+    int cant_bloques = ((FCB->metadata.tam_archivo + block_size2 -1) / block_size2);
     if(cant_bloques==0){
         cant_bloques=1;
     }
     for (int i=bloque_inicial; i < bloque_inicial+cant_bloques; i++) {
         cleanBitMap(i);
     }
-
 
     dictionary_remove_and_destroy(diccionarioFS, nombre, free);
 
@@ -143,9 +123,9 @@ void delete_archivo(char* nombre) {
 }
 
 //GOD
-void truncate_archivo(char* nombre, int tam) {
-        t_metadata metadata;
-        t_metadata* FCB;
+
+void truncate_archivo(char* nombre, int tam, int retraso_compactacion) {
+        t_diccionario* FCB;
 
         int cant_bloques_ingresados=(tam+block_size2-1)/block_size2;  //cantidad de bloques que se desea ocupar
 
@@ -154,25 +134,13 @@ void truncate_archivo(char* nombre, int tam) {
             exit(EXIT_FAILURE);
         }
 
-    char* path_archivo= crear_ruta(nombre);
+    FCB =dictionary_get(diccionarioFS,nombre);
 
-    FILE* archivo= fopen(path_archivo,"rb+");
-        if (!archivo) {
-        perror("Error al abrir el archivo de metadata");
-        exit(EXIT_FAILURE);
-    }
-
-    if (fread(&metadata, sizeof(t_metadata), 1, archivo) != 1) {
-        perror("Error al leer el archivo de metadata");
-        fclose(archivo);
-        exit(EXIT_FAILURE);
-    }
-
-    int cant_bloques_arch = (metadata.tam_archivo+block_size2-1)/block_size2; //cant de bloques que ya ocupa el archivo
+    int cant_bloques_arch = (FCB->metadata.tam_archivo+block_size2-1)/block_size2; //cant de bloques que ya ocupa el archivo
     if(cant_bloques_arch==0){
         cant_bloques_arch=1;
     }
-    int ultimo_bloque=metadata.bloque_inicial+cant_bloques_arch-1;
+    int ultimo_bloque=FCB->metadata.bloque_inicial+cant_bloques_arch-1;
 
 
 
@@ -196,58 +164,57 @@ void truncate_archivo(char* nombre, int tam) {
         }else{
             int espacio=espacioLIbre(nombre, cant_bloques_arch);
             if(espacio>=cant_bloques_ingresados){
+                log_info(logger, "PID: <PID> - Inicio Compactación.");
+                sleep(retraso_compactacion/1000);
                 compactacion_bitmap(espacio,cant_bloques_arch);
                 compactacion_metadata(nombre, espacio);
-                fclose(archivo);
-                log_info(logger, "COMPACTACION");
-                truncate_archivo(nombre,tam);
+                log_info(logger, "PID: <PID> - Fin Compactación.");
+                truncate_archivo(nombre,tam,retraso_compactacion);
                 
                 return;
             };
             perror("No hay espacio");
-            fclose(archivo);
             exit(EXIT_FAILURE);
         }
     }
-        metadata.tam_archivo=tam;
         
-        FCB = malloc(sizeof(t_metadata));
-        FCB->bloque_inicial = metadata.bloque_inicial;
-        FCB->tam_archivo = metadata.tam_archivo;        
-        
-        dictionary_put(diccionarioFS,nombre,FCB);
-
-        fseek(archivo, 0, SEEK_SET);
-
-        
-        if (fwrite(&metadata, sizeof(t_metadata), 1, archivo) != 1) {
-            perror("Error al escribir en el archivo de metadata");
-            fclose(archivo);
-            exit(EXIT_FAILURE);
-        }
-
-    fclose(archivo);
+    t_metadata* metadata = (t_metadata*)FCB->map;
+    metadata->tam_archivo=tam;   
+    FCB->metadata.tam_archivo=tam;
+    dictionary_put(diccionarioFS,nombre,FCB);
+    msync(FCB->map,sizeof(t_metadata),MS_SYNC);
 }
 
 void compactacion_metadata(char* nombre, int espacio){
     char* name;
-    t_metadata* FCB;
+    t_diccionario* FCB;
     t_list* lista = dictionary_keys(diccionarioFS);
+    
     int acumulador_bloques=0;
     for(int i=0;i<list_size(lista);i++){
         name = list_get(lista,i);
         FCB = dictionary_get(diccionarioFS,name);
+        
         if(strcmp(nombre,name)){
-            FCB->bloque_inicial=acumulador_bloques;
+        
+            t_metadata* metadata = (t_metadata*)FCB->map;
+            metadata->bloque_inicial=acumulador_bloques;   
+            FCB->metadata.bloque_inicial=acumulador_bloques;
             dictionary_put(diccionarioFS,name,FCB);
-            int cantidad_bloques=(FCB->tam_archivo+block_size2-1)/block_size2;
+            msync(FCB->map,sizeof(t_metadata),MS_SYNC);
+
+            int cantidad_bloques=(FCB->metadata.tam_archivo+block_size2-1)/block_size2;
             if(cantidad_bloques==0){
                 cantidad_bloques=1;
             }
             acumulador_bloques=acumulador_bloques+cantidad_bloques;
+        
         }else{
-            FCB->bloque_inicial=block_count2-espacio;
-            dictionary_put(diccionarioFS,name,FCB);
+            t_metadata* metadata = (t_metadata*)FCB->map;
+            metadata->bloque_inicial=block_count2-espacio;   
+            FCB->metadata.bloque_inicial=block_count2-espacio;
+            dictionary_put(diccionarioFS,nombre,FCB);
+            msync(FCB->map,sizeof(t_metadata),MS_SYNC);
         }
     }
 }
