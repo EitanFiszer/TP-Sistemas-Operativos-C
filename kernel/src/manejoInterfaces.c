@@ -391,6 +391,7 @@ void desconectar_IO(char *nombre_io_hilo)
 void desocupar_io(char *nombre_io_hilo)
 {
     datos_interfaz *find_io = dictionary_get(interfaces_dict, nombre_io_hilo);
+    log_info(logger, "Se desocupó %s con el PID %d", nombre_io_hilo, find_io->pcb_usando_interfaz->PID);
     if (find_io == NULL)
     {
         log_info(logger, "NO EXITE INTERFAZ CON NOMBRE: %s", nombre_io_hilo);
@@ -402,6 +403,7 @@ void desocupar_io(char *nombre_io_hilo)
         if(strcmp("VRR",algoritmo_planificacion)==0){
             cargar_ready_priori(find_io->pcb_usando_interfaz, BLOCKED);
         }else{
+
             cargar_ready(find_io->pcb_usando_interfaz, BLOCKED);
         }
         

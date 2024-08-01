@@ -4,12 +4,14 @@
 #include <commons/collections/dictionary.h>
 #include <commons/bitarray.h>
 #include <commons/memory.h>
+#include <commons/log.h>
 #include <string.h>
 
 
 extern Memoria memoria; 
 extern t_bitarray* marcosLibres;
 extern int TAM_PAGINA;
+extern t_log* logger;
 
 int buscarDireccionFisicaEnTablaDePaginas(int pid, int pagina) {
     // printf("Buscando dirección física en tabla de páginas del proceso %d, pagina %d\n", pid, pagina);
@@ -62,11 +64,40 @@ int buscarMarcoLibre() {
     return -1;
 }
 
-void escribirMemoria(int direccionFisica, void* dato, int tamDato) {
-    // printf("Primera dirección de memoria: %p, dirección deseada: %p\n", memoria.memoria, memoria.memoria + direccionFisica);
-    // printf("Escribiendo dato %p en dirección %d\n", dato, direccionFisica);
-    memcpy(memoria.memoria + direccionFisica, dato, tamDato);
-    // mem_hexdump(memoria.memoria + direccionFisica, TAM_PAGINA);
+void escribirMemoria(int pid, int direccionFisica, void* dato, int tamDato) {
+    int numPagina = direccionFisica / TAM_PAGINA;
+    int offset = direccionFisica % TAM_PAGINA;
+    Proceso* proceso = procesoPorPID(pid);
+
+    if (proceso == NULL) {
+        return;
+    }
+
+    int marco = buscarDireccionFisicaEnTablaDePaginas(pid, numPagina);
+
+    if (marco == -1) {
+        return;
+    }
+
+    int offsetRestanteDelMarco = TAM_PAGINA - offset;
+    int bytesEscritos = 0;
+    while (bytesEscritos < tamDato) {
+        int bytesAEscribir = tamDato - bytesEscritos;
+        if (bytesAEscribir > offsetRestanteDelMarco) {
+            bytesAEscribir = offsetRestanteDelMarco;
+        }
+        log_info(logger, "Escribiendo %d bytes en la dirección física %d", bytesAEscribir, marco * TAM_PAGINA + offset);
+        memcpy(memoria.memoria + marco * TAM_PAGINA + offset, dato + bytesEscritos, bytesAEscribir);
+        mem_hexdump(memoria.memoria + marco * TAM_PAGINA, TAM_PAGINA);
+        bytesEscritos += bytesAEscribir;
+        offset = 0;
+        numPagina++;
+        marco = buscarDireccionFisicaEnTablaDePaginas(pid, numPagina);
+        if (marco == -1) {
+            return;
+        }
+        offsetRestanteDelMarco = TAM_PAGINA;
+    }
 }
 
 void* obtenerDatoMemoria(int direccion, int tamDato) {

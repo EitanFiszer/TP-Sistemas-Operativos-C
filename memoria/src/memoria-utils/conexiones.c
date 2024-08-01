@@ -159,15 +159,16 @@ void esperar_paquetes_cpu() {
                 enviar_paquete_entre(socketCpu, op_code, buffer, size_payload);
               break;
             #pragma endregion
-            #pragma region ENVIAR_DATO_MEMORIA
-            case ENVIAR_DATO_MEMORIA:
+            #pragma region ESCRIBIR_MEMORIA
+            case ESCRIBIR_MEMORIA:
               usleep(retardo_respuesta * 1000);
-              t_payload_enviar_dato_memoria *payloadEnviar = deserializar_enviar_dato_memoria(paquete_cpu->payload);
-              int direccionEnviar = payloadEnviar->direccion;
-              void* datoEnviar = payloadEnviar->dato;
-              int tamDatoEnviar = payloadEnviar->tamDato;
+              t_payload_escribir_memoria* payloadEscribir = deserializar_escribir_memoria(paquete_cpu->payload);
+              int direccionEnviar = payloadEscribir->direccion;
+              void* datoEnviar = payloadEscribir->dato;
+              int tamDatoEnviar = payloadEscribir->size_cadena;
+              int pidEscribir = payloadEscribir->pid;
               printf("Escribiendo dato %d en dirección %d\n", *(int*)datoEnviar, direccionEnviar);
-              escribirMemoria(direccionEnviar, datoEnviar, tamDatoEnviar);
+              escribirMemoria(pidEscribir, direccionEnviar, datoEnviar, tamDatoEnviar);
               
               enviar_paquete_entre(socketCpu, DATO_MEMORIA, datoEnviar, sizeof(datoEnviar));
               break;
@@ -182,43 +183,6 @@ void esperar_paquetes_cpu() {
     liberarMemoria();
 }
 
-// void esperar_paquetes_io() {
-//   log_info(logger,"Esperando paquetes de IO en el socket %d\n", socketIO);
-//   while (1) {
-//     t_paquete_entre *paquete_io = recibir_paquete_entre(socketIO);
-//     OP_CODES_ENTRE op_code = paquete_io->operacion;
-    
-//     if (paquete_io == NULL || paquete_io->payload == NULL) {
-//         log_error(logger, "No se pudo recibir el paquete de la IO, cerrando hilo");
-//         break;
-//     } 
-
-//     switch (op_code) {
-//       case ESCRIBIR_MEMORIA:
-//         usleep(retardo_respuesta * 1000); 
-//         t_payload_escribir_memoria *payloadStdin = deserializar_escribir_memoria(paquete_io->payload);
-//         int pid = payloadStdin->direccion;
-//         char* string = payloadStdin->cadena;
-//         int sizeString = payloadStdin->size_cadena;
-
-//         break;
-//       case SOLICITAR_DATO_MEMORIA:
-//         usleep(retardo_respuesta * 1000);
-//         t_payload_solicitar_dato_memoria *payloadSolicitarDato = deserializar_solicitar_dato_memoria(paquete_io->payload);
-//         int direccion = payloadSolicitarDato->direccion;
-//         log_info(logger, "Se llamó a SOLICITAR_DATO_MEMORIA para dirección: %d", direccion);
-//         int tamDato = payloadSolicitarDato->tam;
-//         // Obtener dato de memoria
-//         void* dato = obtenerDatoMemoria(direccion, tamDato);
-        
-//         enviar_paquete_entre(socketIO, DATO_MEMORIA, dato, sizeof(dato));
-//         break;
-//       default:
-//         log_info(logger, "Operación desconocida de IO");
-//         break;
-//     }
-//   }
-// }
 
 void atender_cliente_io(void *socket) {
     char *nombre_io_hilo = NULL;
@@ -268,7 +232,13 @@ void atender_cliente_io(void *socket) {
               break;
           case ESCRIBIR_MEMORIA:
             usleep(retardo_respuesta * 1000);
-            log_info(logger, "Se llamó a ESCRIBIR_MEMORIA");
+              t_payload_escribir_memoria* payloadEscribir = deserializar_escribir_memoria(paqueteEntre->payload);
+              int direccionEnviar = payloadEscribir->direccion;
+              void* datoEnviar = payloadEscribir->dato;
+              int tamDatoEnviar = payloadEscribir->size_cadena;
+              int pid = payloadEscribir->pid;
+              printf("Escribiendo dato %d en dirección %d\n", *(int*)datoEnviar, direccionEnviar);
+              escribirMemoria(pid, direccionEnviar, datoEnviar, tamDatoEnviar);
             break;
           case SOLICITAR_DATO_MEMORIA:
             usleep(retardo_respuesta * 1000);

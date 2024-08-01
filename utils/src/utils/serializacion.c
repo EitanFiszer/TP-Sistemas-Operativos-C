@@ -527,31 +527,27 @@ t_payload_fs_writeORread *deserializar_fs_writeORread(void *buffer){
     memcpy(payload->nombreArchivo, buffer + offset, size_nombreArchivo);
     offset += size_nombreArchivo;
 
-    int size_regTam = strlen(buffer + offset) + 1;
-    payload->regTam = malloc(size_regTam);
-    memcpy(payload->regTam, buffer + offset, size_regTam);
-    offset += size_regTam;
+    memcpy(payload->tam, buffer + offset, sizeof(int));
+    offset += sizeof(int);
 
-    int size_regDire = strlen(buffer + offset) + 1;
-    payload->regDire = malloc(size_regDire);
-    memcpy(payload->regDire, buffer + offset, size_regDire);
-    offset += size_regDire;
+    memcpy(payload->dirFisica, buffer + offset, sizeof(int));
+    offset += sizeof(int);
 
-    int size_regPuntero = strlen(buffer + offset) + 1;
-    payload->regPuntero = malloc(size_regPuntero);
-    memcpy(payload->regPuntero, buffer + offset, size_regPuntero);
-    offset += size_regPuntero;
+    memcpy(payload->punteroArchivo, buffer + offset, sizeof(int));
+    offset += sizeof(int);
+
+    int size_pcb = sizeof(t_PCB);
+    payload->pcb = malloc(size_pcb);
+    memcpy(payload->pcb, buffer + offset, size_pcb);
 
     return payload;
 }
 void *serializar_fs_writeORread(t_payload_fs_writeORread *payload, int *size_payload){
     int size_interfaz = strlen(payload->interfaz) + 1;
     int size_nombreArchivo = strlen(payload->nombreArchivo) + 1;
-    int size_regTam = strlen(payload->regTam) + 1;
-    int size_regDire = strlen(payload->regDire) + 1;
-    int size_regPuntero = strlen(payload->regPuntero) + 1;
+    int size_pcb = sizeof(t_PCB);
 
-    *size_payload = size_interfaz + size_nombreArchivo + size_regTam + size_regDire + size_regPuntero;
+    *size_payload = size_interfaz + size_nombreArchivo + sizeof(int) * 3 + size_pcb;
 
     void* buffer = malloc(*size_payload);
     int offset = 0;
@@ -562,14 +558,17 @@ void *serializar_fs_writeORread(t_payload_fs_writeORread *payload, int *size_pay
     memcpy(buffer + offset, payload->nombreArchivo, size_nombreArchivo);
     offset += size_nombreArchivo;
 
-    memcpy(buffer + offset, payload->regTam, size_regTam);
-    offset += size_regTam;
+    memcpy(buffer + offset, payload->tam, sizeof(int));
+    offset += sizeof(int);
 
-    memcpy(buffer + offset, payload->regDire, size_regDire);
-    offset += size_regDire;
+    memcpy(buffer + offset, payload->dirFisica, sizeof(int));
+    offset += sizeof(int);
 
-    memcpy(buffer + offset, payload->regPuntero, size_regPuntero);
-    offset += size_regPuntero;
+    memcpy(buffer + offset, payload->punteroArchivo, sizeof(int));
+    offset += sizeof(int);
+
+    memcpy(buffer + offset, payload->pcb, size_pcb);
+    offset += size_pcb;
 
     return buffer;
 }
@@ -580,29 +579,37 @@ void* serializar_escribir_memoria(t_payload_escribir_memoria* payload, int* size
       int direccion;
       char* cadena;
       int size_cadena;
+      int pid;
     } t_payload_escribir_memoria;
     */
-    int size_cadena = strlen(payload->cadena) + 1;
-    *size_payload = sizeof(int) * 2 + size_cadena;
+
+    int size_cadena = payload->size_cadena;
+    *size_payload = sizeof(int) * 3 + size_cadena;
     void* buffer = malloc(*size_payload);
     int desplazamiento = 0;
+
+    memcpy(buffer + desplazamiento, &(payload->pid), sizeof(int));
+    desplazamiento += sizeof(int);
     memcpy(buffer + desplazamiento, &(payload->direccion), sizeof(int));
     desplazamiento += sizeof(int);
     memcpy(buffer + desplazamiento, &size_cadena, sizeof(int));
     desplazamiento += sizeof(int);
-    memcpy(buffer + desplazamiento, payload->cadena, size_cadena);
+    memcpy(buffer + desplazamiento, payload->dato, size_cadena);
     return buffer;
 }
 
 t_payload_escribir_memoria* deserializar_escribir_memoria(void* buffer) {
     t_payload_escribir_memoria* payload = malloc(sizeof(t_payload_escribir_memoria));
     int desplazamiento = 0;
+
+    memcpy(&(payload->pid), buffer + desplazamiento, sizeof(int));
+    desplazamiento += sizeof(int);
     memcpy(&(payload->direccion), buffer + desplazamiento, sizeof(int));
     desplazamiento += sizeof(int);
     memcpy(&(payload->size_cadena), buffer + desplazamiento, sizeof(int));
     desplazamiento += sizeof(int);
-    payload->cadena = malloc(payload->size_cadena);
-    memcpy(payload->cadena, buffer + desplazamiento, payload->size_cadena);
+    payload->dato = malloc(payload->size_cadena);
+    memcpy(payload->dato, buffer + desplazamiento, payload->size_cadena);
     return payload;
 }
 

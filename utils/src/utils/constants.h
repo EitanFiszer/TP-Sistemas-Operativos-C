@@ -191,9 +191,9 @@ typedef struct {
 typedef struct {
     char* interfaz;
     char* nombreArchivo;
-    char* regTam;
-    char* regDire;
-    char* regPuntero;
+    int tam;
+    int punteroArchivo;
+    int dirFisica;
     t_PCB* pcb;
 } t_payload_fs_writeORread;
 
@@ -224,8 +224,9 @@ typedef struct {
 
 typedef struct {
     int direccion;
-    char* cadena;
+    void* dato;
     int size_cadena;
+    int pid;
 } t_payload_escribir_memoria;
 
 typedef struct {

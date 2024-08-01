@@ -492,8 +492,10 @@ void lts_ex(t_PCB *pcb, t_proceso_estado estado_anterior, char *motivo)
 
 void desalojar()
 {
-  
-    pthread_cancel(hilo_quantum); // BENDITA LINEA
+    if (strcmp(algoritmo_planificacion, "VRR") == 0 || strcmp(algoritmo_planificacion, "RR") == 0) {
+        pthread_cancel(hilo_quantum);
+        log_info(logger, "quantum cancelado");
+    }
     // FALLA EN MEMORIA_3
     pthread_mutex_lock(&sem_q_exec);
     t_PCB *retirar_PCB = queue_pop(cola_exec);
