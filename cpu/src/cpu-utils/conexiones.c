@@ -51,18 +51,19 @@ void* solicitar_dato_memoria(int dirFisica, int tam) {
     return dato;
 }
 
-int enviar_dato_memoria(int dirFisica, void* dato, int tamDato) {
-    t_payload_enviar_dato_memoria* payload = malloc(sizeof(t_payload_enviar_dato_memoria));
+int enviar_dato_memoria(int pid, int dirFisica, void* dato, int tamDato) {
+    t_payload_escribir_memoria* payload = malloc(sizeof(t_payload_escribir_memoria));
     payload->direccion = dirFisica;
     payload->dato = dato;
-    payload->tamDato = tamDato;
+    payload->size_cadena = tamDato;
+    payload->pid = pid;
 
     int size_payload;
-    void* buffer = serializar_enviar_dato_memoria(payload, &size_payload);
+    void* buffer = serializar_escribir_memoria(payload, &size_payload);
 
     // printf("Enviando dato void %p a direccion %d", dato, dirFisica);
     
-    enviar_paquete_entre(socketMemoria, ENVIAR_DATO_MEMORIA, buffer, size_payload);
+    enviar_paquete_entre(socketMemoria, ESCRIBIR_MEMORIA, buffer, size_payload);
 
     t_paquete_entre* paqueteRecibido = recibir_paquete_entre(socketMemoria);
     if (paqueteRecibido == NULL) {

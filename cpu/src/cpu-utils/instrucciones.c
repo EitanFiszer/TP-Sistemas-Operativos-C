@@ -133,7 +133,7 @@ void instruccionMovOut(char* regDire, char* regDato, registros_t* registros, t_P
     if (dirFisica == -1) {
         return;
     }
-    enviar_dato_memoria(dirFisica, &dato, sizeof(int));
+    enviar_dato_memoria(pcb->PID, dirFisica, &dato, 1);
     pcb->program_counter = pcb->program_counter + 1;
 }
 
@@ -167,7 +167,7 @@ void instruccionCopyString(int tam, registros_t registros, t_PCB* pcb) {
     char* stringCortada = malloc(tam);
     strncpy(stringCortada, string, tam);
 
-    int ok = enviar_dato_memoria(dirFisicaDI, stringCortada, tam);
+    int ok = enviar_dato_memoria(pcb->PID, dirFisicaDI, stringCortada, tam);
 
     if (ok == -1) {
         return;
@@ -191,20 +191,13 @@ void instruccionSignal(char* recurso, t_PCB* pcb) {
 
 // Esta instrucción solicita al Kernel que mediante la interfaz ingresada se lea desde el STDIN (Teclado) un valor cuyo tamaño está delimitado por el valor del Registro Tamaño y el mismo se guarde a partir de la Dirección Lógica almacenada en el Registro Dirección.
 void instruccionIoSTDInRead(char* interfaz, char* regDire, char* regTam, registros_t* registros, t_PCB* pcb) {
+    pcb->program_counter = pcb->program_counter + 1;
     int dirLogica = valorDelRegistro(regDire, registros);
     int tam = valorDelRegistro(regTam, registros);
 
     int dirFisica = calcularDireccionFisica(pcb->PID, dirLogica);
 
     solicitar_io_stdin(tam, pcb, interfaz, dirFisica);
-
-    int ok = 0;
-
-    if (ok == -1) {
-        return;
-    } else {
-        pcb->program_counter = pcb->program_counter + 1;
-    }
 }
 
 /*Esta instrucción solicita al Kernel que mediante la interfaz seleccionada, se lea desde la posición de memoria 

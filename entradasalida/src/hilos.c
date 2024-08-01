@@ -134,11 +134,15 @@ void hilo_stdin(void* argumentos) {
                 t_payload_escribir_memoria* payload = malloc(sizeof(t_payload_escribir_memoria));
                 payload->direccion = operacionRecibida->dirFisica;
                 payload->dato = (void*)input;
-                payload->size_cadena = strlen(input) + 1;  // +1 para incluir el '\0'
+                payload->size_cadena = strlen(input);  // +1 para incluir el '\0'
+                payload->pid = pid;
 
                 int size_payload;
                 void* payloadSerializado = serializar_escribir_memoria(payload, &size_payload);
                 enviar_paquete_entre(socketMemoria, ESCRIBIR_MEMORIA, payloadSerializado, size_payload);
+
+                log_info(logger, "Texto ingresado: %s", input);
+                log_info(logger, "Texto ingresado guardado en memoria en la dirección %d", operacionRecibida->dirFisica);
                 enviar_paquete_entre(socketKernell, TERMINE_OPERACION, NULL, 0);
 
 

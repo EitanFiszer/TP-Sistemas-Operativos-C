@@ -159,15 +159,16 @@ void esperar_paquetes_cpu() {
                 enviar_paquete_entre(socketCpu, op_code, buffer, size_payload);
               break;
             #pragma endregion
-            #pragma region ENVIAR_DATO_MEMORIA
-            case ENVIAR_DATO_MEMORIA:
+            #pragma region ESCRIBIR_MEMORIA
+            case ESCRIBIR_MEMORIA:
               usleep(retardo_respuesta * 1000);
-              t_payload_enviar_dato_memoria *payloadEnviar = deserializar_enviar_dato_memoria(paquete_cpu->payload);
-              int direccionEnviar = payloadEnviar->direccion;
-              void* datoEnviar = payloadEnviar->dato;
-              int tamDatoEnviar = payloadEnviar->tamDato;
+              t_payload_escribir_memoria* payloadEscribir = deserializar_escribir_memoria(paquete_cpu->payload);
+              int direccionEnviar = payloadEscribir->direccion;
+              void* datoEnviar = payloadEscribir->dato;
+              int tamDatoEnviar = payloadEscribir->size_cadena;
+              int pidEscribir = payloadEscribir->pid;
               printf("Escribiendo dato %d en dirección %d\n", *(int*)datoEnviar, direccionEnviar);
-              escribirMemoria(direccionEnviar, datoEnviar, tamDatoEnviar);
+              escribirMemoria(pidEscribir, direccionEnviar, datoEnviar, tamDatoEnviar);
               
               enviar_paquete_entre(socketCpu, DATO_MEMORIA, datoEnviar, sizeof(datoEnviar));
               break;
@@ -231,9 +232,13 @@ void atender_cliente_io(void *socket) {
               break;
           case ESCRIBIR_MEMORIA:
             usleep(retardo_respuesta * 1000);
-            log_info(logger, "Se llamó a ESCRIBIR_MEMORIA");
-            t_payload_escribir_memoria* payloadEscribir = deserializar_escribir_memoria(paqueteEntre->payload);
-            escribirMemoria(payloadEscribir->direccion, payloadEscribir->dato, payloadEscribir->size_cadena);
+              t_payload_escribir_memoria* payloadEscribir = deserializar_escribir_memoria(paqueteEntre->payload);
+              int direccionEnviar = payloadEscribir->direccion;
+              void* datoEnviar = payloadEscribir->dato;
+              int tamDatoEnviar = payloadEscribir->size_cadena;
+              int pid = payloadEscribir->pid;
+              printf("Escribiendo dato %d en dirección %d\n", *(int*)datoEnviar, direccionEnviar);
+              escribirMemoria(pid, direccionEnviar, datoEnviar, tamDatoEnviar);
             break;
           case SOLICITAR_DATO_MEMORIA:
             usleep(retardo_respuesta * 1000);

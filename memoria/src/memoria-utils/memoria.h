@@ -6,4 +6,4 @@ int cantidadMarcosLibres();
 
 int buscarMarcoLibre();
 
-void escribirMemoria(int direccion, void* dato, int tamDato);
+void escribirMemoria(int pid, int direccion, void* dato, int tamDato);
