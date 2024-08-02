@@ -21,6 +21,11 @@ t_bitarray* crear_bitarray(){
 
    char data[(int)ceil(block_count2/8)];
    t_bitarray* bitarray = bitarray_create_with_mode(data, sizeof(data),LSB_FIRST);
+    for(int i=0;i<block_count2;i++){
+        bitarray_clean_bit(bitarray,i);
+        log_info(logger,"%d",bitarray_test_bit(bitarray,i));
+    }
+    log_info(logger, "\n");
 
     return bitarray;
 }
@@ -37,15 +42,20 @@ void crear_bitmap() {
     t_bitarray* bitarray = crear_bitarray();
     FILE* archivo = crear_archivo_fs("bitmap.dat");
 
-    if ((fwrite(bitarray->bitarray, 1, bitarray->size, archivo)) != 1) {
+    ftruncate(fileno(archivo),bitarray->size);
+/*
+    if ((fwrite(bitarray->bitarray, 1, bitarray->size, archivo)) != bitarray->size) {
         perror("Error al escribir en el archivo de bitmap");
         bitarray_destroy(bitarray);
         fclose(archivo);
         exit(EXIT_FAILURE);
     }
+*/
 
-    bitarray_destroy(bitarray);
+    fseek(archivo, 0, SEEK_SET);
+
     fclose(archivo);
+    bitarray_destroy(bitarray);
 }
 
 //CARGA EL BITMAP EN DISCO A PARTIR DEL ARCHIVO BITMAP.DAT
@@ -53,12 +63,12 @@ t_bitarray* cargar_bitmap() {
 
     int fd = open(crear_ruta("bitmap.dat"), O_CREAT | O_RDWR, 0664);
 
-    ftruncate(fd,block_count2);
+    ftruncate(fd,block_count2/8);
 
-    void* bitmap = mmap(NULL, block_count2, PROT_READ|PROT_WRITE, MAP_SHARED, fd ,0);
+    void* bitmap = mmap(NULL, block_count2/8, PROT_READ|PROT_WRITE, MAP_SHARED, fd ,0);
 
 	t_bitarray* bitarray = bitarray_create_with_mode((char*) bitmap, block_count2/8, LSB_FIRST);
-    
+//    bitarray_set_bit(bitarray,0);
     close(fd);
     return bitarray;
 }

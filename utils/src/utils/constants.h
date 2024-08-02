@@ -94,7 +94,7 @@ typedef struct {
     t_metadata* map;
     size_t size;
     int fd;
-    t_metadata metadata;
+//   t_metadata metadata;
 } t_diccionario;
 
 typedef enum {
