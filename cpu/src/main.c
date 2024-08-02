@@ -207,7 +207,7 @@ int main(int argc, char* argv[]) {
                 }
                 break;
             default:
-                log_error(logger, "Operacion desconocida dispatch %d", paq->operacion);
+                log_error(logger, "Operacion desconocida");
                 break;
         }
     }
