@@ -190,16 +190,19 @@ void hilo_stdout(void* argumentos) {
                 payloadMandar->pid=operacionRecibida->pcb->PID;
 
                 enviar_paquete_entre(socketMemoria, SOLICITAR_DATO_MEMORIA, payloadMandar, sizeof(t_payload_solicitar_dato_memoria));
-                free(payloadMandar);
+                
                 t_paquete_entre* respuesta = recibir_paquete_entre(socketMemoria);
                 void* dato = respuesta->payload;
+
+                char* texto = malloc(payloadMandar->tam);
+                memcpy(texto, respuesta->payload, payloadMandar->tam);
                 
 
-                log_info(logger, "Valor leído de memoria: %s", (char*)dato);
-                printf("Valor leído de memoria en la dirección %u: %s\n", operacionRecibida->direccionFisica, (char*)dato);
+                log_info(logger, "Valor leído de memoria: %s", texto);
+                printf("Valor leído de memoria en la dirección %u: %s\n", operacionRecibida->direccionFisica, texto);
 
                 enviar_paquete_entre(socketKernell, TERMINE_OPERACION, NULL, 0);
-
+                free(payloadMandar);
                 break;
             default:
                 log_info(logger, "Operacion: <NO DEFINIDA>");

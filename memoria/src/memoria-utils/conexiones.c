@@ -252,7 +252,7 @@ void atender_cliente_io(void *socket) {
             // Obtener dato de memoria
             void* dato = obtenerDatoMemoria(pid, direccion, tamDato);
             
-            enviar_paquete_entre(socket_cliente_IO, DATO_MEMORIA, dato, sizeof(dato));
+            enviar_paquete_entre(socket_cliente_IO, DATO_MEMORIA, dato,tamDato);
           break;
 
         }        
