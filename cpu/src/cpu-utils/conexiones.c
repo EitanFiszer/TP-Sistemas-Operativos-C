@@ -32,10 +32,11 @@ handshake_cpu_memoria handshake_memoria(char* ip_memoria, char* puerto_memoria) 
     return handData;
 }
 
-void* solicitar_dato_memoria(int dirFisica, int tam) {
+void* solicitar_dato_memoria(int pid, int dirFisica, int tam) {
     t_payload_solicitar_dato_memoria* payload = malloc(sizeof(t_payload_solicitar_dato_memoria));
     payload->direccion = dirFisica;
     payload->tam = tam;
+    payload->pid = pid;
 
     int size_payload;
     void* buffer = serializar_solicitar_dato_memoria(payload, &size_payload); 

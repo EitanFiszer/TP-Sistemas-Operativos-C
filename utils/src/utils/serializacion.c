@@ -680,12 +680,15 @@ t_payload_enviar_dato_memoria* deserializar_enviar_dato_memoria(void* buffer) {
 }
 
 void* serializar_solicitar_dato_memoria(t_payload_solicitar_dato_memoria* payload, int* size_payload) {
-    *size_payload = sizeof(payload->direccion) + sizeof(payload->tam);
+    *size_payload = sizeof(payload->direccion) + sizeof(payload->tam) + sizeof(payload->pid);
     void* buffer = malloc(*size_payload);
     int desplazamiento = 0;
     memcpy(buffer + desplazamiento, &(payload->direccion), sizeof(payload->direccion));
     desplazamiento += sizeof(payload->direccion);
     memcpy(buffer + desplazamiento, &(payload->tam), sizeof(payload->tam));
+    desplazamiento += sizeof(payload->tam);
+    memcpy(buffer + desplazamiento, &(payload->pid), sizeof(payload->pid));
+
     return buffer;
 }
 
@@ -695,6 +698,8 @@ t_payload_solicitar_dato_memoria* deserializar_solicitar_dato_memoria(void* buff
     memcpy(&(payload->direccion), buffer + desplazamiento, sizeof(payload->direccion));
     desplazamiento += sizeof(payload->direccion);
     memcpy(&(payload->tam), buffer + desplazamiento, sizeof(payload->tam));
+    desplazamiento += sizeof(payload->tam);
+    memcpy(&(payload->pid), buffer + desplazamiento, sizeof(payload->pid));
     return payload;
 }
 

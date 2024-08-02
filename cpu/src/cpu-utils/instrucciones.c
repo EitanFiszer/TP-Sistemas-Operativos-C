@@ -119,7 +119,7 @@ void instruccionMovIn(char* regDato, char* regDire, registros_t* registros, t_PC
     int dirLogica = valorDelRegistro(regDire, registros);
     int dirFisica = calcularDireccionFisica(pcb->PID, dirLogica);
 
-    int dato = (int)solicitar_dato_memoria(dirFisica, 4);
+    int dato = (int)solicitar_dato_memoria(pcb->PID, dirFisica, 4);
 
     log_info(logger, "PID %d - Acción: LEER - Dirección Física: %d - Valor: %d", pcb->PID, dirFisica, dato);
 
@@ -165,17 +165,17 @@ void instruccionCopyString(int tam, registros_t registros, t_PCB* pcb) {
     int dirFisicaSI = calcularDireccionFisica(pcb->PID, dirLogicaSI);
     int dirFisicaDI = calcularDireccionFisica(pcb->PID, dirLogicaDI);
 
-    char* string = (char*)solicitar_dato_memoria(dirFisicaSI, tam);
-    log_info(logger, "PID %d - Acción: LEER - Dirección Física: %d - Valor: %s", pcb->PID, dirFisicaSI, string);
+    void* dato = solicitar_dato_memoria(pcb->PID, dirFisicaSI, tam);
+    log_info(logger, "PID %d - Acción: LEER - Dirección Física: %d - Valor: %s", pcb->PID, dirFisicaSI, dato);
 
-    if (string == NULL) {
+    if (dato == NULL) {
         return;
     }
 
-    char* stringCortada = malloc(tam);
-    strncpy(stringCortada, string, tam);
+    void* datoTruncado = malloc(tam);
+    strncpy(datoTruncado, dato, tam);
 
-    int ok = enviar_dato_memoria(pcb->PID, dirFisicaDI, stringCortada, tam);
+    int ok = enviar_dato_memoria(pcb->PID, dirFisicaDI, datoTruncado, tam);
 
     if (ok == -1) {
         return;
@@ -238,7 +238,7 @@ void instruccionIoFSTruncate(char* interfaz, char* nombreArchivo, char* regTam, 
     pcb->program_counter = pcb->program_counter + 1; 
 
     int dir_tam=calcularDireccionFisica(pcb->PID,valorDelRegistro(regTam, registros));
-    int tamtruncate=solicitar_dato_memoria(dir_tam,sizeof(int));
+    int tamtruncate=solicitar_dato_memoria(pcb->PID, dir_tam,sizeof(int));
 
     solicitar_fs_truncate(interfaz, nombreArchivo, tamtruncate, pcb);
 }
