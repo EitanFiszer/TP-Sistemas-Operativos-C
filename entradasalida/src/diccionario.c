@@ -110,7 +110,7 @@ t_dictionary* incializar_el_diccionario() {
             FCB->fd = fd;
 
             dictionary_put(diccionario, dir->d_name, FCB);
-
+            free(FCB);
             close(fd);
         }
         closedir(d);
@@ -138,8 +138,10 @@ void cargar_diccionario_nuevo(char* nombre, int bloque_inicial){
     FCB->fd = fd;
     FCB->map->bloque_inicial=bloque_inicial;
     FCB->map->tam_archivo=0;
-
+    msync(FCB,sizeof(t_metadata),MS_SYNC);
+    
     dictionary_put(diccionarioFS, nombre, FCB);
+    free(FCB);
 
     close(fd);
     return;

@@ -17,14 +17,8 @@
 
 
 
-extern t_bitarray* bitmap;
 //extern char* path_base_fs;
 extern char* path_base2;
-//extern int block_count;
-extern int block_count2;
-//extern int block_size;
-extern int block_size2;
-extern t_dictionary* diccionarioFS;
 
 //CREA ARCHIVO
 FILE* crear_archivo_fs(char* nombre) {

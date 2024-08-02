@@ -139,6 +139,8 @@ void compactacion_bloques(char* nombre){
     
     int primerbit=getBit();
     memcpy(map_bloque+ultimobit*block_size2,buffer,(block_count2-primerbit)*block_size2);
+    free(buffer);
+
     for(int i=ultimobit;i<total_bloques;i++){
         bitarray_set_bit(bitmap,i);
     }
