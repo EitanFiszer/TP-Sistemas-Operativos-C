@@ -1,5 +1,6 @@
 #include "./procesos.h"
 #include <stdlib.h>
+#include <pthread.h>
 #include <commons/string.h>
 #include <commons/collections/dictionary.h>
 #include <commons/bitarray.h>
@@ -12,6 +13,7 @@ extern Memoria memoria;
 extern t_bitarray* marcosLibres;
 extern int TAM_PAGINA;
 extern t_log* logger;
+extern pthread_mutex_t mutexMemoria;
 
 int buscarDireccionFisicaEnTablaDePaginas(int pid, int pagina) {
     // printf("Buscando dirección física en tabla de páginas del proceso %d, pagina %d\n", pid, pagina);
@@ -75,7 +77,7 @@ void escribirMemoria(int pid, int direccionFisica, void* dato, int tamDato) {
 
     int numPagina = buscarPaginaPorPIDYMarco(proceso, marco);
 
-    if (marco == -1) {
+    if (numPagina == -1) {
         return;
     }
 
@@ -87,7 +89,9 @@ void escribirMemoria(int pid, int direccionFisica, void* dato, int tamDato) {
             bytesAEscribir = offsetRestanteDelMarco;
         }
         log_info(logger, "Escribiendo %d bytes en la dirección física %d", bytesAEscribir, marco * TAM_PAGINA + offset);
+        pthread_mutex_lock(&mutexMemoria);
         memcpy(memoria.memoria + marco * TAM_PAGINA + offset, dato + bytesEscritos, bytesAEscribir);
+        pthread_mutex_unlock(&mutexMemoria);
         // mem_hexdump(memoria.memoria + marco * TAM_PAGINA, TAM_PAGINA);
         bytesEscritos += bytesAEscribir;
         offset = 0;
@@ -152,7 +156,9 @@ void* obtenerDatoMemoria(int pid, int direccionFisica, int tamDato) {
             bytesALeer = offsetRestanteDelMarco;
         }
         log_info(logger, "Leyendo %d bytes en la dirección física %d", bytesALeer, marco * TAM_PAGINA + offset);
+        pthread_mutex_lock(&mutexMemoria);
         memcpy(dato + bytesLeidos, memoria.memoria + marco * TAM_PAGINA + offset, bytesALeer);
+        pthread_mutex_unlock(&mutexMemoria);
         bytesLeidos += bytesALeer;
         offset = 0;
         numPagina++;

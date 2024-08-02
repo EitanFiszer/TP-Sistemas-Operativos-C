@@ -18,8 +18,10 @@ extern int socketKernel;
 extern t_bitarray *marcosLibres;
 
 extern Memoria memoria;
+extern pthread_mutex_t mutexMemoria;
 
 void inicializarMemoria() {
+    pthread_mutex_init(&mutexMemoria, NULL);
     memoria.max_procesos = TAM_MEMORIA/TAM_PAGINA;
 
     memoria.memoria = malloc(TAM_MEMORIA);

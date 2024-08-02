@@ -14,6 +14,7 @@ int socketKernel;
 int socketIO;
 
 Memoria memoria;
+pthread_mutex_t mutexMemoria;
 
 void signal_callback_handler(int signum) {
     log_info(logger, "Finalizando por CTRL+C, op %d\n", signum);

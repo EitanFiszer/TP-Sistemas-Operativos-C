@@ -142,13 +142,13 @@ void hilo_stdin(void* argumentos) {
                 int size_payload;
                 void* payloadSerializado = serializar_escribir_memoria(payload, &size_payload);
                 enviar_paquete_entre(socketMemoria, ESCRIBIR_MEMORIA, payloadSerializado, size_payload);
-                free(input);
-                free(payload);
 
                 log_info(logger, "Texto de largo teórico %d (largo real: %d) ingresado: %s", inputSize, strlen(input), input);
                 log_info(logger, "Texto ingresado guardado en memoria en la dirección %d", operacionRecibida->dirFisica);
                 enviar_paquete_entre(socketKernell, TERMINE_OPERACION, NULL, 0);
-
+                
+                free(input);
+                free(payload);
                 break;
             default:
                 log_info(logger, "Operacion: <NO DEFINIDA>");
