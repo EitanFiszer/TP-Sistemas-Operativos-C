@@ -52,6 +52,7 @@ void leerDiccionario(){
         log_info(logger,"%d",FCB->map->bloque_inicial);
         log_info(logger,"%d",FCB->map->tam_archivo);
     }
+    return;
 }
 
 //CALCULA LOS BLOQUES LIBRES QUE TIENE UN ARCHIVO PARA TOMAR
@@ -110,7 +111,6 @@ t_dictionary* incializar_el_diccionario() {
             FCB->fd = fd;
 
             dictionary_put(diccionario, dir->d_name, FCB);
-            free(FCB);
             close(fd);
         }
         closedir(d);
@@ -141,7 +141,6 @@ void cargar_diccionario_nuevo(char* nombre, int bloque_inicial){
     msync(FCB,sizeof(t_metadata),MS_SYNC);
     
     dictionary_put(diccionarioFS, nombre, FCB);
-    free(FCB);
 
     close(fd);
     return;

@@ -130,7 +130,7 @@ void* obtenerDatoMemoria(int pid, int direccion, int tamDato) {
         numPagina++;
         marco = buscarDireccionFisicaEnTablaDePaginas(pid, numPagina);
         if (marco == -1) {
-            return NULL;
+            break;
         }
         offsetRestanteDelMarco = TAM_PAGINA;
     }

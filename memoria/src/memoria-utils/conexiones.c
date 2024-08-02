@@ -121,7 +121,7 @@ void esperar_paquetes_cpu() {
                 int tamDato = payloadSolicitarDato->tam;
                 int pidDatoMemoria = payloadSolicitarDato->pid; 
                 // Obtener dato de memoria
-                void* dato = obtenerDatoMemoria(pid, direccion, tamDato);
+                void* dato = obtenerDatoMemoria(pidDatoMemoria, direccion, tamDato);
                 
                 enviar_paquete_entre(socketCpu, DATO_MEMORIA, dato, sizeof(dato));
               break;
