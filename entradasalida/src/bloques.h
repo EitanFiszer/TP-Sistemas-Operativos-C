@@ -3,5 +3,6 @@
 
 void crearArchivodebloques();
 void* cargar_bloques();
+void compactacion_bloques(char* nombre);
 
 #endif

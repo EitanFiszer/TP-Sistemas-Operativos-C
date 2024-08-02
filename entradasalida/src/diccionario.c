@@ -49,8 +49,8 @@ void leerDiccionario(){
         nombre=list_get(lista,i);
         FCB=dictionary_get(diccionarioFS, nombre);
         log_info(logger,"%s",nombre);
-        log_info(logger,"%d",FCB->metadata.bloque_inicial);
-        log_info(logger,"%d",FCB->metadata.tam_archivo);
+        log_info(logger,"%d",FCB->map->bloque_inicial);
+        log_info(logger,"%d",FCB->map->tam_archivo);
     }
 }
 
@@ -64,10 +64,10 @@ int espacioLIbre(char* nombres, int bloques_delArchivo){
         FCB=lista->head->data;
         int cantidad_bloques;
 
-        if(FCB->metadata.tam_archivo==0){
+        if(FCB->map->tam_archivo==0){
             cantidad_bloques=1;
         }else{
-            cantidad_bloques=(FCB->metadata.tam_archivo+block_size2-1)/block_size2;
+            cantidad_bloques=(FCB->map->tam_archivo+block_size2-1)/block_size2;
         }
 
         acumulador_bloques=acumulador_bloques + cantidad_bloques;
@@ -104,15 +104,13 @@ t_dictionary* incializar_el_diccionario() {
             void* map = mmap(NULL, sizeof(t_metadata), PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
 
             FCB = malloc(sizeof(t_diccionario));
-
-            memcpy(&FCB->metadata, map, sizeof(t_metadata));
-            
+                        
             FCB->map = map;
             FCB->size = sizeof(t_metadata);
             FCB->fd = fd;
 
             dictionary_put(diccionario, dir->d_name, FCB);
-
+            free(FCB);
             close(fd);
         }
         closedir(d);
@@ -138,13 +136,27 @@ void cargar_diccionario_nuevo(char* nombre, int bloque_inicial){
     FCB->map = map;
     FCB->size = sizeof(t_metadata);
     FCB->fd = fd;
-    FCB->metadata.bloque_inicial=bloque_inicial;
-    FCB->metadata.tam_archivo=0;
-
+    FCB->map->bloque_inicial=bloque_inicial;
+    FCB->map->tam_archivo=0;
+    msync(FCB,sizeof(t_metadata),MS_SYNC);
+    
     dictionary_put(diccionarioFS, nombre, FCB);
+    free(FCB);
 
     close(fd);
     return;
+}
+
+
+t_diccionario* getFCBxInicio(int bloque_inicio){
+    t_list* lista= dictionary_elements(diccionarioFS);
+    for(int i=0;i<list_size(lista);i++){
+        t_diccionario* FCB = list_get(lista,i);
+        if(FCB->map->bloque_inicial==bloque_inicio){
+            return FCB;
+        }
+    }
+    return NULL;
 }
 
     
