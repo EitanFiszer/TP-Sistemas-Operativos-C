@@ -119,8 +119,9 @@ void esperar_paquetes_cpu() {
                 log_info(logger, "Se llamó a SOLICITAR_DATO_MEMORIA para dirección: %d", direccion);
 
                 int tamDato = payloadSolicitarDato->tam;
+                int pidDatoMemoria = payloadSolicitarDato->pid; 
                 // Obtener dato de memoria
-                void* dato = obtenerDatoMemoria(direccion, tamDato);
+                void* dato = obtenerDatoMemoria(pid, direccion, tamDato);
                 
                 enviar_paquete_entre(socketCpu, DATO_MEMORIA, dato, sizeof(dato));
               break;
@@ -242,7 +243,16 @@ void atender_cliente_io(void *socket) {
             break;
           case SOLICITAR_DATO_MEMORIA:
             usleep(retardo_respuesta * 1000);
-            log_info(logger, "Se llamó a SOLICITAR_DATO_MEMORIA");
+            t_payload_solicitar_dato_memoria *payloadSolicitarDato = deserializar_solicitar_dato_memoria(paqueteEntre->payload);
+            int direccion = payloadSolicitarDato->direccion;
+            log_info(logger, "Se llamó a SOLICITAR_DATO_MEMORIA para dirección: %d", direccion);
+
+            int tamDato = payloadSolicitarDato->tam;
+            int pidDatoMemoria = payloadSolicitarDato->pid; 
+            // Obtener dato de memoria
+            void* dato = obtenerDatoMemoria(pid, direccion, tamDato);
+            
+            enviar_paquete_entre(socket_cliente_IO, DATO_MEMORIA, dato, sizeof(dato));
           break;
 
         }        

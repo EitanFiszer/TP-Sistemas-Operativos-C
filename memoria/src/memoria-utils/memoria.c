@@ -88,7 +88,7 @@ void escribirMemoria(int pid, int direccionFisica, void* dato, int tamDato) {
         }
         log_info(logger, "Escribiendo %d bytes en la dirección física %d", bytesAEscribir, marco * TAM_PAGINA + offset);
         memcpy(memoria.memoria + marco * TAM_PAGINA + offset, dato + bytesEscritos, bytesAEscribir);
-        mem_hexdump(memoria.memoria + marco * TAM_PAGINA, TAM_PAGINA);
+        // mem_hexdump(memoria.memoria + marco * TAM_PAGINA, TAM_PAGINA);
         bytesEscritos += bytesAEscribir;
         offset = 0;
         numPagina++;
@@ -100,8 +100,40 @@ void escribirMemoria(int pid, int direccionFisica, void* dato, int tamDato) {
     }
 }
 
-void* obtenerDatoMemoria(int direccion, int tamDato) {
-    void* dato;
-    memcpy(&dato, memoria.memoria + direccion, tamDato);
+void* obtenerDatoMemoria(int pid, int direccion, int tamDato) {
+    Proceso* proceso = procesoPorPID(pid);
+    if (proceso == NULL) {
+        return NULL;
+    }
+
+    int numPagina = direccion / TAM_PAGINA;
+    int offset = direccion % TAM_PAGINA;
+    int marco = buscarDireccionFisicaEnTablaDePaginas(pid, numPagina);
+
+    if (marco == -1) {
+        return NULL;
+    }
+
+    void* dato = malloc(tamDato);
+    int offsetRestanteDelMarco = TAM_PAGINA - offset;
+    int bytesLeidos = 0;
+
+    while (bytesLeidos < tamDato) {
+        int bytesALeer = tamDato - bytesLeidos;
+        if (bytesALeer > offsetRestanteDelMarco) {
+            bytesALeer = offsetRestanteDelMarco;
+        }
+        log_info(logger, "Leyendo %d bytes en la dirección física %d", bytesALeer, marco * TAM_PAGINA + offset);
+        memcpy(dato + bytesLeidos, memoria.memoria + marco * TAM_PAGINA + offset, bytesALeer);
+        bytesLeidos += bytesALeer;
+        offset = 0;
+        numPagina++;
+        marco = buscarDireccionFisicaEnTablaDePaginas(pid, numPagina);
+        if (marco == -1) {
+            return NULL;
+        }
+        offsetRestanteDelMarco = TAM_PAGINA;
+    }
+
     return dato;
 }

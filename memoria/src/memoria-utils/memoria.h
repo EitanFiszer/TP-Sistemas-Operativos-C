@@ -1,6 +1,6 @@
 int buscarDireccionFisicaEnTablaDePaginas(int pid, int pagina);
 
-void* obtenerDatoMemoria(int direccion, int tamDato);
+void* obtenerDatoMemoria(int pid, int direccion, int tamDato);
 
 int cantidadMarcosLibres();
 
