@@ -64,7 +64,6 @@ void atender_io_stdin_read(t_payload_io_stdin_read *stdint_read)
     }
     else
     {
-        pthread_mutex_lock(&(find_io->mutex_interfaz));
         if (strcmp(find_io->tipo_interfaz, "STDIN") == 0)
         {
             add_queue_blocked(stdint_read->pcb, IOB, stdint_read->interfaz);
@@ -72,7 +71,7 @@ void atender_io_stdin_read(t_payload_io_stdin_read *stdint_read)
             int size_payload;
 
             void *buffer = serializar_io_stdin_read(stdint_read, &size_payload);
-
+            pthread_mutex_lock(&(find_io->mutex_interfaz));
             if (!find_io->libre)
             {
                 dato_op_espera *espera = malloc(sizeof(dato_op_espera));
@@ -89,8 +88,8 @@ void atender_io_stdin_read(t_payload_io_stdin_read *stdint_read)
             {
                 enviar_paquete_entre(find_io->socket_interfaz, IO_STDIN_READ, buffer, size_payload);
                 find_io->pcb_usando_interfaz = stdint_read->pcb;
-
-                log_info(logger, "PID:%d -Estado Anterior:EXEC-Estado Actual:BLOCKED", stdint_read->pcb->PID);
+                log_info(logger, "PID: %d - Bloqueado por: <%s>", stdint_read->pcb->PID, stdint_read->interfaz);
+                log_info(logger, "PID:%d - Estado Anterior: EXEC - Estado Actual: BLOCKED", stdint_read->pcb->PID);
             }
         }
         else

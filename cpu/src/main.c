@@ -68,9 +68,11 @@ void conexion_interrupt(void* argumentos) {
         }
         switch (paquete->operacion) {
             case INTERRUMPIR_PROCESO:
+                t_PCB* pcb = (t_PCB*)paquete->payload;
                 pthread_mutex_lock(&mutex_interrupcion);
                 interrupcion = true;
                 pthread_mutex_unlock(&mutex_interrupcion);
+                // log_info(logger, "Interrupcion recibida para PID %d", pcb->PID);
                 break;
             default:
                 log_error(logger, "Operacion desconocida interrupt %d", paquete->operacion);
@@ -176,8 +178,6 @@ int main(int argc, char* argv[]) {
             case EXEC_PROCESO:
                 while (1) {
                     char* instruccionRecibida;
-                    if(getHayInterrupcion()) break;
-
                     int ok = fetchInstruccion(pcb, socketMemoria, &instruccionRecibida, logger);
                     if (ok == -1) {
                         log_error(logger, "PROCESO TERMINÓ EJECUCIÓN: PID %d", pcb->PID);
@@ -194,9 +194,10 @@ int main(int argc, char* argv[]) {
 
                     // Ejecuto la instruccion
                     ejecutarInstruccion(instruccion, pcb, logger, socketKernel);
+                    if(getHayInterrupcion()) break;
                 }
                 if (getHayInterrupcion() && !terminoProceso) {
-                    log_info(logger, "Interrupcion recibida");
+                    log_info(logger, "Interrupcion alcanzada");
 
                     pthread_mutex_lock(&mutex_interrupcion);
                     interrupcion = false;

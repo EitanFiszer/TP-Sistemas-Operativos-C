@@ -274,16 +274,20 @@ void interrumpir(t_motivo_interrupcion motivo)
         log_info(logger, "INTERRUMPIENDO PROCESO POR INTERRUPTED_BY_USER");
         bool_interrupted_by_user = true;
     }
-    t_paquete *paquete_fin_de_q = crear_paquete();
-    t_paquete_entre *fin_q = malloc(sizeof(t_paquete_entre));
-    fin_q->operacion = INTERRUMPIR_PROCESO;
-    fin_q->size_payload = sizeof(int);
-    int instruccion_valida = 1;
-    fin_q->payload = &instruccion_valida;
-    agregar_paquete_entre_a_paquete(paquete_fin_de_q, fin_q);
-    enviar_paquete(paquete_fin_de_q, resultHandshakeInterrupt);
-    eliminar_paquete(paquete_fin_de_q);
-    free(fin_q);
+    pthread_mutex_lock(&sem_q_exec);
+    t_PCB* pcb = queue_pop(cola_exec);
+    queue_push(cola_exec,pcb);
+    pthread_mutex_unlock(&sem_q_exec);
+
+    t_paquete *paq = crear_paquete();
+    t_paquete_entre *paquete = malloc(sizeof(t_paquete_entre));
+    paquete->operacion = INTERRUMPIR_PROCESO;
+    paquete->size_payload = sizeof(t_PCB);
+    paquete->payload = pcb;
+    agregar_paquete_entre_a_paquete(paq, paquete);
+    enviar_paquete(paq, resultHandshakeInterrupt);
+    eliminar_paquete(paq);
+    free(paquete);
     log_info(logger, "Se interrumpio el proceso por motivo %d", motivo);
 }
 void finalizar_kernel()
