@@ -163,7 +163,7 @@ int redimensionarProceso(int pid, int nuevoTam) {
         return -1;
     }
 
-    int cantPaginas = ceil(nuevoTam / TAM_PAGINA);
+    int cantPaginas = (int)ceil((double)nuevoTam/TAM_PAGINA);
     int cantPaginasActuales = dictionary_size(proceso->tabla_de_paginas);
 
     if (cantPaginasActuales == cantPaginas) {
