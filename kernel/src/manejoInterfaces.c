@@ -68,11 +68,6 @@ void atender_io_stdin_read(t_payload_io_stdin_read *stdint_read)
         if (strcmp(find_io->tipo_interfaz, "STDIN") == 0)
         {
             add_queue_blocked(stdint_read->pcb, IOB, stdint_read->interfaz);
-            if (strcmp(algoritmo_planificacion, "RR") == 0) {
-              reiniciar_quantum(stdint_read->pcb);
-            } else if (strcmp(algoritmo_planificacion, "VRR") == 0){
-              modificar_quantum(stdint_read->pcb);
-            }
 
             int size_payload;
 
@@ -120,11 +115,7 @@ void atender_io_stdout_write(t_payload_io_stdout_write *stdout_write)
         if (strcmp(find_io->tipo_interfaz, "STDOUT") == 0)
         {
             add_queue_blocked(stdout_write->pcb, IOB, stdout_write->interfaz);
-            if (strcmp(algoritmo_planificacion, "RR") == 0) {
-              reiniciar_quantum(stdout_write->pcb);
-            } else if (strcmp(algoritmo_planificacion, "VRR") == 0){
-              modificar_quantum(stdout_write->pcb);
-            }
+
             pthread_mutex_lock(&(find_io->mutex_interfaz));
             int size_payload;
             void *buffer = serializar_io_stdout_write(stdout_write, &size_payload);
@@ -171,11 +162,6 @@ void atender_fs_createOrDelate(t_payload_fs_create *createOrDelate, OP_CODES_ENT
         if (strcmp(find_io->tipo_interfaz, "DIALFS") == 0)
         { // VER QUE RECIBE IO
             add_queue_blocked(createOrDelate->pcb, IOB, createOrDelate->interfaz);
-            if (strcmp(algoritmo_planificacion, "RR") == 0) {
-              reiniciar_quantum(createOrDelate->pcb);
-            } else if (strcmp(algoritmo_planificacion, "VRR") == 0){
-              modificar_quantum(createOrDelate->pcb);
-            }
             int size_payload;
             void *buffer = serializar_fs_create(createOrDelate, &size_payload);
             if (!find_io->libre)
@@ -221,11 +207,7 @@ void atender_fs_truncate(t_payload_fs_truncate *fs_truncate)
         if (strcmp(find_io->tipo_interfaz, "DIALFS") == 0)
         {
             add_queue_blocked(fs_truncate->pcb, IOB, fs_truncate->interfaz);
-            if (strcmp(algoritmo_planificacion, "RR") == 0) {
-              reiniciar_quantum(fs_truncate->pcb);
-            } else if (strcmp(algoritmo_planificacion, "VRR") == 0){
-              modificar_quantum(fs_truncate->pcb);
-            }
+
             int size_payload;
             void *buffer = serializar_fs_truncate(fs_truncate, &size_payload);
             if (!find_io->libre)
@@ -273,11 +255,7 @@ void atender_fs_writeOrRead(t_payload_fs_writeORread *writeOrRead, OP_CODES_ENTR
         if (strcmp(find_io->tipo_interfaz, "DIALFS") == 0)
         {
             add_queue_blocked(writeOrRead->pcb, IOB, writeOrRead->interfaz);
-            if (strcmp(algoritmo_planificacion, "RR") == 0) {
-              reiniciar_quantum(writeOrRead->pcb);
-            } else if (strcmp(algoritmo_planificacion, "VRR") == 0){
-              modificar_quantum(writeOrRead->pcb);
-            }
+
             int size_payload;
             void *buffer = serializar_fs_writeORread(writeOrRead, &size_payload);
             if (!find_io->libre)
@@ -324,11 +302,7 @@ void atender_io_gen_sleep(t_payload_io_gen_sleep *genSleep)
         if (strcmp(find_io->tipo_interfaz, "GENERICA") == 0)
         {
             add_queue_blocked(genSleep->pcb, IOB, genSleep->interfaz);
-            if (strcmp(algoritmo_planificacion, "RR") == 0) {
-              reiniciar_quantum(genSleep->pcb);
-            } else if (strcmp(algoritmo_planificacion, "VRR") == 0){
-              modificar_quantum(genSleep->pcb);
-            }
+
             int size_payload;
             void *buffer = serializar_io_gen_sleep(genSleep, &size_payload);
             pthread_mutex_lock(&(find_io->mutex_interfaz));

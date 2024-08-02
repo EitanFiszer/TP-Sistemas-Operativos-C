@@ -37,12 +37,10 @@ void atender_wait(t_PCB *pcb, char *nombre_recurso)
     {
         // NO EXISTE RECURSO
         log_info(logger, "Recurso %s no encontrado, se desaloja el proceso con PID: %d", nombre_recurso, pcb->PID);
-        desalojar();
+        desalojar(pcb);
         // log_info(logger, "PID:%d - Estado Anterior: EXEC - Estado Actual: EXIT", pcb->PID);
         lts_ex(pcb, EXEC,"INVALID_RESOURCE");
 
-        //CAPAZ FALTA CANCELAR QUANTUM
-        //modificar_quantum(pcb);
     }
     else
     {
@@ -54,12 +52,12 @@ void atender_wait(t_PCB *pcb, char *nombre_recurso)
         if (recurso_encontrado->instancias_recurso < 0)
         {
             // desalojo el proceso y lo envio a la cola de bloqueados
-            desalojar();
+            desalojar(pcb);
             if (strcmp(algoritmo_planificacion, "RR") == 0 || strcmp(algoritmo_planificacion, "VRR") == 0)
             {
                 // / tomo el tiempo en el q hubo syscall
                 // cancelo elhilo quantum y cambio el quantum restante parando el cronometro y restando el tiempo del quantum que habia
-                modificar_quantum(pcb);
+                //modificar_quantum(pcb);
                 queue_push(recurso_encontrado->cola_blocked_recurso, pcb);
                 add_queue_blocked(pcb, REC, nombre_recurso);
                 log_info(logger,"PID: %d - Bloqueado por: <%s>",pcb->PID,nombre_recurso);
@@ -91,7 +89,7 @@ void atender_signal(t_PCB *pcb, char *nombre_recurso)
     {
         // NO EXISTE RECURSO
         log_info(logger, "Recurso %s no encontrado, se desaloja el proceso con PID: %d", nombre_recurso, pcb->PID);
-        desalojar();
+        desalojar(pcb);
         lts_ex(pcb, EXEC,"INVALID_RESOURCE");
     }
     else
