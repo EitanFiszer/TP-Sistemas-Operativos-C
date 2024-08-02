@@ -117,7 +117,7 @@ void *esperar_paquetes_cpu_dispatch(void *arg)
             }
             else if(bool_interrumpi){
                 bool_interrumpi = false;
-                desalojar();
+                desalojar(PCB);
                 cargar_ready(PCB, EXEC);
             }
             break;
@@ -125,7 +125,7 @@ void *esperar_paquetes_cpu_dispatch(void *arg)
         case ERROR_OUT_OF_MEMORY:
             interrumpir(ERROR_OUT_OF_MEMORY_I);
             enviar_paquete_cpu_dispatch(CONFIRMAR_SYSCALL,NULL,0);
-            desalojar();
+            desalojar(NULL);
             break;
             
         case WAIT:
@@ -145,8 +145,8 @@ void *esperar_paquetes_cpu_dispatch(void *arg)
             break;
 
         case TERMINO_EJECUCION:
-            desalojar();
             t_PCB *pcb_dispatch = (t_PCB *)paquete_dispatch->payload;
+            desalojar(pcb_dispatch);
             // log_info(logger, "Finaliza el proceso %d - Motivo: SUCCESS", pcb_dispatch->PID);
             lts_ex(pcb_dispatch, EXEC,"SUCCESS");
             /// PROCESO TERMINADO SE DESALOJA Y SE ENVIA A EXIT
@@ -155,58 +155,58 @@ void *esperar_paquetes_cpu_dispatch(void *arg)
         case IO_STDIN_READ:
             interrumpir(SYSCALL);
             enviar_paquete_cpu_dispatch(CONFIRMAR_SYSCALL,NULL,0);
-            desalojar();
             t_payload_io_stdin_read *payload_stdin_read= deserializar_io_stdin_read(paquete_dispatch->payload);
+            desalojar(payload_stdin_read->pcb);
             atender_io_stdin_read(payload_stdin_read);
             break;
         case IO_STDOUT_WRITE:
             interrumpir(SYSCALL);
             enviar_paquete_cpu_dispatch(CONFIRMAR_SYSCALL,NULL,0);
-            desalojar();
             t_payload_io_stdout_write *payload_stdout_write = deserializar_io_stdout_write(paquete_dispatch->payload);
+            desalojar(payload_stdout_write->pcb);
             atender_io_stdout_write(payload_stdout_write);
 
             break;
         case IO_FS_CREATE:
             interrumpir(SYSCALL);
             enviar_paquete_cpu_dispatch(CONFIRMAR_SYSCALL,NULL,0);
-            desalojar();
             t_payload_fs_create *payload_fs_create = deserializar_fs_create(paquete_dispatch->payload);
+            desalojar(payload_fs_create->pcb);
             atender_fs_createOrDelate(payload_fs_create, IO_FS_CREATE);
             break;
         case IO_FS_DELETE:
             interrumpir(SYSCALL);
             enviar_paquete_cpu_dispatch(CONFIRMAR_SYSCALL,NULL,0);
-            desalojar();
             t_payload_fs_create *payload_fs_del = deserializar_fs_create(paquete_dispatch->payload);
+            desalojar(payload_fs_del->pcb);
             atender_fs_createOrDelate(payload_fs_del,IO_FS_DELETE);
             break;
         case IO_FS_TRUNCATE:
             interrumpir(SYSCALL);
             enviar_paquete_cpu_dispatch(CONFIRMAR_SYSCALL,NULL,0);
-            desalojar();
             t_payload_fs_truncate *payload_truncate = deserializar_fs_truncate(paquete_dispatch->payload);
+            desalojar(payload_truncate->pcb);
             atender_fs_truncate(payload_truncate);
             break;
         case IO_FS_WRITE:
             interrumpir(SYSCALL);
             enviar_paquete_cpu_dispatch(CONFIRMAR_SYSCALL,NULL,0);
-            desalojar();
             t_payload_fs_writeORread *payload_fs_wOr = deserializar_fs_writeORread(paquete_dispatch->payload);
+            desalojar(payload_fs_wOr->pcb);
             atender_fs_writeOrRead(payload_fs_wOr,IO_FS_WRITE);
             break;
         case IO_FS_READ:
             interrumpir(SYSCALL);
             enviar_paquete_cpu_dispatch(CONFIRMAR_SYSCALL,NULL,0);
-            desalojar();
             t_payload_fs_writeORread *payloadRoW = deserializar_fs_writeORread(paquete_dispatch->payload);
+            desalojar(payloadRoW->pcb);
             atender_fs_writeOrRead(payloadRoW,IO_FS_READ);
             break;
         case IO_GEN_SLEEP:
             interrumpir(SYSCALL);
             enviar_paquete_cpu_dispatch(CONFIRMAR_SYSCALL,NULL,0);
-            desalojar();
             t_payload_io_gen_sleep *payload_gen_sleep = deserializar_io_gen_sleep(paquete_dispatch->payload);
+            desalojar(payload_gen_sleep->pcb);
             atender_io_gen_sleep(payload_gen_sleep);
             break;
         default:

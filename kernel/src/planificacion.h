@@ -55,12 +55,13 @@ typedef struct
 // int PID;
 bool condition_pcb_find(void *);
 t_PCB *get_and_remove_pcb(int);
-void desalojar();
+void desalojar(t_PCB*);
 // void atender_syscall(void*);
 void *manejar_quantum(void *);
 // int buscar_recurso(char*);
 // void hubo_syscall(t_PCB *);
 
+void iniciar_quantum();
 void modificar_quantum(t_PCB *);
 void reiniciar_quantum(t_PCB *);
 // void cancelar_quantum();

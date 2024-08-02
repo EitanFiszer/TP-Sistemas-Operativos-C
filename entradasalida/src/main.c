@@ -98,12 +98,12 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-   /* for (int i = 1; i < argc; i += 2) {
+    for (int i = 1; i < argc; i += 2) {
         log_info(logger, "Creando hilo %s", argv[i]);
         crearHilo(argv[i], argv[i+1], argv[argc-1]);
     }
-    */
-
+    
+/*
     path_base2="/FS/";
     block_size2=8;
     block_count2=16;
@@ -174,6 +174,7 @@ int main(int argc, char* argv[]) {
     
     leerbitmap();
     leerDiccionario();
+    */
     log_destroy(logger);
 
     return 0;
