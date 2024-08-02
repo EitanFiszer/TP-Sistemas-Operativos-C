@@ -92,7 +92,9 @@ void delete_archivo(char* nombre) {
     for (int i=bloque_inicial; i < bloque_inicial+cant_bloques; i++) {
         cleanBitMap(i);
     }
+    void* borrar = calloc(1,cant_bloques*block_size2);
 
+    memcpy(map_bloque+FCB->map->bloque_inicial*block_size2 , borrar , cant_bloques * block_size2);
     dictionary_remove_and_destroy(diccionarioFS, nombre, free);
 
     // Eliminar el archivo de metadata
@@ -127,6 +129,8 @@ void truncate_archivo(char* nombre, int tam, int retraso_compactacion,int pid) {
     //SE DESEA ACHICAR EL ARCHIVO
     if (cant_bloques_arch>cant_bloques_ingresados){ 
         int bloques_modificados = cant_bloques_arch-cant_bloques_ingresados; //cuantos bloques se liberan
+        void* borrar = calloc(1,bloques_modificados*block_size2);
+        memcpy(map_bloque+(block_size2*FCB->map->bloque_inicial)+(block_size2*cant_bloques_ingresados), borrar , bloques_modificados * block_size2);
 
         for(int i=0; i<bloques_modificados; i++){
             cleanBitMap(ultimo_bloque);

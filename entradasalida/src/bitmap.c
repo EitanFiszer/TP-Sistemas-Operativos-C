@@ -63,11 +63,11 @@ t_bitarray* cargar_bitmap() {
 
     int fd = open(crear_ruta("bitmap.dat"), O_CREAT | O_RDWR, 0664);
 
-    ftruncate(fd,block_count2/8);
+    ftruncate(fd,(int)ceil(block_count2/8));
 
-    void* bitmap = mmap(NULL, block_count2/8, PROT_READ|PROT_WRITE, MAP_SHARED, fd ,0);
+    void* bitmap = mmap(NULL, (int)ceil(block_count2/8), PROT_READ|PROT_WRITE, MAP_SHARED, fd ,0);
 
-	t_bitarray* bitarray = bitarray_create_with_mode((char*) bitmap, block_count2/8, LSB_FIRST);
+	t_bitarray* bitarray = bitarray_create_with_mode((char*) bitmap, (int)ceil(block_count2/8), LSB_FIRST);
 //    bitarray_set_bit(bitarray,0);
     close(fd);
     return bitarray;
