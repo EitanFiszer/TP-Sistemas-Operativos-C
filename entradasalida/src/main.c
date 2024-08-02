@@ -112,25 +112,70 @@ int main(int argc, char* argv[]) {
 
     leerbitmap();
     leerDiccionario();
+
+
+    
     crear_archivo("A");
+    
+    leerbitmap();
+    leerDiccionario();
+
     truncate_archivo("A",16,1000,1);
+
+    leerbitmap();
+    leerDiccionario();
+
     crear_archivo("B");
+
+        leerbitmap();
+    leerDiccionario();
+
     truncate_archivo("B",24,1000,1);
+        leerbitmap();
+    leerDiccionario();
     crear_archivo("C");
+        leerbitmap();
+    leerDiccionario();
     truncate_archivo("C",24,1000,1);
+        leerbitmap();
+    leerDiccionario();
     crear_archivo("D");
+        leerbitmap();
+    leerDiccionario();
     truncate_archivo("D",24,1000,1);
+        leerbitmap();
+    leerDiccionario();
     crear_archivo("E");
+        leerbitmap();
+    leerDiccionario();
     truncate_archivo("E",16,1000,1);
+        leerbitmap();
+    leerDiccionario();
     truncate_archivo("B",16,1000,1);
+        leerbitmap();
+    leerDiccionario();
     truncate_archivo("C",16,1000,1);
+        leerbitmap();
+    leerDiccionario();
 
     escribir_archivo("A",0,16,"AAAAAAAAAAAAAAAA");
     escribir_archivo("B",0,16,"BBBBBBBBBBBBBBBB");
     escribir_archivo("C",0,16,"CCCCCCCCCCCCCCCC");
     escribir_archivo("D",0,24,"DDDDDDDDDDDDDDDDDDDD");
     escribir_archivo("E",0,16,"EEEEEEEEEEEEEEEE");
+
+
+
+        delete_archivo("A");
+    delete_archivo("B");
+    delete_archivo("C");
+    delete_archivo("D");
+    delete_archivo("E");
+    
+    leerbitmap();
+    leerDiccionario();
     log_destroy(logger);
+
     return 0;
 }
 
