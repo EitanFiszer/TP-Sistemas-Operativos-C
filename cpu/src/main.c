@@ -73,7 +73,7 @@ void conexion_interrupt(void* argumentos) {
                 pthread_mutex_unlock(&mutex_interrupcion);
                 break;
             default:
-                log_error(logger, "Operacion desconocida");
+                log_error(logger, "Operacion desconocida interrupt %d", paquete->operacion);
                 break;
         }
     }
@@ -171,20 +171,23 @@ int main(int argc, char* argv[]) {
             finalizarCPU();
         }
         t_PCB* pcb = (t_PCB*)paq->payload;
+        bool terminoProceso = false;
         switch (paq->operacion) {
             case EXEC_PROCESO:
                 while (1) {
                     char* instruccionRecibida;
                     if(getHayInterrupcion()) break;
+
                     int ok = fetchInstruccion(pcb, socketMemoria, &instruccionRecibida, logger);
                     if (ok == -1) {
                         log_error(logger, "PROCESO TERMINÓ EJECUCIÓN: PID %d", pcb->PID);
-
+                        terminoProceso = true;
                         OP_CODES_ENTRE op = TERMINO_EJECUCION;
                         // Devolver el PCB al kernel
                         enviar_pcb_kernel(pcb, op);
                         break;
                     }
+                    terminoProceso = false;
 
                     // Decodifico la instruccion en opcode y parametros
                     instruccionCPU_t* instruccion = dividirInstruccion(instruccionRecibida);
@@ -192,7 +195,7 @@ int main(int argc, char* argv[]) {
                     // Ejecuto la instruccion
                     ejecutarInstruccion(instruccion, pcb, logger, socketKernel);
                 }
-                if (interrupcion) {
+                if (getHayInterrupcion() && !terminoProceso) {
                     log_info(logger, "Interrupcion recibida");
 
                     pthread_mutex_lock(&mutex_interrupcion);
@@ -204,7 +207,7 @@ int main(int argc, char* argv[]) {
                 }
                 break;
             default:
-                log_error(logger, "Operacion desconocida");
+                log_error(logger, "Operacion desconocida dispatch %d", paq->operacion);
                 break;
         }
     }

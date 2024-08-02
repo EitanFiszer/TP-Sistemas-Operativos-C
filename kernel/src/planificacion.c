@@ -311,19 +311,17 @@ void stl_RR()
     
         // tempo_quantum = temporal_create();         
 
+        enviar_paquete_cpu_dispatch(EXEC_PROCESO, retirar_ready, sizeof(t_PCB));        
         pthread_create(&hilo_quantum, NULL, manejar_quantum, (void *)retirar_ready);
 
-        enviar_paquete_cpu_dispatch(EXEC_PROCESO, retirar_ready, sizeof(t_PCB));
-
         pthread_join(hilo_quantum, NULL);
-        
     }
 }
 
 void *manejar_quantum(void *arg)
 {
     t_PCB *pcb = (t_PCB *)arg;
-    sleep(((unsigned int)(pcb->quantum)) / 1000);
+    usleep(pcb->quantum * 1000);
     interrumpir(FIN_QUANTUM);
     temporal_destroy(tempo_quantum);
     return NULL;
