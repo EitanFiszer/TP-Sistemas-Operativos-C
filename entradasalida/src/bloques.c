@@ -25,6 +25,7 @@ extern int block_size2;
 extern void* map_bloque;
 extern t_dictionary* diccionarioFS;
 extern t_bitarray* bitmap;
+extern t_log* logger;
 
 //CREA EN CASO DE QUE NO EXISTE EL BLOQUES.DAT
 void crearArchivodebloques() {
@@ -38,9 +39,9 @@ void crearArchivodebloques() {
 
     // Establecer el tamaño del archivo
     if (fseek(archivo, tamano_total - 1, SEEK_SET) != 0) {
-        perror("Error al ajustar el tamaño del archivo");
+        log_error(logger,"Error al ajustar el tamaño del archivo");
         fclose(archivo);
-        exit(EXIT_FAILURE);
+        return;
     }
 
     // Escribir un byte nulo al final para establecer el tamaño
