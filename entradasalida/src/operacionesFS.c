@@ -97,9 +97,10 @@ void delete_archivo(char* nombre) {
 
     memcpy(map_bloque+FCB->map->bloque_inicial*block_size2 , borrar , cant_bloques * block_size2);
     msync(map_bloque,block_count2*block_size2,MS_SYNC);
+
     dictionary_remove_and_destroy(diccionarioFS, nombre, free);
     free(borrar);
-    free(FCB);
+    
 
     // Eliminar el archivo de metadata
     if (remove(filepath) != 0) {

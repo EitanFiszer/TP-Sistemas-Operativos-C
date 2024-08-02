@@ -112,15 +112,9 @@ int main(int argc, char* argv[]) {
 
     leerbitmap();
     leerDiccionario();
-    escribir_archivo("C",16,16,"CCCCCCCCCCCCCCCC");
-    escribir_archivo("D",20,4,"DDDD");
-    truncate_archivo("A",32,1000,1);
-    escribir_archivo("A",8,8,"AAAAAAAA");
-    truncate_archivo("A",4,5000,1);
 
-    leerbitmap();
-    leerDiccionario();
-    /*
+
+    
     crear_archivo("A");
     
     leerbitmap();
@@ -170,9 +164,16 @@ int main(int argc, char* argv[]) {
     escribir_archivo("D",0,24,"DDDDDDDDDDDDDDDDDDDD");
     escribir_archivo("E",0,16,"EEEEEEEEEEEEEEEE");
 
+
+
+        delete_archivo("A");
+    delete_archivo("B");
+    delete_archivo("C");
+    delete_archivo("D");
+    delete_archivo("E");
+    
     leerbitmap();
     leerDiccionario();
-*/
     log_destroy(logger);
 
     return 0;
