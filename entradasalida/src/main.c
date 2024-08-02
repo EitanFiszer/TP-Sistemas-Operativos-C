@@ -109,7 +109,7 @@ int main(int argc, char* argv[]) {
     block_count2=8;
     inicializar_FS();
     crear_archivo("A");
-    truncate_archivo("A",16,1000);
+    truncate_archivo("A",16,1000,1);
     escribir_archivo("A", 0, 16, "interpretaciones");
     void* loco = leer_archivo("A", 0, 16);
     char* letra = (char*)loco;

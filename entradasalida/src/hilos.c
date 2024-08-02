@@ -256,7 +256,7 @@ void hilo_dialfs(void* argumentos){
                 t_payload_fs_truncate* payloadtruncate=deserializar_fs_truncate(paquete_dispatch->payload);
                 int pid_truncate=payloadtruncate->pcb->PID;
                 log_info(logger, "PID: %d - Truncar Archivo: %s - Tamaño: %d",pid_truncate,payloadtruncate->nombreArchivo, payloadtruncate->tam);
-                truncate_archivo(payloadtruncate->nombreArchivo, payloadtruncate->tam, retraso_compactacion);
+                truncate_archivo(payloadtruncate->nombreArchivo, payloadtruncate->tam, retraso_compactacion,pid_truncate);
                 enviar_paquete_entre(socketKernell, TERMINE_OPERACION, NULL, 0);
             break;
 

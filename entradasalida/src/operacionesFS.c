@@ -103,7 +103,7 @@ void delete_archivo(char* nombre) {
 
 //GOD
 
-void truncate_archivo(char* nombre, int tam, int retraso_compactacion) {
+void truncate_archivo(char* nombre, int tam, int retraso_compactacion,int pid) {
         t_diccionario* FCB;
 
         int cant_bloques_ingresados=(tam+block_size2-1)/block_size2;  //cantidad de bloques que se desea ocupar
@@ -143,12 +143,12 @@ void truncate_archivo(char* nombre, int tam, int retraso_compactacion) {
         }else{
             int espacio=espacioLIbre(nombre, cant_bloques_arch);
             if(espacio>=cant_bloques_ingresados){
-                log_info(logger, "PID: <PID> - Inicio Compactación.");
+                log_info(logger, "PID: %d - Inicio Compactación.",pid);
                 sleep(retraso_compactacion/1000);
                 compactacion_bitmap(espacio,cant_bloques_arch);
                 compactacion_metadata(nombre, espacio);
-                log_info(logger, "PID: <PID> - Fin Compactación.");
-                truncate_archivo(nombre,tam,retraso_compactacion);
+                log_info(logger, "PID: %d - Fin Compactación.",pid);
+                truncate_archivo(nombre,tam,retraso_compactacion,pid);
                 
                 return;
             };
