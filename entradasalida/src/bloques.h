@@ -1,5 +1,5 @@
-#ifndef operacionesFS_H
-#define operacionesFS_H
+#ifndef bloques_H
+#define obloques_H
 
 void crearArchivodebloques();
 void* cargar_bloques();

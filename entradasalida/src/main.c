@@ -6,6 +6,7 @@
 #include <commons/log.h>
 #include <commons/config.h>
 #include <commons/string.h>
+#include <commons/memory.h>
 #include <utils/constants.h>
 #include <utils/iniciar.h>
 #include <string.h>
@@ -108,11 +109,14 @@ int main(int argc, char* argv[]) {
     block_count2=8;
     inicializar_FS();
     crear_archivo("A");
-    truncate_archivo("A",32,1000);
-    char* dato= "H";
-    escribir_archivo("A",0,strlen(dato),dato);
-    
+    truncate_archivo("A",16,1000);
+    escribir_archivo("A", 0, 16, "interpretaciones");
+    void* loco = leer_archivo("A", 0, 16);
+    char* letra = (char*)loco;
 
+    log_info(logger, "%s", letra);
+
+    
     leerDiccionario();
     leerbitmap();
     log_destroy(logger);
