@@ -46,9 +46,9 @@ void crearArchivodebloques() {
 
     // Escribir un byte nulo al final para establecer el tamaño
     if (fwrite("", 1, 1, archivo) != 1) {
-        perror("Error al escribir el byte final");
+        log_error(logger,"Error al escribir el byte final");
         fclose(archivo);
-        exit(EXIT_FAILURE);
+        return;
     }
 
     fclose(archivo);
@@ -114,8 +114,8 @@ void compactacion_bloques(char* nombre){
         while(j<contiguo_size){
             t_diccionario* fcb_cont=getFCBxInicio(inicio_del_contiguo+j);
              if (fcb_cont == NULL || fcb_cont->map == NULL) {
-                perror("Error: fcb_cont o fcb_cont->map es NULL");
-                exit(EXIT_FAILURE);
+                log_error(logger,"Error: fcb_cont o fcb_cont->map es NULL");
+                return;
             }
             int cantidad_bloques_fs=(int)ceil(fcb_cont->map->tam_archivo/block_size2);
             if(!cantidad_bloques_fs){
@@ -142,11 +142,11 @@ void compactacion_bloques(char* nombre){
     memcpy(map_bloque+ultimobit*block_size2,buffer,(block_count2-primerbit)*block_size2);
     free(buffer);
 
-    for(int i=ultimobit;i<total_bloques;i++){
+    for(int i=ultimobit;i<total_bloques+ultimobit;i++){
         bitarray_set_bit(bitmap,i);
     }
 
-    msync(bitmap,block_count2,MS_SYNC);
+    //msync(bitmap,block_count2,MS_SYNC);
     msync(map_bloque,block_count2*block_size2,MS_SYNC);
 }
 

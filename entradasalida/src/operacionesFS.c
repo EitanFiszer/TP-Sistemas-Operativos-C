@@ -63,9 +63,9 @@ void crear_archivo(char* nombre) {
     metadata.tam_archivo=0;
     FILE* archivo= crear_archivo_fs(nombre);
     if  (fwrite(&metadata, sizeof(t_metadata), 1, archivo) != 1) {
-        perror("Error al escribir en el archivo de metadata");
+        log_error(logger,"Error al escribir en el archivo de metadata");
         fclose(archivo);
-        exit(EXIT_FAILURE);
+        return;
     }
     fclose(archivo);
 
@@ -80,7 +80,7 @@ void delete_archivo(char* nombre) {
 
     t_diccionario* FCB = dictionary_get(diccionarioFS,nombre);
     if(!FCB){
-        log_info(logger,"NO SE ENCONTRO EL ARCHIVO INGRESADO");
+        log_error(logger,"NO SE ENCONTRO EL ARCHIVO INGRESADO");
         return;
     }
     
@@ -99,12 +99,14 @@ void delete_archivo(char* nombre) {
     msync(map_bloque,block_count2*block_size2,MS_SYNC);
     dictionary_remove_and_destroy(diccionarioFS, nombre, free);
     free(borrar);
+    free(FCB);
 
     // Eliminar el archivo de metadata
     if (remove(filepath) != 0) {
-        perror("Error al eliminar el archivo de metadata");
-        exit(EXIT_FAILURE);
+        log_error(logger,"Error al eliminar el archivo de metadata");
+        return;
     }
+    return;
 }
 
 //GOD
@@ -115,25 +117,26 @@ void truncate_archivo(char* nombre, int tam, int retraso_compactacion,int pid) {
     int cant_bloques_ingresados=(tam+block_size2-1)/block_size2;  //cantidad de bloques que se desea ocupar
 
     if(cant_bloques_ingresados>block_count2){ //si es mayor al block count se pasa
-        fprintf(stderr, "El tamaño no es valido");
-        exit(EXIT_FAILURE);
+        log_error(logger, "El tamaño no es valido");
+        return;
     }
 
     FCB =dictionary_get(diccionarioFS,nombre);
-
+    if(!FCB){
+        log_error(logger, "NO SE ENCONTRO EL ARCHIVO");
+        return;
+    }
     int cant_bloques_arch = (FCB->map->tam_archivo+block_size2-1)/block_size2; //cant de bloques que ya ocupa el archivo
     if(cant_bloques_arch==0){
         cant_bloques_arch=1;
     }
     int ultimo_bloque=FCB->map->bloque_inicial+cant_bloques_arch-1;
 
-
-
     //SE DESEA ACHICAR EL ARCHIVO
     if (cant_bloques_arch>cant_bloques_ingresados){ 
         int bloques_modificados = cant_bloques_arch-cant_bloques_ingresados; //cuantos bloques se liberan
         void* borrar = calloc(1,bloques_modificados*block_size2);
-        memcpy(map_bloque+(block_size2*FCB->map->bloque_inicial)+(block_size2*cant_bloques_ingresados), borrar , bloques_modificados * block_size2);
+        memcpy(map_bloque+(block_size2*FCB->map->bloque_inicial)+(tam), borrar , bloques_modificados * block_size2);
         msync(map_bloque,block_count2*block_size2,MS_SYNC);        
 
         free(borrar);
@@ -224,3 +227,5 @@ void liberarFS(){
 
     return;
 }
+
+
