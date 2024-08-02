@@ -121,14 +121,16 @@ int main(int argc, char* argv[]) {
     truncate_archivo("E",16,1000,1);
     truncate_archivo("B",16,1000,1);
     truncate_archivo("C",16,1000,1);
+    leerbitmap();
 
     escribir_archivo("A",0,16,"AAAAAAAAAAAAAAAA");
     escribir_archivo("B",0,16,"BBBBBBBBBBBBBBBB");
     escribir_archivo("C",0,16,"CCCCCCCCCCCCCCCC");
-    escribir_archivo("D",0,24,"DDDDDDDDDDDDDDDDDDDD");
+    escribir_archivo("D",0,24,"DDDDDDDDDDDDDDDDDDDDDDDD");
     escribir_archivo("E",0,16,"EEEEEEEEEEEEEEEE");
 
-
+//truncate_archivo("C",32,1000,1);
+escribir_archivo("C",16,16,"CCCCCCCCCCCCCCCC");
 
     leerDiccionario();
     leerbitmap();

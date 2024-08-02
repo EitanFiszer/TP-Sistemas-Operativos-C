@@ -215,7 +215,7 @@ void escribir_archivo(char* nombre, int puntero, int tam, void* dato) {
     int inicio_archivo = FCB->map->bloque_inicial * block_size2;
 
     // Realizar la escritura en la memoria mapeada
-    memcpy(map_bloque + inicio_archivo + puntero, dato, tam);
+    memcpy(map_bloque + inicio_archivo + puntero, dato, strlen(dato));
     msync(map_bloque, block_count2 * block_size2, MS_SYNC);
 }
 
