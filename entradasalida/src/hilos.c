@@ -40,7 +40,8 @@ int conexionKernell(char* puerto, char* tipo_interfaz, char* nombre) {
     int size_pay;
     void* buffer = serializar_interfaz_creada(payload, &size_pay);
     enviar_paquete_entre(resultHandshake, IO_INTERFAZ_CREADA, buffer, size_pay);
-    log_info(logger, "Interfaz %s conectada a kernel", nombre);
+    free(payload);
+    log_info(logger, "INTERFAZ %s CONECTADA A KERNEL", nombre);
     return resultHandshake;
 }
 
@@ -54,7 +55,8 @@ int conexionMemoria(char* puerto, char* tipo_interfaz, char* nombre) {
     int size_pay;
     void* buffer = serializar_interfaz_creada(payload, &size_pay);
     enviar_paquete_entre(resultHandshake, IO_INTERFAZ_CREADA, buffer, size_pay);
-    log_info(logger, "Interfaz %s conectada a memoria", nombre);
+    free(payload);
+    log_info(logger, "INTERFAZ %s CONECTADA A MEMORIA", nombre);
     return resultHandshake;
 }
 
@@ -74,7 +76,7 @@ void hilo_generica(void* argumentos) {
         t_paquete_entre* paquete_entre = recibir_paquete_entre(resultHandshakeKernell);
         if (paquete_entre == NULL) {
             log_error(logger, "Error al recibir paquete, finalizando hilo");
-            return;
+            break;
         }
 
         OP_CODES_ENTRE op = paquete_entre->operacion;
@@ -111,7 +113,7 @@ void hilo_stdin(void* argumentos) {
         t_paquete_entre* paquete_entre = recibir_paquete_entre(socketKernell);
         if (paquete_entre == NULL) {
             log_error(logger, "Error al recibir paquete, finalizando hilo");
-            return;
+            break;
         }
 
         OP_CODES_ENTRE op = paquete_entre->operacion;
@@ -127,8 +129,8 @@ void hilo_stdin(void* argumentos) {
                 log_info(logger, "PID: %d - Operacion: <IO_STDIN_READ>",pid);
 
                 printf("Ingrese texto: \n");
-                char *fullInput = readline(">");
-                char *input = malloc(inputSize);
+                char* fullInput = readline(">");
+                char* input = malloc(inputSize);
                 strncpy(input, fullInput, inputSize);
                 
                 t_payload_escribir_memoria* payload = malloc(sizeof(t_payload_escribir_memoria));
@@ -140,6 +142,8 @@ void hilo_stdin(void* argumentos) {
                 int size_payload;
                 void* payloadSerializado = serializar_escribir_memoria(payload, &size_payload);
                 enviar_paquete_entre(socketMemoria, ESCRIBIR_MEMORIA, payloadSerializado, size_payload);
+                free(input);
+                free(payload);
 
                 log_info(logger, "Texto de largo teórico %d (largo real: %d) ingresado: %s", inputSize, strlen(input), input);
                 log_info(logger, "Texto ingresado guardado en memoria en la dirección %d", operacionRecibida->dirFisica);
@@ -168,7 +172,7 @@ void hilo_stdout(void* argumentos) {
         t_paquete_entre* paquete_dispatch = recibir_paquete_entre(socketKernell);
         if (paquete_dispatch == NULL) {
             log_error(logger, "Error al recibir paquete, finalizando hilo");
-            return;
+            break;
         }
 
         OP_CODES_ENTRE op = paquete_dispatch->operacion;
@@ -185,8 +189,8 @@ void hilo_stdout(void* argumentos) {
                 payloadMandar->tam=operacionRecibida->tam;
                 payloadMandar->pid=operacionRecibida->pcb->PID;
 
-               enviar_paquete_entre(socketMemoria, SOLICITAR_DATO_MEMORIA, payloadMandar, sizeof(t_payload_solicitar_dato_memoria));
-
+                enviar_paquete_entre(socketMemoria, SOLICITAR_DATO_MEMORIA, payloadMandar, sizeof(t_payload_solicitar_dato_memoria));
+                free(payloadMandar);
                 t_paquete_entre* respuesta = recibir_paquete_entre(socketMemoria);
                 void* dato = respuesta->payload;
                 
@@ -226,7 +230,7 @@ void hilo_dialfs(void* argumentos){
         t_paquete_entre* paquete_dispatch = recibir_paquete_entre(socketKernell);
         if (paquete_dispatch == NULL) {
             log_error(logger, "Error al recibir paquete, finalizando hilo");
-            return;
+            break;
         }
 
         OP_CODES_ENTRE op = paquete_dispatch->operacion;
@@ -270,6 +274,7 @@ void hilo_dialfs(void* argumentos){
                 payloadMandar->pid=pid_write;
 
                 enviar_paquete_entre(socketMemoria, SOLICITAR_DATO_MEMORIA, payloadMandar, sizeof(t_payload_solicitar_dato_memoria));
+                free(payloadMandar);
                 t_paquete_entre* respuesta = recibir_paquete_entre(socketMemoria);
 
                 escribir_archivo(payloadwrite->nombreArchivo,payloadwrite->punteroArchivo,payloadwrite->tam,respuesta->payload);
@@ -291,6 +296,7 @@ void hilo_dialfs(void* argumentos){
 
                 void* payloadSerializado = serializar_escribir_memoria(payload, &payloadread->tam);
                 enviar_paquete_entre(socketMemoria, ESCRIBIR_MEMORIA, payloadSerializado, payloadread->tam);
+                free(payload);
 
                 log_info(logger,"PID: %d - Leer Archivo: %s - Tamaño a Leer: %d - Puntero Archivo: %d",pid_read,payloadread->nombreArchivo,payloadread->tam,payloadread->punteroArchivo);
             break;
@@ -300,4 +306,5 @@ void hilo_dialfs(void* argumentos){
         }
 
     }
+    liberarFS();
 }

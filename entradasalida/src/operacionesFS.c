@@ -210,3 +210,17 @@ void* leer_archivo(char* nombre, int puntero, int tam){
     memcpy(dato, map_bloque+puntero, tam);
     return dato;
 }
+
+
+void liberarFS(){
+    t_list* lista= dictionary_elements(diccionarioFS);
+    munmap(map_bloque,block_count2*block_size2);
+    munmap(bitmap,bitmap->size);
+
+    for(int i=0;i<list_size(lista);i++){
+        t_diccionario* FCB = list_get(lista,i);
+        munmap(FCB->map,sizeof(t_metadata));
+    }
+
+    return;
+}
