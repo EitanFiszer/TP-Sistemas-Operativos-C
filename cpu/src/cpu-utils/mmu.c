@@ -18,6 +18,7 @@ desplazamiento = dirección_lógica - número_página * tamaño_página
 extern t_list* TLB;
 extern int TAM_PAGINA;
 extern int socketMemoria;
+extern int TLB_MAX_SIZE;
 
 int buscarEnTLB(int PID, int numeroPagina) {
     for (int i = 0; i < list_size(TLB); i++) {
@@ -46,7 +47,7 @@ int buscarEnTablaDePaginas(int PID, int numeroPagina) {
 
     t_payload_direccion_fisica* payloadRecibido = paqueteRecibido->payload;
 
-    log_info(logger, "PID %d - OBTENER MARCO - Pagina: %d - Marco: %d", PID, numeroPagina, payloadRecibido->marco);
+    log_info(logger, "PID: %d - OBTENER MARCO - Pagina: %d - Marco: %d", PID, numeroPagina, payloadRecibido->marco);
 
     return payloadRecibido->marco;
 }
@@ -57,9 +58,12 @@ int calcularDireccionFisica(int PID, int direccionLogica) {
 
     int marco = buscarEnTLB(PID, numeroPagina);
     if (marco == -1) {
-        log_info(logger, "PID %d - TLB miss - Pagina %d", PID, numeroPagina);
+        log_info(logger, "PID: %d - TLB miss - Pagina %d", PID, numeroPagina);
         marco = buscarEnTablaDePaginas(PID, numeroPagina);
-        agregarEntradaTLB(PID, numeroPagina, marco);
+
+        if(TLB_MAX_SIZE > 0) {
+          agregarEntradaTLB(PID, numeroPagina, marco);
+        }
     } else {
         log_info(logger, "PID %d - TLB hit - Pagina %d", PID, numeroPagina);
     }

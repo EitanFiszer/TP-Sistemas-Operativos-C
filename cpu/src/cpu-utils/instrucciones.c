@@ -172,10 +172,7 @@ void instruccionCopyString(int tam, registros_t registros, t_PCB* pcb) {
         return;
     }
 
-    void* datoTruncado = malloc(tam);
-    strncpy(datoTruncado, dato, tam);
-
-    int ok = enviar_dato_memoria(pcb->PID, dirFisicaDI, datoTruncado, tam);
+    int ok = enviar_dato_memoria(pcb->PID, dirFisicaDI, dato, tam);
 
     if (ok == -1) {
         return;
