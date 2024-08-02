@@ -65,7 +65,7 @@ int buscarMarcoLibre() {
 }
 
 void escribirMemoria(int pid, int direccionFisica, void* dato, int tamDato) {
-    int numPagina = direccionFisica / TAM_PAGINA;
+    int marco = direccionFisica / TAM_PAGINA;
     int offset = direccionFisica % TAM_PAGINA;
     Proceso* proceso = procesoPorPID(pid);
 
@@ -73,7 +73,7 @@ void escribirMemoria(int pid, int direccionFisica, void* dato, int tamDato) {
         return;
     }
 
-    int marco = buscarDireccionFisicaEnTablaDePaginas(pid, numPagina);
+    int numPagina = buscarPaginaPorPIDYMarco(proceso, marco);
 
     if (marco == -1) {
         return;
@@ -98,17 +98,43 @@ void escribirMemoria(int pid, int direccionFisica, void* dato, int tamDato) {
         }
         offsetRestanteDelMarco = TAM_PAGINA;
     }
+
 }
 
-void* obtenerDatoMemoria(int pid, int direccion, int tamDato) {
+int buscarPaginaPorPIDYMarco(Proceso* proceso, int marco) {
+    if (proceso == NULL) {
+        return -1;
+    }
+
+    char* key = NULL;
+    void* value = NULL;
+    bool encontrarMarco(void* keyToFind, void* valueToFind) {
+        if (valueToFind == marco) {
+            key = keyToFind;
+            value = valueToFind;
+            return true;
+        }
+        return false;
+    }
+
+    dictionary_iterator(proceso->tabla_de_paginas, (void*)encontrarMarco);
+
+    if (key == NULL) {
+        return -1;
+    }
+
+    return atoi(key);
+}
+
+void* obtenerDatoMemoria(int pid, int direccionFisica, int tamDato) {
     Proceso* proceso = procesoPorPID(pid);
     if (proceso == NULL) {
         return NULL;
     }
 
-    int numPagina = direccion / TAM_PAGINA;
-    int offset = direccion % TAM_PAGINA;
-    int marco = buscarDireccionFisicaEnTablaDePaginas(pid, numPagina);
+    int marco = direccionFisica / TAM_PAGINA;
+    int offset = direccionFisica % TAM_PAGINA;
+    // int marco = buscarDireccionFisicaEnTablaDePaginas(pid, numMarco);
 
     if (marco == -1) {
         return NULL;
@@ -117,6 +143,8 @@ void* obtenerDatoMemoria(int pid, int direccion, int tamDato) {
     void* dato = malloc(tamDato);
     int offsetRestanteDelMarco = TAM_PAGINA - offset;
     int bytesLeidos = 0;
+
+    int numPagina = buscarPaginaPorPIDYMarco(proceso, marco);
 
     while (bytesLeidos < tamDato) {
         int bytesALeer = tamDato - bytesLeidos;

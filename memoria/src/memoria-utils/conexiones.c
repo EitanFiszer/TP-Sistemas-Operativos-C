@@ -168,7 +168,7 @@ void esperar_paquetes_cpu() {
               void* datoEnviar = payloadEscribir->dato;
               int tamDatoEnviar = payloadEscribir->size_cadena;
               int pidEscribir = payloadEscribir->pid;
-              printf("Escribiendo dato %d en dirección %d\n", *(int*)datoEnviar, direccionEnviar);
+              // printf("Escribiendo dato %p en dirección %d\n", datoEnviar, direccionEnviar);
               escribirMemoria(pidEscribir, direccionEnviar, datoEnviar, tamDatoEnviar);
               
               enviar_paquete_entre(socketCpu, DATO_MEMORIA, datoEnviar, sizeof(datoEnviar));
@@ -238,7 +238,7 @@ void atender_cliente_io(void *socket) {
               void* datoEnviar = payloadEscribir->dato;
               int tamDatoEnviar = payloadEscribir->size_cadena;
               int pid = payloadEscribir->pid;
-              printf("Escribiendo dato %d en dirección %d\n", *(int*)datoEnviar, direccionEnviar);
+              // printf("Escribiendo dato %p en dirección %d\n", datoEnviar, direccionEnviar);
               escribirMemoria(pid, direccionEnviar, datoEnviar, tamDatoEnviar);
             break;
           case SOLICITAR_DATO_MEMORIA:
