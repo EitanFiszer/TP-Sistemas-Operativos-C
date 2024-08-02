@@ -184,9 +184,9 @@ void hilo_stdout(void* argumentos) {
                 t_payload_solicitar_dato_memoria* payloadMandar = malloc(sizeof(t_payload_solicitar_dato_memoria));
                 payloadMandar->direccion = operacionRecibida->direccionFisica;
                 payloadMandar->tam=operacionRecibida->tam;
-            
+                payloadMandar->pid=operacionRecibida->pcb->PID;
 
-                enviar_paquete_entre(socketMemoria, SOLICITAR_DATO_MEMORIA, payloadMandar, sizeof(t_payload_solicitar_dato_memoria));
+               enviar_paquete_entre(socketMemoria, SOLICITAR_DATO_MEMORIA, payloadMandar, sizeof(t_payload_solicitar_dato_memoria));
 
                 t_paquete_entre* respuesta = recibir_paquete_entre(socketMemoria);
                 void* dato = respuesta->payload;
@@ -261,9 +261,39 @@ void hilo_dialfs(void* argumentos){
             break;
 
             case IO_FS_WRITE:
+                sleep(tiempo_unidad_trabajo/1000);
+                t_payload_fs_writeORread* payloadwrite = deserializar_fs_writeORread(paquete_dispatch->payload);
+                int pid_write=payloadwrite->pcb->PID;
+                
+                t_payload_solicitar_dato_memoria* payloadMandar = malloc(sizeof(t_payload_solicitar_dato_memoria));
+                payloadMandar->direccion = payloadwrite->dirFisica;
+                payloadMandar->tam=payloadwrite->tam;
+                payloadMandar->pid=pid_write;
+
+                enviar_paquete_entre(socketMemoria, SOLICITAR_DATO_MEMORIA, payloadMandar, sizeof(t_payload_solicitar_dato_memoria));
+                t_paquete_entre* respuesta = recibir_paquete_entre(socketMemoria);
+
+                escribir_archivo(payloadwrite->nombreArchivo,payloadwrite->punteroArchivo,payloadwrite->tam,respuesta->payload);
+                log_info(logger, "PID: %d - Escribir Archivo: %s - Tamaño a Escribir: %d - Puntero Archivo: %d",pid_write,payloadwrite->nombreArchivo,payloadwrite->tam,payloadwrite->punteroArchivo);
             break;
 
             case IO_FS_READ:
+                sleep(tiempo_unidad_trabajo/1000);
+                t_payload_fs_writeORread* payloadread = deserializar_fs_writeORread(paquete_dispatch->payload);
+                int pid_read=payloadread->pcb->PID;
+
+                void* dato = leer_archivo(payloadread->nombreArchivo,payloadread->punteroArchivo,payloadread->tam);
+
+                t_payload_escribir_memoria* payload = malloc(sizeof(t_payload_escribir_memoria));
+                payload->direccion = payloadread->dirFisica;
+                payload->dato = dato;
+                payload->size_cadena = payloadread->tam;
+                payload->pid = pid_read;
+
+                void* payloadSerializado = serializar_escribir_memoria(payload, &payloadread->tam);
+                enviar_paquete_entre(socketMemoria, ESCRIBIR_MEMORIA, payloadSerializado, payloadread->tam);
+
+                log_info(logger,"PID: %d - Leer Archivo: %s - Tamaño a Leer: %d - Puntero Archivo: %d",pid_read,payloadread->nombreArchivo,payloadread->tam,payloadread->punteroArchivo);
             break;
 
             default:

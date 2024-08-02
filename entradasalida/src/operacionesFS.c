@@ -5,6 +5,7 @@
 #include <string.h>
 #include <commons/log.h>
 #include <commons/config.h>
+#include <commons/memory.h>
 #include "bitmap.h"
 #include "utils.h"
 #include <stdio.h>
@@ -199,43 +200,41 @@ void compactacion_metadata(char* nombre, int espacio){
 
 
 void escribir_archivo(char* nombre, int puntero, int tam, void* dato) {
-    // Verificación de puntero a datos
-    if (dato == NULL) {
-        fprintf(stderr, "Error: Puntero a datos es NULL\n");
-        return;
-    }
 
     // Obtener el FCB del diccionario
     t_diccionario* FCB = dictionary_get(diccionarioFS, nombre);
     if (FCB == NULL) {
-        fprintf(stderr, "Error: Archivo no encontrado en el diccionario\n");
-        return;
+        log_info(logger,"ERROR: ARCHIVO NO ENCONTRADO<");
+        exit(EXIT_FAILURE);
+    }
+
+    if(FCB->metadata.tam_archivo< puntero + tam){
+        log_info(logger, "ERROR: NO PUEDE ACCEDER");
+        exit(EXIT_FAILURE);
     }
 
     // Calcular el inicio del archivo
     int inicio_archivo = FCB->metadata.bloque_inicial * block_size2;
-    if (inicio_archivo < 0 || inicio_archivo >= block_count2 * block_size2) {
-        fprintf(stderr, "Error: bloque_inicial fuera de rango\n");
-        return;
-    }
-
-    // Verificar que la escritura no exceda los límites del bloque
-    if (inicio_archivo + puntero + tam > block_count2 * block_size2) {
-        fprintf(stderr, "Error: Especificación de escritura fuera de los límites\n");
-        return;
-    }
-
-    // Verificar que map_bloque está asignado
-    if (map_bloque == NULL) {
-        fprintf(stderr, "Error: map_bloque no está asignado\n");
-        return;
-    }
 
     // Realizar la escritura en la memoria mapeada
     memcpy(map_bloque + inicio_archivo + puntero, dato, tam);
+    msync(map_bloque, block_count2 * block_size2, MS_SYNC);
+}
 
-    // Sincronizar los cambios en la memoria mapeada con el archivo
-    if (msync(map_bloque, block_count2 * block_size2, MS_SYNC) == -1) {
-        perror("Error en msync");
+void* leer_archivo(char* nombre, int puntero, int tam){  
+    t_diccionario* FCB = dictionary_get(diccionarioFS,nombre);
+    void* dato = calloc(1,tam+1);
+
+    if (FCB == NULL) {
+        log_info(logger,"ERROR: ARCHIVO NO ENCONTRADO");
+        exit(EXIT_FAILURE);   
     }
+
+    if(FCB->metadata.tam_archivo< puntero + tam){
+        log_info(logger, "ERROR: NO PUEDE ACCEDER");
+        exit(EXIT_FAILURE);
+    }
+    mem_hexdump(map_bloque+puntero,tam);
+    memcpy(dato, map_bloque+puntero, tam);
+    return dato;
 }
