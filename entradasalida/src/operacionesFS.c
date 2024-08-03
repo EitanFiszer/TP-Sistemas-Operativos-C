@@ -190,7 +190,7 @@ void escribir_archivo(char* nombre, int puntero, int tam, void* dato) {
     int inicio_archivo = FCB->map->bloque_inicial * block_size;
 
     // Realizar la escritura en la memoria mapeada
-    memcpy(map_bloque + inicio_archivo + puntero, dato, strlen(dato));
+    memcpy(map_bloque + inicio_archivo + puntero, dato, tam);
     msync(map_bloque, block_count * block_size, MS_SYNC);
 }
 
@@ -208,13 +208,15 @@ void* leer_archivo(char* nombre, int puntero, int tam){
         exit(EXIT_FAILURE);
     }
 
-    mem_hexdump(map_bloque+puntero,tam);
+    // mem_hexdump(map_bloque+puntero,tam);
     memcpy(dato, map_bloque+puntero, tam);
     return dato;
 }
 
 
 void liberarFS(){
+    leerDiccionario();
+
     t_list* lista= dictionary_elements(diccionarioFS);
     munmap(map_bloque,block_count*block_size);
     munmap(bitmap,bitmap->size);

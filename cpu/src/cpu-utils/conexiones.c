@@ -182,7 +182,7 @@ void solicitar_fs_truncate(char* interfaz, char* nombreArchivo, int tam, t_PCB* 
     t_paquete_entre* paqueteRecibido = recibir_paquete_entre(socketKernel); // Confirmar SYSCALL EJECUTADA
 }
 
-void solicitar_fs_writeORread(char* interfaz, char* nombreArchivo, int tam, int direccion, int puntero, OP_CODES_ENTRE oper, t_PCB* pcb){
+void solicitar_fs_writeORread(char* interfaz, char* nombreArchivo, int direccion, int tam, int puntero, OP_CODES_ENTRE oper, t_PCB* pcb){
     t_payload_fs_writeORread* payload = malloc(sizeof(t_payload_fs_writeORread));
     payload->interfaz = interfaz;
     payload->nombreArchivo = nombreArchivo;

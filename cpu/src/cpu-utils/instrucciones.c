@@ -266,7 +266,13 @@ valor del Registro Puntero Archivo la cantidad de bytes indicada por Registro Ta
 partir de la dirección lógica indicada en el Registro Dirección*/
 void instruccionIoFSRead(char* interfaz, char* nombreArchivo, char* regDire, char* regTam, char* regPuntero, registros_t* registros, t_PCB* pcb) {
     pcb->program_counter = pcb->program_counter + 1;
-    solicitar_fs_writeORread(interfaz, nombreArchivo, regDire, regTam, regPuntero, IO_FS_READ, pcb);
+
+    int dirLogica = valorDelRegistro(regDire, registros);
+    int tam = valorDelRegistro(regTam, registros);
+    int puntero = valorDelRegistro(regPuntero, registros);
+    int direccionFisica = calcularDireccionFisica(pcb->PID, dirLogica);
+
+    solicitar_fs_writeORread(interfaz, nombreArchivo, direccionFisica, tam, puntero, IO_FS_READ, pcb);
 }
 
 /*Esta instrucción representa la syscall de finalización del proceso. Se deberá devolver el 

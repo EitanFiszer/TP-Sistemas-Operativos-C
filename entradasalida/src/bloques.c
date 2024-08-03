@@ -69,14 +69,14 @@ void* cargar_bloques(){
 void compactacion_bloques(char* nombre){
     t_diccionario* FCB=dictionary_get(diccionarioFS,nombre);
 
-    int total_bloques=(int)ceil(FCB->map->tam_archivo/block_size);
+    int total_bloques=(int)ceil((double)FCB->map->tam_archivo/block_size);
     if(!total_bloques){
         total_bloques=1;
     }
 
     for(int i=FCB->map->bloque_inicial; i<total_bloques+FCB->map->bloque_inicial; i++){
         cleanBitMap(i);
-        leerbitmap();
+        // leerbitmap();
     }
 
     void* buffer=calloc(1,block_size*block_count);
@@ -86,7 +86,7 @@ void compactacion_bloques(char* nombre){
     while(bit<block_count){
         bit=getBit();
         
-        leerbitmap();
+        // leerbitmap();
 
         int inicio_del_hueco=bit;
         int contiguo_size=0;
@@ -115,7 +115,7 @@ void compactacion_bloques(char* nombre){
                 log_error(logger,"Error: fcb_cont o fcb_cont->map es NULL");
                 return;
             }
-            int cantidad_bloques_fs=(int)ceil(fcb_cont->map->tam_archivo/block_size);
+            int cantidad_bloques_fs=(int)ceil((double)fcb_cont->map->tam_archivo/block_size);
             if(!cantidad_bloques_fs){
                 cantidad_bloques_fs=1;
             }
