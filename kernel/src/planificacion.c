@@ -522,6 +522,7 @@ bool buscar_pcb(int pid)
     pthread_mutex_lock(&sem_q_new);
     if (!list_is_empty(lista_new))
     {
+        //
         t_list_iterator *iterador = list_iterator_create(lista_new);
 
         while (list_iterator_has_next(iterador) && !encontrado)
@@ -543,6 +544,7 @@ bool buscar_pcb(int pid)
     pthread_mutex_lock(&sem_q_ready);
     if (!queue_is_empty(cola_ready))
     {
+        //buscando ready
         int tam_cola = queue_size(cola_ready);
         for (int i = 0; i < tam_cola && !encontrado; i++)
         {
@@ -550,6 +552,7 @@ bool buscar_pcb(int pid)
             if (pcb->PID == pid)
             {
                 lts_ex(pcb, READY, "INTERRUPTED_BY_USER");
+                sem_wait(&sem_cont_ready);
                 encontrado = true;
             }
             else

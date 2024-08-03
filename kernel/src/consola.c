@@ -65,6 +65,7 @@ void *consola_interactiva()
         }
         else if (string_equals_ignore_case(split[0], "FINALIZAR_PROCESO"))
         {
+            printf("FINALIZANDO PROCESO");
             finalizar_proceso(atoi(split[1]));
             free(leido);
         }
