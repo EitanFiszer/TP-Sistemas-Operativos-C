@@ -87,7 +87,7 @@ void hilo_generica(void* argumentos) {
                 int pid = operacionRecibida->pcb->PID;
                 int tiempo_gen = operacionRecibida->tiempo;
                 log_info(logger, "PID: %d - Operacion: <IO_GEN_SLEEP>",pid);
-                sleep(tiempo_unidad_trabajo / 1000 * tiempo_gen);
+                usleep(tiempo_unidad_trabajo * 1000 * tiempo_gen);
                 enviar_paquete_entre(resultHandshakeKernell, TERMINE_OPERACION, NULL, 0);
                 break;
             default:
@@ -197,7 +197,9 @@ void hilo_stdout(void* argumentos) {
                 char* texto = calloc(1,respuesta->size_payload);
                 strncpy(texto, dato, payloadMandar->tam);
 
-                printf("%s", texto);
+                printf("\n");
+                printf("%s\n", texto);
+                printf("\n");
                 // printf("Valor leído de memoria en la dirección %u: %s\n", operacionRecibida->direccionFisica, texto);
 
                 enviar_paquete_entre(socketKernell, TERMINE_OPERACION, NULL, 0);
@@ -238,7 +240,7 @@ void hilo_dialfs(void* argumentos){
         
         switch(op) {
             case IO_FS_CREATE:
-                sleep(tiempo_unidad_trabajo/1000);
+                usleep(tiempo_unidad_trabajo*1000);
                 t_payload_fs_create* payloadcreate=deserializar_fs_create(paquete_dispatch->payload);
                 int pid_create = payloadcreate->pcb->PID;
                 log_info(logger, "PID: %d - Crear Archivo: %s",pid_create,payloadcreate->nombreArchivo);
@@ -246,7 +248,7 @@ void hilo_dialfs(void* argumentos){
                 enviar_paquete_entre(socketKernell, TERMINE_OPERACION, NULL, 0); 
             break;
             case IO_FS_DELETE:
-                sleep(tiempo_unidad_trabajo/1000);
+                usleep(tiempo_unidad_trabajo*1000);
                 t_payload_fs_create* payloaddelete=deserializar_fs_create(paquete_dispatch->payload);
                 int pid_delete = payloaddelete->pcb->PID;
                 log_info(logger, "PID: %d - Eliminar Archivo: %s",pid_delete,payloadcreate->nombreArchivo);
@@ -256,7 +258,7 @@ void hilo_dialfs(void* argumentos){
             break;
 
             case IO_FS_TRUNCATE:
-                sleep(tiempo_unidad_trabajo/1000);
+                usleep(tiempo_unidad_trabajo*1000);
                 t_payload_fs_truncate* payloadtruncate=deserializar_fs_truncate(paquete_dispatch->payload);
                 int pid_truncate=payloadtruncate->pcb->PID;
                 log_info(logger, "PID: %d - Truncar Archivo: %s - Tamaño: %d",pid_truncate,payloadtruncate->nombreArchivo, payloadtruncate->tam);
@@ -265,7 +267,7 @@ void hilo_dialfs(void* argumentos){
             break;
 
             case IO_FS_WRITE:
-                sleep(tiempo_unidad_trabajo/1000);
+                usleep(tiempo_unidad_trabajo*1000);
                 t_payload_fs_writeORread* payloadwrite = deserializar_fs_writeORread(paquete_dispatch->payload);
                 int pid_write=payloadwrite->pcb->PID;
                 
@@ -283,7 +285,7 @@ void hilo_dialfs(void* argumentos){
             break;
 
             case IO_FS_READ:
-                sleep(tiempo_unidad_trabajo/1000);
+                usleep(tiempo_unidad_trabajo*1000);
                 t_payload_fs_writeORread* payloadread = deserializar_fs_writeORread(paquete_dispatch->payload);
                 int pid_read=payloadread->pcb->PID;
 

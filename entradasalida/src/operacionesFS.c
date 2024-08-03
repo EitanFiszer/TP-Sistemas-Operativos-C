@@ -156,7 +156,7 @@ void truncate_archivo(char* nombre, int tam, int retraso_compactacion,int pid) {
             int espacio=espacioLIbre(nombre, cant_bloques_arch);
             if(espacio>=cant_bloques_ingresados){
                 log_info(logger, "PID: %d - Inicio Compactación.",pid);
-                sleep(retraso_compactacion/1000);
+                usleep(retraso_compactacion*1000);
                 compactacion_bloques(nombre);
                 log_info(logger, "PID: %d - Fin Compactación.",pid);
                 truncate_archivo(nombre,tam,retraso_compactacion,pid);
