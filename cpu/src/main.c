@@ -68,7 +68,7 @@ void conexion_interrupt(void* argumentos) {
         }
         switch (paquete->operacion) {
             case INTERRUMPIR_PROCESO:
-                t_PCB* pcb = (t_PCB*)paquete->payload;
+                // t_PCB* pcb = (t_PCB*)paquete->payload;
                 pthread_mutex_lock(&mutex_interrupcion);
                 interrupcion = true;
                 pthread_mutex_unlock(&mutex_interrupcion);
@@ -172,7 +172,7 @@ int main(int argc, char* argv[]) {
             log_error(logger, "No se pudo recibir el paquete kernel");
             finalizarCPU();
         }
-        // t_PCB* pcb = (t_PCB*)paq->payload;
+        t_PCB* pcb = (t_PCB*)paq->payload;
         bool terminoProceso = false;
         switch (paq->operacion) {
             case EXEC_PROCESO:

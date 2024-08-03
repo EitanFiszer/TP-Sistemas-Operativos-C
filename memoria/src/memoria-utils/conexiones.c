@@ -245,10 +245,10 @@ void atender_cliente_io(void *socket) {
             usleep(retardo_respuesta * 1000);
             t_payload_solicitar_dato_memoria *payloadSolicitarDato = deserializar_solicitar_dato_memoria(paqueteEntre->payload);
             int direccion = payloadSolicitarDato->direccion;
-            log_info(logger, "Se llamó a SOLICITAR_DATO_MEMORIA para dirección: %d", direccion);
 
             int tamDato = payloadSolicitarDato->tam;
             int pidDatoMemoria = payloadSolicitarDato->pid; 
+            // log_info(logger, "Se llamó a SOLICITAR_DATO_MEMORIA para dirección: %d - largo %d", direccion, tamDato);
             // Obtener dato de memoria
             void* dato = obtenerDatoMemoria(pid, direccion, tamDato);
             

@@ -182,24 +182,23 @@ void hilo_stdout(void* argumentos) {
                 t_payload_io_stdout_write* operacionRecibida = deserializar_io_stdout_write(paquete_dispatch->payload);
 
                 int pid= operacionRecibida->pcb->PID;
-                log_info(logger, "PID: %d - Operacion: <IO_STDOUT_WRITE>",pid);
                 
                 t_payload_solicitar_dato_memoria* payloadMandar = malloc(sizeof(t_payload_solicitar_dato_memoria));
                 payloadMandar->direccion = operacionRecibida->direccionFisica;
                 payloadMandar->tam=operacionRecibida->tam;
                 payloadMandar->pid=operacionRecibida->pcb->PID;
+                log_info(logger, "PID: %d - Operacion: <IO_STDOUT_WRITE>",pid);
 
                 enviar_paquete_entre(socketMemoria, SOLICITAR_DATO_MEMORIA, payloadMandar, sizeof(t_payload_solicitar_dato_memoria));
                 
                 t_paquete_entre* respuesta = recibir_paquete_entre(socketMemoria);
                 void* dato = respuesta->payload;
 
-                char* texto = malloc(payloadMandar->tam);
-                memcpy(texto, respuesta->payload, payloadMandar->tam);
-                
+                char* texto = calloc(1,respuesta->size_payload);
+                strncpy(texto, dato, payloadMandar->tam);
 
-                log_info(logger, "Valor leído de memoria: %s", texto);
-                printf("Valor leído de memoria en la dirección %u: %s\n", operacionRecibida->direccionFisica, texto);
+                printf("%s", texto);
+                // printf("Valor leído de memoria en la dirección %u: %s\n", operacionRecibida->direccionFisica, texto);
 
                 enviar_paquete_entre(socketKernell, TERMINE_OPERACION, NULL, 0);
                 free(payloadMandar);
