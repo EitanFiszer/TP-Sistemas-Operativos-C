@@ -196,7 +196,7 @@ int redimensionarProceso(int pid, int nuevoTam) {
         }
     }
 
-    // mostrarMarcosLibres();
+    printTabladePaginas(proceso);
 
     return RESIZE_SUCCESS;
 }
@@ -216,4 +216,15 @@ void mostrarMarcosLibres() {
         printf("%d", bitarray_test_bit(marcosLibres, i));
     }
     printf("\n");
+}
+
+void printTabladePaginas(Proceso* proceso){
+    printf("Tabla de páginas de proceso %d", proceso->pid);
+    t_list* keys = dictionary_keys(proceso->tabla_de_paginas);
+    for(int i = 0; i < list_size(keys); i++){
+        char* key = list_get(keys, i);
+        int value = dictionary_get(proceso->tabla_de_paginas, key);
+        printf("Pagina: %s, Marco: %d\n", key, value);
+    }
+    list_destroy(keys);
 }

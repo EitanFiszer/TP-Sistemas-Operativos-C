@@ -26,3 +26,4 @@ char* obtenerInstruccion(int pid, int n);
 int obtenerTamanoProceso(int pid);
 int redimensionarProceso(int pid, int nuevoTam);
 Proceso* procesoPorPID(int pid);
+void printTabladePaginas(Proceso* proceso);

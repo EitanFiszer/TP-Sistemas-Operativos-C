@@ -123,7 +123,7 @@ void esperar_paquetes_cpu() {
                 // Obtener dato de memoria
                 void* dato = obtenerDatoMemoria(pidDatoMemoria, direccion, tamDato);
                 
-                enviar_paquete_entre(socketCpu, DATO_MEMORIA, dato, sizeof(dato));
+                enviar_paquete_entre(socketCpu, DATO_MEMORIA, dato, tamDato);
               break;
             #pragma endregion SOLICITAR_DATO_MEMORIA
             
@@ -237,9 +237,9 @@ void atender_cliente_io(void *socket) {
               int direccionEnviar = payloadEscribir->direccion;
               void* datoEnviar = payloadEscribir->dato;
               int tamDatoEnviar = payloadEscribir->size_cadena;
-              int pid = payloadEscribir->pid;
+              int pidEscribir = payloadEscribir->pid;
               // printf("Escribiendo dato %p en dirección %d\n", datoEnviar, direccionEnviar);
-              escribirMemoria(pid, direccionEnviar, datoEnviar, tamDatoEnviar);
+              escribirMemoria(pidEscribir, direccionEnviar, datoEnviar, tamDatoEnviar);
             break;
           case SOLICITAR_DATO_MEMORIA:
             usleep(retardo_respuesta * 1000);
@@ -250,7 +250,7 @@ void atender_cliente_io(void *socket) {
             int pidDatoMemoria = payloadSolicitarDato->pid; 
             // log_info(logger, "Se llamó a SOLICITAR_DATO_MEMORIA para dirección: %d - largo %d", direccion, tamDato);
             // Obtener dato de memoria
-            void* dato = obtenerDatoMemoria(pid, direccion, tamDato);
+            void* dato = obtenerDatoMemoria(pidDatoMemoria, direccion, tamDato);
             
             enviar_paquete_entre(socket_cliente_IO, DATO_MEMORIA, dato,tamDato);
           break;

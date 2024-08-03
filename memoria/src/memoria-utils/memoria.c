@@ -105,29 +105,38 @@ void escribirMemoria(int pid, int direccionFisica, void* dato, int tamDato) {
 
 }
 
-int buscarPaginaPorPIDYMarco(Proceso* proceso, int marco) {
+int buscarPaginaPorPIDYMarco(Proceso* proceso, int marcoEncontrar) {
     if (proceso == NULL) {
         return -1;
     }
 
-    char* key = NULL;
-    void* value = NULL;
-    bool encontrarMarco(void* keyToFind, void* valueToFind) {
-        if (valueToFind == marco) {
-            key = keyToFind;
-            value = valueToFind;
-            return true;
+    // char* key = NULL;
+    // void* value = NULL;
+    // bool encontrarMarco(void* keyToFind, void* valueToFind) {
+    //     if (valueToFind == marco) {
+    //         key = keyToFind;
+    //         value = valueToFind;
+    //         return true;
+    //     }
+    //     return false;
+    // }
+
+    // dictionary_iterator(proceso->tabla_de_paginas, (void*)encontrarMarco);
+
+    t_dictionary* tabla_de_paginas = proceso->tabla_de_paginas;
+    t_list* paginas = dictionary_keys(tabla_de_paginas);
+
+    int paginaReturn = -1;
+
+    for (int i = 0; i < list_size(paginas); i++) {
+        char* pagina = list_get(paginas, i);
+        int marco = dictionary_get(tabla_de_paginas, pagina);
+        if (marco == marcoEncontrar) {
+            paginaReturn = atoi(pagina);
         }
-        return false;
     }
 
-    dictionary_iterator(proceso->tabla_de_paginas, (void*)encontrarMarco);
-
-    if (key == NULL) {
-        return -1;
-    }
-
-    return atoi(key);
+    return paginaReturn;
 }
 
 void* obtenerDatoMemoria(int pid, int direccionFisica, int tamDato) {
@@ -138,7 +147,6 @@ void* obtenerDatoMemoria(int pid, int direccionFisica, int tamDato) {
 
     int marco = direccionFisica / TAM_PAGINA;
     int offset = direccionFisica % TAM_PAGINA;
-    // int marco = buscarDireccionFisicaEnTablaDePaginas(pid, numMarco);
 
     if (marco == -1) {
         return NULL;
