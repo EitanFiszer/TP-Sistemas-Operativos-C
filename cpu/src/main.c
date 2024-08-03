@@ -172,7 +172,7 @@ int main(int argc, char* argv[]) {
             log_error(logger, "No se pudo recibir el paquete kernel");
             finalizarCPU();
         }
-        t_PCB* pcb = (t_PCB*)paq->payload;
+        // t_PCB* pcb = (t_PCB*)paq->payload;
         bool terminoProceso = false;
         switch (paq->operacion) {
             case EXEC_PROCESO:
