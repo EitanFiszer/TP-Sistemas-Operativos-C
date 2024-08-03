@@ -27,7 +27,7 @@ extern char* ip_kernel;
 extern char* ip_memoria;
 extern char* puerto_kernel;
 extern char* puerto_memoria;
-char* path_base_fs;
+extern char* path_base_fs;
 
 int conexionKernell(char* puerto, char* tipo_interfaz, char* nombre) {
     int resultHandshake = connectAndHandshake(ip_kernel, puerto_kernel, IO, "kernel", logger);
@@ -222,7 +222,6 @@ void hilo_dialfs(void* argumentos){
 
     block_size = config_get_int_value(config, "BLOCK_SIZE");
     block_count = config_get_int_value(config, "BLOCK_COUNT");
-    path_base_fs = config_get_string_value(config, "PATH_BASE_DIALFS");
 
     int socketKernell = conexionKernell(puerto_kernel, tipo_interfaz, nombre);
     int socketMemoria = conexionMemoria(puerto_memoria, tipo_interfaz, nombre);

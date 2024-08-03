@@ -18,10 +18,8 @@
 #include "bitmap.h"
 #include <math.h>
 
-//extern int block_size;
-//extern int block_count;
-extern int block_count2;
-extern int block_size2;
+extern int block_size;
+extern int block_count;
 extern void* map_bloque;
 extern t_dictionary* diccionarioFS;
 extern t_bitarray* bitmap;
@@ -29,7 +27,7 @@ extern t_log* logger;
 
 //CREA EN CASO DE QUE NO EXISTE EL BLOQUES.DAT
 void crearArchivodebloques() {
-    size_t tamano_total = block_size2 * block_count2;
+    size_t tamano_total = block_size * block_count;
 
     // chequear si el archivo ya existía
     char* ruta = crear_ruta("bloques.dat");
@@ -56,7 +54,7 @@ void crearArchivodebloques() {
 
 void* cargar_bloques(){
     
-    int size = block_count2*block_size2;
+    int size = block_count*block_size;
     int fd = open(crear_ruta("bloques.dat"), O_CREAT | O_RDWR, 0664);
 
     ftruncate(fd,size);
@@ -71,7 +69,7 @@ void* cargar_bloques(){
 void compactacion_bloques(char* nombre){
     t_diccionario* FCB=dictionary_get(diccionarioFS,nombre);
 
-    int total_bloques=(int)ceil(FCB->map->tam_archivo/block_size2);
+    int total_bloques=(int)ceil(FCB->map->tam_archivo/block_size);
     if(!total_bloques){
         total_bloques=1;
     }
@@ -81,11 +79,11 @@ void compactacion_bloques(char* nombre){
         leerbitmap();
     }
 
-    void* buffer=calloc(1,block_size2*block_count2);
-    memcpy(buffer,map_bloque+(block_size2*FCB->map->bloque_inicial),total_bloques*block_size2);
+    void* buffer=calloc(1,block_size*block_count);
+    memcpy(buffer,map_bloque+(block_size*FCB->map->bloque_inicial),total_bloques*block_size);
 
     int bit=0;
-    while(bit<block_count2){
+    while(bit<block_count){
         bit=getBit();
         
         leerbitmap();
@@ -93,11 +91,11 @@ void compactacion_bloques(char* nombre){
         int inicio_del_hueco=bit;
         int contiguo_size=0;
 
-        while(!bitarray_test_bit(bitmap,bit) && bit!=block_count2){
+        while(!bitarray_test_bit(bitmap,bit) && bit!=block_count){
             bit++;
         }
 
-        if(bit==block_count2){
+        if(bit==block_count){
             break;
         }
 
@@ -117,7 +115,7 @@ void compactacion_bloques(char* nombre){
                 log_error(logger,"Error: fcb_cont o fcb_cont->map es NULL");
                 return;
             }
-            int cantidad_bloques_fs=(int)ceil(fcb_cont->map->tam_archivo/block_size2);
+            int cantidad_bloques_fs=(int)ceil(fcb_cont->map->tam_archivo/block_size);
             if(!cantidad_bloques_fs){
                 cantidad_bloques_fs=1;
             }
@@ -125,7 +123,7 @@ void compactacion_bloques(char* nombre){
             msync(fcb_cont->map,sizeof(t_metadata),MS_SYNC);
             j=j+cantidad_bloques_fs;
         }
-        memcpy(map_bloque+inicio_del_hueco*block_size2,map_bloque+inicio_del_contiguo*block_size2,contiguo_size*block_size2);
+        memcpy(map_bloque+inicio_del_hueco*block_size,map_bloque+inicio_del_contiguo*block_size,contiguo_size*block_size);
         for(int k=inicio_del_hueco;k<inicio_del_hueco+contiguo_size;k++){
             bitarray_set_bit(bitmap,k);
         }
@@ -139,15 +137,15 @@ void compactacion_bloques(char* nombre){
     msync(FCB->map,sizeof(t_metadata),MS_SYNC);
     
     int primerbit=getBit();
-    memcpy(map_bloque+ultimobit*block_size2,buffer,(block_count2-primerbit)*block_size2);
+    memcpy(map_bloque+ultimobit*block_size,buffer,(block_count-primerbit)*block_size);
     free(buffer);
 
     for(int i=ultimobit;i<total_bloques+ultimobit;i++){
         bitarray_set_bit(bitmap,i);
     }
 
-    //msync(bitmap,block_count2,MS_SYNC);
-    msync(map_bloque,block_count2*block_size2,MS_SYNC);
+    //msync(bitmap,block_count,MS_SYNC);
+    msync(map_bloque,block_count*block_size,MS_SYNC);
 }
 
 

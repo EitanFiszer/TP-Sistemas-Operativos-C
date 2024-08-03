@@ -18,10 +18,8 @@
 #include <utils/constants.h>
 
 
-//extern int block_count;
-extern int block_count2;
-//extern int block_size;
-extern int block_size2;
+extern int block_count;
+extern int block_size;
 extern t_log* logger;
 
 t_dictionary* diccionarioFS;
@@ -42,7 +40,7 @@ void inicializar_FS(){
 
 //CREA ARCHIVO METADATA
 void crear_archivo(char* nombre) {    
-    int bloque_inicial = getBit(block_count2);
+    int bloque_inicial = getBit(block_count);
     t_metadata metadata;
 
     if (bloque_inicial == -1) {
@@ -86,17 +84,17 @@ void delete_archivo(char* nombre) {
     
     // Marcar el bloque como libre en el bitmap
     int bloque_inicial = FCB->map->bloque_inicial;
-    int cant_bloques = ((FCB->map->tam_archivo + block_size2 -1) / block_size2);
+    int cant_bloques = ((FCB->map->tam_archivo + block_size -1) / block_size);
     if(cant_bloques==0){
         cant_bloques=1;
     }
     for (int i=bloque_inicial; i < bloque_inicial+cant_bloques; i++) {
         cleanBitMap(i);
     }
-    void* borrar = calloc(1,cant_bloques*block_size2);
+    void* borrar = calloc(1,cant_bloques*block_size);
 
-    memcpy(map_bloque+FCB->map->bloque_inicial*block_size2 , borrar , cant_bloques * block_size2);
-    msync(map_bloque,block_count2*block_size2,MS_SYNC);
+    memcpy(map_bloque+FCB->map->bloque_inicial*block_size , borrar , cant_bloques * block_size);
+    msync(map_bloque,block_count*block_size,MS_SYNC);
 
     dictionary_remove_and_destroy(diccionarioFS, nombre, free);
     free(borrar);
@@ -115,9 +113,9 @@ void delete_archivo(char* nombre) {
 void truncate_archivo(char* nombre, int tam, int retraso_compactacion,int pid) {
     t_diccionario* FCB;
 
-    int cant_bloques_ingresados=(tam+block_size2-1)/block_size2;  //cantidad de bloques que se desea ocupar
+    int cant_bloques_ingresados=(tam+block_size-1)/block_size;  //cantidad de bloques que se desea ocupar
 
-    if(cant_bloques_ingresados>block_count2){ //si es mayor al block count se pasa
+    if(cant_bloques_ingresados>block_count){ //si es mayor al block count se pasa
         log_error(logger, "El tamaño no es valido");
         return;
     }
@@ -127,7 +125,7 @@ void truncate_archivo(char* nombre, int tam, int retraso_compactacion,int pid) {
         log_error(logger, "NO SE ENCONTRO EL ARCHIVO");
         return;
     }
-    int cant_bloques_arch = (FCB->map->tam_archivo+block_size2-1)/block_size2; //cant de bloques que ya ocupa el archivo
+    int cant_bloques_arch = (FCB->map->tam_archivo+block_size-1)/block_size; //cant de bloques que ya ocupa el archivo
     if(cant_bloques_arch==0){
         cant_bloques_arch=1;
     }
@@ -136,9 +134,9 @@ void truncate_archivo(char* nombre, int tam, int retraso_compactacion,int pid) {
     //SE DESEA ACHICAR EL ARCHIVO
     if (cant_bloques_arch>cant_bloques_ingresados){ 
         int bloques_modificados = cant_bloques_arch-cant_bloques_ingresados; //cuantos bloques se liberan
-        void* borrar = calloc(1,bloques_modificados*block_size2);
-        memcpy(map_bloque+(block_size2*FCB->map->bloque_inicial)+(tam), borrar , bloques_modificados * block_size2);
-        msync(map_bloque,block_count2*block_size2,MS_SYNC);        
+        void* borrar = calloc(1,bloques_modificados*block_size);
+        memcpy(map_bloque+(block_size*FCB->map->bloque_inicial)+(tam), borrar , bloques_modificados * block_size);
+        msync(map_bloque,block_count*block_size,MS_SYNC);        
 
         free(borrar);
         for(int i=0; i<bloques_modificados; i++){
@@ -189,11 +187,11 @@ void escribir_archivo(char* nombre, int puntero, int tam, void* dato) {
     }
 
     // Calcular el inicio del archivo
-    int inicio_archivo = FCB->map->bloque_inicial * block_size2;
+    int inicio_archivo = FCB->map->bloque_inicial * block_size;
 
     // Realizar la escritura en la memoria mapeada
     memcpy(map_bloque + inicio_archivo + puntero, dato, strlen(dato));
-    msync(map_bloque, block_count2 * block_size2, MS_SYNC);
+    msync(map_bloque, block_count * block_size, MS_SYNC);
 }
 
 void* leer_archivo(char* nombre, int puntero, int tam){  
@@ -218,7 +216,7 @@ void* leer_archivo(char* nombre, int puntero, int tam){
 
 void liberarFS(){
     t_list* lista= dictionary_elements(diccionarioFS);
-    munmap(map_bloque,block_count2*block_size2);
+    munmap(map_bloque,block_count*block_size);
     munmap(bitmap,bitmap->size);
 
     for(int i=0;i<list_size(lista);i++){

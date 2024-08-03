@@ -31,12 +31,10 @@
 #include <utils/constants.h>
 
 extern t_log* logger;
-//extern char* path_base_fs;
-extern char* path_base2;
-//extern int block_count;
-extern int block_count2;
-//extern int block_size;
-extern int block_size2;
+extern char* path_base_fs;
+extern char* path_base_fs;
+extern int block_count;
+extern int block_size;
 extern t_dictionary* diccionarioFS;
 
 
@@ -68,14 +66,14 @@ int espacioLIbre(char* nombres, int bloques_delArchivo){
         if(FCB->map->tam_archivo==0){
             cantidad_bloques=1;
         }else{
-            cantidad_bloques=(FCB->map->tam_archivo+block_size2-1)/block_size2;
+            cantidad_bloques=(FCB->map->tam_archivo+block_size-1)/block_size;
         }
 
         acumulador_bloques=acumulador_bloques + cantidad_bloques;
         lista->head=lista->head->next;
     }
 
-    int espacio= block_count2 - acumulador_bloques + bloques_delArchivo; //hay que restarle los que ya ocupa el propio archivo
+    int espacio= block_count - acumulador_bloques + bloques_delArchivo; //hay que restarle los que ya ocupa el propio archivo
     return espacio; 
 }
 

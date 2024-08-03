@@ -13,15 +13,14 @@
 
 extern t_log* logger;
 extern t_bitarray* bitmap;
-//extern int block_count;
-extern int block_count2;
+extern int block_count;
 
 //CREA EL BITARRAY
 t_bitarray* crear_bitarray(){
 
-   char data[(int)ceil(block_count2/8)];
+   char data[(int)ceil(block_count/8)];
    t_bitarray* bitarray = bitarray_create_with_mode(data, sizeof(data),LSB_FIRST);
-    for(int i=0;i<block_count2;i++){
+    for(int i=0;i<block_count;i++){
         bitarray_clean_bit(bitarray,i);
     }
 
@@ -51,11 +50,11 @@ t_bitarray* cargar_bitmap() {
 
     int fd = open(crear_ruta("bitmap.dat"), O_CREAT | O_RDWR, 0664);
 
-    ftruncate(fd,(int)ceil(block_count2/8));
+    ftruncate(fd,(int)ceil(block_count/8));
 
-    void* bitmap = mmap(NULL, (int)ceil(block_count2/8), PROT_READ|PROT_WRITE, MAP_SHARED, fd ,0);
+    void* bitmap = mmap(NULL, (int)ceil(block_count/8), PROT_READ|PROT_WRITE, MAP_SHARED, fd ,0);
 
-	t_bitarray* bitarray = bitarray_create_with_mode((char*) bitmap, (int)ceil(block_count2/8), LSB_FIRST);
+	t_bitarray* bitarray = bitarray_create_with_mode((char*) bitmap, (int)ceil(block_count/8), LSB_FIRST);
     close(fd);
     return bitarray;
 }
@@ -64,7 +63,7 @@ t_bitarray* cargar_bitmap() {
 //BUSCA EL PRIMER 0, SINO HAY DEVUELVE -1
 int getBit() {
         
-    for (int i = 0; i < block_count2; i++) {
+    for (int i = 0; i < block_count; i++) {
         if (!bitarray_test_bit(bitmap, i)) {
             return i; 
         }
@@ -91,7 +90,7 @@ void cleanBitMap(int bloque) {
 bool verificar_bitmap(int bloque, int cant_bloque) {
     int limite= bloque+cant_bloque; 
 
-    if (bloque + cant_bloque >= block_count2) { //SI SE PASA DEL BITARRAY
+    if (bloque + cant_bloque >= block_count) { //SI SE PASA DEL BITARRAY
         return false;
     }
 
@@ -104,20 +103,20 @@ bool verificar_bitmap(int bloque, int cant_bloque) {
 }
 
 void cleanALL(){
-    for(int i=0;i<block_count2;i++){
+    for(int i=0;i<block_count;i++){
         cleanBitMap(i);
     }
 }
 
 void compactacion_bitmap(int espacio, int cant_bloques_arch){
     cleanALL();
-    for(int i=0; i<(block_count2-espacio)+cant_bloques_arch; i++){
+    for(int i=0; i<(block_count-espacio)+cant_bloques_arch; i++){
         setBitmap(i);
     }
 }
 
 void leerbitmap(){
-    for(int i=0; i<block_count2; i++){
+    for(int i=0; i<block_count; i++){
         printf("%d",bitarray_test_bit(bitmap,i));
     }
     printf("\n");
