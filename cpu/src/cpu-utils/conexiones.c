@@ -46,10 +46,8 @@ void* solicitar_dato_memoria(int pid, int dirFisica, int tam) {
     if (paqueteRecibidoEntero == NULL) {
         return NULL;
     }
-    t_payload_dato_memoria* payloadRecibido = paqueteRecibidoEntero->payload;
-    void* dato = payloadRecibido->dato;
 
-    return dato;
+    return paqueteRecibidoEntero->payload;
 }
 
 int enviar_dato_memoria(int pid, int dirFisica, void* dato, int tamDato) {

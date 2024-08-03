@@ -177,6 +177,7 @@ int main(int argc, char* argv[]) {
         switch (paq->operacion) {
             case EXEC_PROCESO:
                 while (1) {
+                    registros = pcb->cpu_registro;
                     char* instruccionRecibida;
                     int ok = fetchInstruccion(pcb, socketMemoria, &instruccionRecibida, logger);
                     if (ok == -1) {

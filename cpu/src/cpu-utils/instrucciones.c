@@ -136,11 +136,15 @@ void instruccionMovOut(char* regDire, char* regDato, registros_t* registros, t_P
     int dato = valorDelRegistro(regDato, registros);
     int dirLogica = valorDelRegistro(regDire, registros);
 
+    log_info(logger, "PID %d - Acción: ESCRIBIR - Dirección Lógica: %d - Valor: %c", pcb->PID, dirLogica, dato);
+
     int dirFisica = calcularDireccionFisica(pcb->PID, dirLogica);
     // printf("Escribiendo dato %d en Direccion fisica: %d\n", dato, dirFisica);
     if (dirFisica == -1) {
         return;
     }
+
+    
     enviar_dato_memoria(pcb->PID, dirFisica, &dato, 1);
     pcb->program_counter = pcb->program_counter + 1;
 }
@@ -166,7 +170,11 @@ void instruccionCopyString(int tam, registros_t registros, t_PCB* pcb) {
     int dirFisicaDI = calcularDireccionFisica(pcb->PID, dirLogicaDI);
 
     void* dato = solicitar_dato_memoria(pcb->PID, dirFisicaSI, tam);
-    log_info(logger, "PID %d - Acción: LEER - Dirección Física: %d - Valor: %s", pcb->PID, dirFisicaSI, dato);
+
+    char* datoString = calloc(1, tam);
+    strncpy(datoString, dato, tam);
+
+    log_info(logger, "PID %d - Acción: LEER - Dirección Física: %d - Valor: %s", pcb->PID, dirFisicaSI, datoString);
 
     if (dato == NULL) {
         return;
