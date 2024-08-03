@@ -108,7 +108,7 @@ void testConnMem() {
 }
 
 int main(int argc, char* argv[]) {
-    signal(SIGINT, signal_callback_handler);
+    signal(SIGINT, signal_callback_handler); //mata todo cpu, no anda muy bien
 
     // creamos logs y configs
     logger = iniciar_logger("cpu.log", "CPU");
@@ -181,6 +181,7 @@ int main(int argc, char* argv[]) {
                     char* instruccionRecibida;
                     int ok = fetchInstruccion(pcb, socketMemoria, &instruccionRecibida, logger);
                     if (ok == -1) {
+                        free(instruccionRecibida);
                         log_error(logger, "PROCESO TERMINÓ EJECUCIÓN: PID %d", pcb->PID);
                         terminoProceso = true;
                         OP_CODES_ENTRE op = TERMINO_EJECUCION;
@@ -192,6 +193,7 @@ int main(int argc, char* argv[]) {
 
                     // Decodifico la instruccion en opcode y parametros
                     instruccionCPU_t* instruccion = dividirInstruccion(instruccionRecibida);
+                    free(instruccionRecibida);
 
                     // Ejecuto la instruccion
                     ejecutarInstruccion(instruccion, pcb, logger, socketKernel);
