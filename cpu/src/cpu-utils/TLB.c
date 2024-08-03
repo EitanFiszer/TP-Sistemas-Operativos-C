@@ -35,7 +35,7 @@ void agregarEntradaTLB(int pid, int pagina, int marco) {
         if (string_equals_ignore_case(TLB_ALGORITMO_REEMPLAZO, "FIFO")) {
             TLBagregarFIFO(pid, pagina, marco);
         } else if (string_equals_ignore_case(TLB_ALGORITMO_REEMPLAZO, "LRU")) {
-            TLBagregarLRU(pid, pagina, marco);
+            TLBagregarFIFO(pid, pagina, marco);
         } else {
             // no debería llegar acá
             log_error(logger, "Algoritmo de reemplazo de TLB no válido");
@@ -69,12 +69,36 @@ void TLBagregarFIFO(int pid, int pagina, int marco) {
     entrada->pagina = pagina;
     entrada->marco = marco;
 
+    // log_info(logger, "puntero antes de reemplazo: %d", punteroFifo);
+
     if(list_size(TLB) > 0) {
-      list_remove(TLB, punteroFifo);
+      list_remove(TLB, 0);
     }
     list_add(TLB, entrada);
 
-    punteroFifo = (punteroFifo + 1) % TLB_MAX_SIZE;
+    // punteroFifo = (punteroFifo + 1) % TLB_MAX_SIZE;
+
+    // log_info(logger, "puntero despues de reemplazo: %d", punteroFifo);
+    
+    //mostrarTLB();
+}
+
+void mostrarTLB() {
+    log_info(logger, "TLB::");
+    for(int i=0; i<list_size(TLB);i++){
+        tlb_entry* data = list_get(TLB, i);
+        log_info(logger, "pag %d marco %d", data->pagina, data->marco);
+    } 
+}
+
+int encontrarPagEnTLB(int PID, int numeroPagina) {
+    for (int i = 0; i<list_size(TLB);i++) {
+        tlb_entry* data = list_get(TLB,i);
+        if (data->pid == PID && data->pagina == numeroPagina) {
+            return i;
+        }
+    }
+    return -1;
 }
 
 bool LRUYaPedido(int pid, int pagina) {

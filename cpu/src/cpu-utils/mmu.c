@@ -1,4 +1,5 @@
 #include <commons/collections/list.h>
+#include <commons/string.h>
 #include <utils/constants.h>
 #include <utils/client.h>
 #include <utils/server.h>
@@ -19,6 +20,7 @@ extern t_list* TLB;
 extern int TAM_PAGINA;
 extern int socketMemoria;
 extern int TLB_MAX_SIZE;
+extern char* TLB_ALGORITMO_REEMPLAZO;
 
 int buscarEnTLB(int PID, int numeroPagina) {
     for (int i = 0; i < list_size(TLB); i++) {
@@ -66,6 +68,13 @@ int calcularDireccionFisica(int PID, int direccionLogica) {
         }
     } else {
         log_info(logger, "PID %d - TLB HIT - Pagina %d", PID, numeroPagina);
+        if(string_equals_ignore_case(TLB_ALGORITMO_REEMPLAZO, "LRU")) {
+            int idx = encontrarPagEnTLB(PID, numeroPagina);
+            tlb_entry* dataAAgregar = list_get(TLB,idx);
+            list_remove(TLB, idx);
+            list_add(TLB, dataAAgregar);
+        }
+        //mostrarTLB();
     }
 
     if (marco == -1) {

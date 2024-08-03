@@ -27,5 +27,6 @@ void TLBagregarFIFO(int pid, int pagina, int marco);
 void TLBagregarLRU(int pid, int pagina, int marco);
 void actualizarTimestampOAgregarAPeticiones(int pid, int pagina);
 void agregarEntradaTLB(int pid, int pagina, int marco);
+int encontrarPagEnTLB(int PID, int pag);
 
 #endif  // TLB_H
