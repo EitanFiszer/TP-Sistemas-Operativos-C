@@ -108,7 +108,7 @@ void testConnMem() {
 }
 
 int main(int argc, char* argv[]) {
-    signal(SIGINT, signal_callback_handler);
+    signal(SIGINT, signal_callback_handler); //mata todo cpu, no anda muy bien
 
     // creamos logs y configs
     logger = iniciar_logger("cpu.log", "CPU");

@@ -259,6 +259,7 @@ void cargar_ready_priori(t_PCB* pcb, t_proceso_estado estado_anterior)
     int lista_size = queue_size(cola_ready_priori);
 
     char* lista = string_new();
+    
 
     t_PCB *pcb_ret = malloc(sizeof(t_PCB));
 
