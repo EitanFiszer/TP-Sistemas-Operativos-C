@@ -21,7 +21,7 @@ void* esperar_paquetes_memoria(void*);
 void* esperar_paquetes_cpu_dispatch(void*);
 
 // void esperar_paquetes_cpu_dispatch(int);
-void interrumpir(t_motivo_interrupcion);
+void interrumpir(t_motivo_interrupcion, t_PCB*);
 void enviar_instrucciones_memoria(char*,int);
 void enviar_paquete_cpu_dispatch (OP_CODES_ENTRE,void*,int);
 void enviar_paquete_memoria(OP_CODES_ENTRE , void*,int);

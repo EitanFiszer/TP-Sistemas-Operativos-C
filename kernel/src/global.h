@@ -34,6 +34,7 @@ extern bool interrumpio_syscall;
 extern pthread_mutex_t sem_q_ready_priori;
 extern t_queue* cola_ready_priori;
 extern sem_t sem_cont_ready;
+extern sem_t sem_recibir_exec;
 extern pthread_mutex_t sem_q_blocked;
 extern pthread_mutex_t  sem_q_exec;
 extern t_queue* cola_exec;
@@ -41,7 +42,6 @@ extern t_queue* cola_exec;
 extern bool bool_error_memoria;
 extern bool bool_syscall;
 extern bool bool_interrupted_by_user;
-
 
 typedef enum {
     SYSCALL,

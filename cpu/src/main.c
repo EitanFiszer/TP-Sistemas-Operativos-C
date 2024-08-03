@@ -2,6 +2,7 @@
 
 #include <signal.h>
 #include <utils/iniciar.h>
+#include <commons/temporal.h>
 
 registros_t registros;
 int socketKernel;
@@ -9,7 +10,7 @@ int socketMemoria;
 int TAM_PAGINA;
 t_log* logger;
 t_config* config;
-int interrupcion;
+bool interrupcion = false;
 
 int server_dispatch_fd;
 int server_interrupt_fd;
@@ -53,7 +54,7 @@ void conexion_interrupt(void* argumentos) {
     int socket_cliente = res.socket;
     switch (modulo) {
         case KERNEL:
-            log_info(logger, "Se conecto un Kernel");
+            log_info(logger, "Se conecto un Kernel en puerto interrupt");
             break;
         default:
             log_error(logger, "Se conecto un cliente desconocido");
@@ -68,11 +69,11 @@ void conexion_interrupt(void* argumentos) {
         }
         switch (paquete->operacion) {
             case INTERRUMPIR_PROCESO:
-                // t_PCB* pcb = (t_PCB*)paquete->payload;
+                t_PCB* pcb = (t_PCB*)paquete->payload;
                 pthread_mutex_lock(&mutex_interrupcion);
                 interrupcion = true;
                 pthread_mutex_unlock(&mutex_interrupcion);
-                // log_info(logger, "Interrupcion recibida para PID %d", pcb->PID);
+                log_info(logger, "Interrupcion recibida para PID, %d", pcb->PID);
                 break;
             default:
                 log_error(logger, "Operacion desconocida interrupt %d", paquete->operacion);
@@ -86,25 +87,6 @@ int getHayInterrupcion() {
     int hayInterrupcion = interrupcion;
     pthread_mutex_unlock(&mutex_interrupcion);
     return hayInterrupcion;
-}
-
-// TESTS
-void testConnMem() {
-    OP_CODES_ENTRE op = PC_A_INSTRUCCION;
-    t_payload_pc_a_instruccion* payload = malloc(sizeof(t_payload_pc_a_instruccion));
-    payload->PID = 6;
-    payload->program_counter = 9;
-    t_paquete* paq = crear_paquete();
-    t_paquete_entre* paq_entre = malloc(sizeof(t_paquete_entre));
-
-    paq_entre->operacion = op;
-    paq_entre->size_payload = sizeof(t_payload_pc_a_instruccion);
-    paq_entre->payload = payload;
-
-    agregar_paquete_entre_a_paquete(paq, paq_entre);
-    enviar_paquete(paq, socketMemoria);
-    eliminar_paquete(paq);
-    free(payload);
 }
 
 int main(int argc, char* argv[]) {
@@ -168,11 +150,14 @@ int main(int argc, char* argv[]) {
     while (1) {
         // Recibo el paquete del kernel
         t_paquete_entre* paq = recibir_paquete_entre(socketKernel);
+        log_info(logger, "Se recibio Proceso para PID");
+        t_temporal* tempooooo = temporal_create();
         if (paq == NULL) {
             log_error(logger, "No se pudo recibir el paquete kernel");
             finalizarCPU();
         }
         t_PCB* pcb = (t_PCB*)paq->payload;
+        enviar_paquete_entre(socketKernel, CONFIRMAR_EXEC, NULL, 0);
         bool terminoProceso = false;
         switch (paq->operacion) {
             case EXEC_PROCESO:
@@ -180,6 +165,7 @@ int main(int argc, char* argv[]) {
                     registros = pcb->cpu_registro;
                     char* instruccionRecibida;
                     int ok = fetchInstruccion(pcb, socketMemoria, &instruccionRecibida, logger);
+
                     if (ok == -1) {
                         log_error(logger, "PROCESO TERMINÓ EJECUCIÓN: PID %d", pcb->PID);
                         terminoProceso = true;
@@ -195,10 +181,16 @@ int main(int argc, char* argv[]) {
 
                     // Ejecuto la instruccion
                     ejecutarInstruccion(instruccion, pcb, logger, socketKernel);
-                    if(getHayInterrupcion()) break;
+
+                    
+
+                    if(interrupcion) break;
                 }
-                if (getHayInterrupcion() && !terminoProceso) {
+                if (interrupcion && !terminoProceso) {
                     log_info(logger, "Interrupcion alcanzada");
+                    int64_t diff = temporal_gettime(tempooooo);
+                    log_info(logger, "Tiempo usado fue :%ld", diff);
+                    temporal_destroy(tempooooo);
 
                     pthread_mutex_lock(&mutex_interrupcion);
                     interrupcion = false;

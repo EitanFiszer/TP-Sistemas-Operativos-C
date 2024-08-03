@@ -1,4 +1,4 @@
-INICIAR_PROCESO /scripts_memoria/FS_1
-INICIAR_PROCESO /scripts_memoria/FS_2
-INICIAR_PROCESO /scripts_memoria/FS_3
-INICIAR_PROCESO /scripts_memoria/FS_4
+INICIAR_PROCESO /preliminares/script_solo_cpu_1
+INICIAR_PROCESO /preliminares/script_solo_cpu_2
+INICIAR_PROCESO /preliminares/script_solo_cpu_3
+INICIAR_PROCESO /preliminares/script_solo_cpu_4

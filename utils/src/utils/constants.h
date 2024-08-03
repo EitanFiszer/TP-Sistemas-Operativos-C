@@ -81,8 +81,8 @@ typedef enum {
 
     EXIT_PROCESS,
     
-    CONFIRMAR_SYSCALL // DE KERNEL A CPU, confirmacion de wait o signal
-
+    CONFIRMAR_SYSCALL, // DE KERNEL A CPU, confirmacion de wait o signal
+    CONFIRMAR_EXEC
 } OP_CODES_ENTRE;
 
 typedef struct {

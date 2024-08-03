@@ -104,6 +104,10 @@ void *esperar_paquetes_cpu_dispatch(void *arg)
         }
         switch (paquete_dispatch->operacion)
         {
+        case CONFIRMAR_EXEC:
+            sem_post(&sem_recibir_exec);
+            break;
+        
         case INTERRUMPIO_PROCESO: // A CHEQUEAR
             log_info(logger, "RECIBIENDO PROCESO DESALOJADO");
             t_PCB *PCB = (t_PCB *)paquete_dispatch->payload;
@@ -130,7 +134,7 @@ void *esperar_paquetes_cpu_dispatch(void *arg)
             break;
             // pthread_mutex_unlock(&interrupcion_syscall);
         case ERROR_OUT_OF_MEMORY:
-            interrumpir(ERROR_OUT_OF_MEMORY_I);
+            interrumpir(ERROR_OUT_OF_MEMORY_I, NULL);
             enviar_paquete_cpu_dispatch(CONFIRMAR_SYSCALL, NULL, 0);
             desalojar(NULL);
             break;
@@ -139,7 +143,7 @@ void *esperar_paquetes_cpu_dispatch(void *arg)
             t_payload_wait_signal *paquete_wait = malloc(sizeof(t_payload_wait_signal));
             paquete_wait = deserializar_wait_signal(paquete_dispatch->payload);
             log_info(logger, "RECIBIENDO WAIT DE RECURSO %s, PID: %d", paquete_wait->recurso, paquete_wait->pcb->PID);
-            interrumpir(SYSCALL);
+            interrumpir(SYSCALL, paquete_wait->pcb);
             enviar_paquete_cpu_dispatch(CONFIRMAR_SYSCALL, NULL, 0);
             atender_wait(paquete_wait->pcb, paquete_wait->recurso);
             break;
@@ -160,59 +164,59 @@ void *esperar_paquetes_cpu_dispatch(void *arg)
             break;
 
         case IO_STDIN_READ:
-            interrumpir(SYSCALL);
             enviar_paquete_cpu_dispatch(CONFIRMAR_SYSCALL, NULL, 0);
             t_payload_io_stdin_read *payload_stdin_read = deserializar_io_stdin_read(paquete_dispatch->payload);
+            interrumpir(SYSCALL, payload_stdin_read->pcb);
             desalojar(payload_stdin_read->pcb);
             atender_io_stdin_read(payload_stdin_read);
             break;
         case IO_STDOUT_WRITE:
-            interrumpir(SYSCALL);
             enviar_paquete_cpu_dispatch(CONFIRMAR_SYSCALL, NULL, 0);
             t_payload_io_stdout_write *payload_stdout_write = deserializar_io_stdout_write(paquete_dispatch->payload);
+            interrumpir(SYSCALL, payload_stdout_write);
             desalojar(payload_stdout_write->pcb);
             atender_io_stdout_write(payload_stdout_write);
 
             break;
         case IO_FS_CREATE:
-            interrumpir(SYSCALL);
             enviar_paquete_cpu_dispatch(CONFIRMAR_SYSCALL, NULL, 0);
             t_payload_fs_create *payload_fs_create = deserializar_fs_create(paquete_dispatch->payload);
+            interrumpir(SYSCALL, payload_fs_create->pcb);
             desalojar(payload_fs_create->pcb);
             atender_fs_createOrDelate(payload_fs_create, IO_FS_CREATE);
             break;
         case IO_FS_DELETE:
-            interrumpir(SYSCALL);
             enviar_paquete_cpu_dispatch(CONFIRMAR_SYSCALL, NULL, 0);
             t_payload_fs_create *payload_fs_del = deserializar_fs_create(paquete_dispatch->payload);
+            interrumpir(SYSCALL, payload_fs_del->pcb);
             desalojar(payload_fs_del->pcb);
             atender_fs_createOrDelate(payload_fs_del, IO_FS_DELETE);
             break;
         case IO_FS_TRUNCATE:
-            interrumpir(SYSCALL);
             enviar_paquete_cpu_dispatch(CONFIRMAR_SYSCALL, NULL, 0);
             t_payload_fs_truncate *payload_truncate = deserializar_fs_truncate(paquete_dispatch->payload);
+            interrumpir(SYSCALL, payload_truncate->pcb);
             desalojar(payload_truncate->pcb);
             atender_fs_truncate(payload_truncate);
             break;
         case IO_FS_WRITE:
-            interrumpir(SYSCALL);
             enviar_paquete_cpu_dispatch(CONFIRMAR_SYSCALL, NULL, 0);
             t_payload_fs_writeORread *payload_fs_wOr = deserializar_fs_writeORread(paquete_dispatch->payload);
+            interrumpir(SYSCALL, payload_fs_wOr->pcb);
             desalojar(payload_fs_wOr->pcb);
             atender_fs_writeOrRead(payload_fs_wOr, IO_FS_WRITE);
             break;
         case IO_FS_READ:
-            interrumpir(SYSCALL);
             enviar_paquete_cpu_dispatch(CONFIRMAR_SYSCALL, NULL, 0);
             t_payload_fs_writeORread *payloadRoW = deserializar_fs_writeORread(paquete_dispatch->payload);
+            interrumpir(SYSCALL, payloadRoW->pcb);
             desalojar(payloadRoW->pcb);
             atender_fs_writeOrRead(payloadRoW, IO_FS_READ);
             break;
         case IO_GEN_SLEEP:
-            interrumpir(SYSCALL);
             enviar_paquete_cpu_dispatch(CONFIRMAR_SYSCALL, NULL, 0);
             t_payload_io_gen_sleep *payload_gen_sleep = deserializar_io_gen_sleep(paquete_dispatch->payload);
+            interrumpir(SYSCALL, payload_gen_sleep->pcb);
             desalojar(payload_gen_sleep->pcb);
             atender_io_gen_sleep(payload_gen_sleep);
             break;
@@ -262,13 +266,10 @@ void enviar_paquete_cpu_dispatch(OP_CODES_ENTRE operacion, void *payload, int si
     free(paquete);
 }
 
-void interrumpir(t_motivo_interrupcion motivo)
+void interrumpir(t_motivo_interrupcion motivo, t_PCB* PCB)
 {
     if (motivo == SYSCALL)
     {
-        pthread_mutex_lock(&interrupcion_syscall);
-        interrumpio_syscall = true;
-        pthread_mutex_unlock(&interrupcion_syscall);
         log_info(logger, "INTERRUMPIENDO PROCESO POR SYSCALL");
         bool_syscall = true;
     }
@@ -286,17 +287,19 @@ void interrumpir(t_motivo_interrupcion motivo)
     {
         log_info(logger, "INTERRUMPIENDO PROCESO POR INTERRUPTED_BY_USER");
         bool_interrupted_by_user = true;
+    }else{
+        log_info(logger, "INTERRUMPIENDO PROCESO POR NOSEQUE %d", motivo);
     }
     t_paquete *paquete_fin_de_q = crear_paquete();
     t_paquete_entre *fin_q = malloc(sizeof(t_paquete_entre));
     fin_q->operacion = INTERRUMPIR_PROCESO;
-    fin_q->size_payload = sizeof(int);
-    int instruccion_valida = 1;
-    fin_q->payload = &instruccion_valida;
+    fin_q->size_payload = sizeof(t_PCB);
+    fin_q->payload = PCB;
     agregar_paquete_entre_a_paquete(paquete_fin_de_q, fin_q);
     enviar_paquete(paquete_fin_de_q, resultHandshakeInterrupt);
     eliminar_paquete(paquete_fin_de_q);
     free(fin_q);
+    log_info(logger, "MANDÉ INTERRUPCION A INTERRUPT");
 }
 void finalizar_kernel()
 {
