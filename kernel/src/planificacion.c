@@ -726,7 +726,8 @@ void iniciar_planificacion()
 
 void modificar_multiprogramacion(int num)
 {
-    if (num > 0 && num < 30)
+  int maxMulti = 500;
+    if (num > 0 && num < maxMulti)
     {
         if (num < grado_multiprog)
         {
@@ -745,7 +746,7 @@ void modificar_multiprogramacion(int num)
     }
     else
     {
-        printf("Grado de multiprogramacion incorrecto");
+        printf("Grado de multiprogramacion incorrecto\n");
     }
 }
 

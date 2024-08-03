@@ -181,7 +181,6 @@ int main(int argc, char* argv[]) {
                     char* instruccionRecibida;
                     int ok = fetchInstruccion(pcb, socketMemoria, &instruccionRecibida, logger);
                     if (ok == -1) {
-                        free(instruccionRecibida);
                         log_error(logger, "PROCESO TERMINÓ EJECUCIÓN: PID %d", pcb->PID);
                         terminoProceso = true;
                         OP_CODES_ENTRE op = TERMINO_EJECUCION;
@@ -193,7 +192,6 @@ int main(int argc, char* argv[]) {
 
                     // Decodifico la instruccion en opcode y parametros
                     instruccionCPU_t* instruccion = dividirInstruccion(instruccionRecibida);
-                    free(instruccionRecibida);
 
                     // Ejecuto la instruccion
                     ejecutarInstruccion(instruccion, pcb, logger, socketKernel);

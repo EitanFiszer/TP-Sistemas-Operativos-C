@@ -16,3 +16,9 @@ obj/
 !.vscode/tasks.json
 
 **/*.dat
+
+
+# Ignore all files in the FS directory
+FS/*
+# Except for .gitkeep
+!FS/.gitkeep

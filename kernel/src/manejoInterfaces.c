@@ -88,6 +88,7 @@ void atender_io_stdin_read(t_payload_io_stdin_read *stdint_read)
             {
                 enviar_paquete_entre(find_io->socket_interfaz, IO_STDIN_READ, buffer, size_payload);
                 find_io->pcb_usando_interfaz = stdint_read->pcb;
+                find_io->libre = false;
                 log_info(logger, "PID: %d - Bloqueado por: <%s>", stdint_read->pcb->PID, stdint_read->interfaz);
                 log_info(logger, "PID:%d - Estado Anterior: EXEC - Estado Actual: BLOCKED", stdint_read->pcb->PID);
             }
@@ -134,6 +135,7 @@ void atender_io_stdout_write(t_payload_io_stdout_write *stdout_write)
             {
                 enviar_paquete_entre(find_io->socket_interfaz, IO_STDOUT_WRITE, buffer, size_payload);
                 find_io->pcb_usando_interfaz = stdout_write->pcb;
+                find_io->libre = false;
                 log_info(logger, "PID: %d - Bloqueado por: <%s>", stdout_write->pcb->PID, stdout_write->interfaz);
                 log_info(logger, "PID:%d - Estado Anterior: EXEC - Estado Actual: BLOCKED", find_io->pcb_usando_interfaz->PID);
             }
@@ -180,6 +182,7 @@ void atender_fs_createOrDelate(t_payload_fs_create *createOrDelate, OP_CODES_ENT
 
                 enviar_paquete_entre(find_io->socket_interfaz, code, buffer, size_payload);
                 find_io->pcb_usando_interfaz = createOrDelate->pcb;
+                find_io->libre = false;
                 log_info(logger, "PID: %d - Bloqueado por: <%s>", createOrDelate->pcb->PID, createOrDelate->interfaz);
                 log_info(logger, "PID:%d - Estado Anterior: EXEC - Estado Actual: BLOCKED", find_io->pcb_usando_interfaz->PID);
             }
@@ -225,6 +228,7 @@ void atender_fs_truncate(t_payload_fs_truncate *fs_truncate)
             {
                 enviar_paquete_entre(find_io->socket_interfaz, IO_FS_TRUNCATE /*ver que recibe io*/, buffer, size_payload);
                 find_io->pcb_usando_interfaz = fs_truncate->pcb;
+                find_io->libre = false;
                 log_info(logger, "PID: %d - Bloqueado por: <%s>", fs_truncate->pcb->PID, fs_truncate->interfaz);
                 log_info(logger, "PID:%d - Estado Anterior: EXEC - Estado Actual: BLOCKED", find_io->pcb_usando_interfaz->PID);
             }
@@ -275,6 +279,7 @@ void atender_fs_writeOrRead(t_payload_fs_writeORread *writeOrRead, OP_CODES_ENTR
 
                 enviar_paquete_entre(find_io->socket_interfaz, code, buffer, size_payload);
                 find_io->pcb_usando_interfaz = writeOrRead->pcb;
+                find_io->libre = false;
                 log_info(logger, "PID: %d - Bloqueado por: <%s>", writeOrRead->pcb->PID, writeOrRead->interfaz);
                 log_info(logger, "PID:%d - Estado Anterior: EXEC - Estado Actual: BLOCKED", find_io->pcb_usando_interfaz->PID);
             }
@@ -324,6 +329,7 @@ void atender_io_gen_sleep(t_payload_io_gen_sleep *genSleep)
 
                 enviar_paquete_entre(find_io->socket_interfaz, IO_GEN_SLEEP, buffer, size_payload);
                 find_io->pcb_usando_interfaz = genSleep->pcb;
+                find_io->libre = false;
                 log_info(logger, "PID: %d - Bloqueado por: <%s>", genSleep->pcb->PID, genSleep->interfaz);
                 log_info(logger, "PID:%d - Estado Anterior: EXEC - Estado Actual: BLOCKED", find_io->pcb_usando_interfaz->PID);
             }
@@ -381,6 +387,7 @@ void desocupar_io(char *nombre_io_hilo)
         }
         
         find_io->pcb_usando_interfaz = NULL;
+        find_io->libre = true;
 
         if (!queue_is_empty(find_io->cola_blocked_interfaz))
         {
@@ -395,6 +402,7 @@ void desocupar_io(char *nombre_io_hilo)
                 enviar_paquete_entre(find_io->socket_interfaz, payload->op, payload->buffer, payload->size_payload);
                 free(payload);
                 find_io->pcb_usando_interfaz = prox;
+                find_io->libre = false;
             }
         }
 

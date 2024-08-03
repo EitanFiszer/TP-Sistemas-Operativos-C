@@ -249,7 +249,7 @@ void hilo_dialfs(void* argumentos){
                 int pid_create = payloadcreate->pcb->PID;
                 log_info(logger, "PID: %d - Crear Archivo: %s",pid_create,payloadcreate->nombreArchivo);
                 crear_archivo(payloadcreate->nombreArchivo);   
-                enviar_paquete_entre(socketKernell, TERMINE_OPERACION, NULL, 0); 
+                // enviar_paquete_entre(socketKernell, TERMINE_OPERACION, NULL, 0); 
             break;
             case IO_FS_DELETE:
                 usleep(tiempo_unidad_trabajo*1000);
@@ -257,7 +257,7 @@ void hilo_dialfs(void* argumentos){
                 int pid_delete = payloaddelete->pcb->PID;
                 log_info(logger, "PID: %d - Eliminar Archivo: %s",pid_delete,payloaddelete->nombreArchivo);
                 delete_archivo(payloaddelete->nombreArchivo);
-                enviar_paquete_entre(socketKernell, TERMINE_OPERACION, NULL, 0);
+                // enviar_paquete_entre(socketKernell, TERMINE_OPERACION, NULL, 0);
             break;
 
             case IO_FS_TRUNCATE:
@@ -270,7 +270,7 @@ void hilo_dialfs(void* argumentos){
                 // leerbitmap();
                 // leerDiccionario();
               
-                enviar_paquete_entre(socketKernell, TERMINE_OPERACION, NULL, 0);
+                // enviar_paquete_entre(socketKernell, TERMINE_OPERACION, NULL, 0);
             break;
 
             case IO_FS_WRITE:
@@ -289,7 +289,7 @@ void hilo_dialfs(void* argumentos){
                 escribir_archivo(payloadwrite->nombreArchivo,payloadwrite->punteroArchivo,payloadwrite->tam,respuesta->payload);
                 log_info(logger, "PID: %d - Escribir Archivo: %s - Tamaño a Escribir: %d - Puntero Archivo: %d",pid_write,payloadwrite->nombreArchivo,payloadwrite->tam,payloadwrite->punteroArchivo);
                 
-                enviar_paquete_entre(socketKernell, TERMINE_OPERACION, NULL, 0);
+                // enviar_paquete_entre(socketKernell, TERMINE_OPERACION, NULL, 0);
             break;
 
             case IO_FS_READ:
@@ -309,13 +309,13 @@ void hilo_dialfs(void* argumentos){
                 enviar_paquete_entre(socketMemoria, ESCRIBIR_MEMORIA, payloadSerializado, payloadread->tam);
 
                 log_info(logger,"PID: %d - Leer Archivo: %s - Tamaño a Leer: %d - Puntero Archivo: %d",pid_read,payloadread->nombreArchivo,payloadread->tam,payloadread->punteroArchivo);
-                enviar_paquete_entre(socketKernell, TERMINE_OPERACION, NULL, 0);
+                // enviar_paquete_entre(socketKernell, TERMINE_OPERACION, NULL, 0);
             break;
 
             default:
                 log_error(logger, "Operacion: <NO DEFINIDA>");
         }
-
+        enviar_paquete_entre(socketKernell, TERMINE_OPERACION, NULL, 0);
     }
     liberarFS();
 }
