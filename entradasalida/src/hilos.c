@@ -277,7 +277,6 @@ void hilo_dialfs(void* argumentos){
                 payloadMandar->pid=pid_write;
 
                 enviar_paquete_entre(socketMemoria, SOLICITAR_DATO_MEMORIA, payloadMandar, sizeof(t_payload_solicitar_dato_memoria));
-                free(payloadMandar);
                 t_paquete_entre* respuesta = recibir_paquete_entre(socketMemoria);
 
                 escribir_archivo(payloadwrite->nombreArchivo,payloadwrite->punteroArchivo,payloadwrite->tam,respuesta->payload);
@@ -299,7 +298,6 @@ void hilo_dialfs(void* argumentos){
 
                 void* payloadSerializado = serializar_escribir_memoria(payload, &payloadread->tam);
                 enviar_paquete_entre(socketMemoria, ESCRIBIR_MEMORIA, payloadSerializado, payloadread->tam);
-                free(payload);
 
                 log_info(logger,"PID: %d - Leer Archivo: %s - Tamaño a Leer: %d - Puntero Archivo: %d",pid_read,payloadread->nombreArchivo,payloadread->tam,payloadread->punteroArchivo);
             break;

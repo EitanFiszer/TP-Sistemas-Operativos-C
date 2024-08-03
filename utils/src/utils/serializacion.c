@@ -197,7 +197,7 @@ void *serializar_fs_create(t_payload_fs_create *payload, int *size_payload)
     int size_interfaz = strlen(payload->interfaz) + 1;           // Incluye el carácter nulo
     int size_nombreArchivo = strlen(payload->nombreArchivo) + 1; // Incluye el carácter nulo
 
-    *size_payload = 2 * sizeof(int) + size_interfaz + size_nombreArchivo;
+    *size_payload = 2 * sizeof(int) + size_interfaz + size_nombreArchivo + sizeof(t_PCB);
     void *buffer = malloc(*size_payload);
 
     int desplazamiento = 0;
@@ -210,47 +210,11 @@ void *serializar_fs_create(t_payload_fs_create *payload, int *size_payload)
     desplazamiento += sizeof(int);
     memcpy(buffer + desplazamiento, payload->nombreArchivo, size_nombreArchivo);
 
+    desplazamiento += size_nombreArchivo;
+    memcpy(buffer + desplazamiento, payload->pcb, sizeof(t_PCB));
+
     return buffer;
 }
-
-// t_payload_dato_memoria* deserializar_dato_memoria(void* buffer) {
-//     t_payload_dato_memoria* payload = malloc(sizeof(t_payload_dato_memoria));
-//     int desplazamiento = 0;
-
-//     memcpy(&(payload->size_dato), buffer + desplazamiento, sizeof(int));
-//     desplazamiento += sizeof(int);
-
-//     payload->dato = malloc(payload->size_dato);
-//     memcpy(payload->dato, buffer + desplazamiento, payload->size_dato);
-
-//     return payload;
-// }
-// t_payload_enviar_dato_memoria* deserializar_enviar_dato_memoria(void* buffer) {
-//     t_payload_enviar_dato_memoria* payload = malloc(sizeof(t_payload_enviar_dato_memoria));
-//     int desplazamiento = 0;
-
-//     memcpy(&(payload->direccion), buffer + desplazamiento, sizeof(int));
-//     desplazamiento += sizeof(int);
-//     memcpy(&(payload->size_dato), buffer + desplazamiento, sizeof(int));
-//     desplazamiento += sizeof(int);
-
-//     payload->dato = malloc(payload->size_dato);
-//     memcpy(payload->dato, buffer + desplazamiento, payload->size_dato);
-
-//     return payload;
-// }
-
-// t_payload_io_stdin_read* deserializar_io_stdin_read(void* buffer) {
-//     t_payload_io_stdin_read* payload = malloc(sizeof(t_payload_io_stdin_read));
-//     // Suponiendo que la estructura t_PCB tiene un tamaño fijo conocido como SIZE_T_PCB
-//     int size_pcb = sizeof(t_PCB);
-
-//     payload->pcb = malloc(size_pcb);
-//     memcpy(payload->pcb, buffer, size_pcb);
-//     memcpy(&(payload->tam), buffer + size_pcb, sizeof(int));
-
-//     return payload;
-// }
 
 t_payload_wait_signal *deserializar_wait_signal(void *buffer)
 {
@@ -328,6 +292,13 @@ t_payload_io_stdout_write *deserializar_io_stdout_write(void *buffer){
 }
 
 t_payload_fs_create *deserializar_fs_create(void *buffer){
+  /*
+  typedef struct {
+    char* interfaz;
+    char* nombreArchivo;
+    t_PCB* pcb;
+  } t_payload_fs_create;  // hacer serializacion
+  */
     t_payload_fs_create *payload = malloc(sizeof(t_payload_fs_create));
     int offset = 0;
 
@@ -343,6 +314,12 @@ t_payload_fs_create *deserializar_fs_create(void *buffer){
     offset += sizeof(int);
     payload->nombreArchivo = malloc(size_nombreArchivo);
     memcpy(payload->nombreArchivo, buffer + offset, size_nombreArchivo);
+    offset += size_nombreArchivo;
+
+    // add pcb
+    int size_pcb = sizeof(t_PCB);
+    payload->pcb = malloc(size_pcb);
+    memcpy(payload->pcb, buffer + offset, size_pcb);
 
     return payload;
 }
@@ -487,8 +464,12 @@ t_payload_fs_truncate *deserializar_fs_truncate(void *buffer){
     memcpy(payload->nombreArchivo, buffer + offset, size_nombreArchivo);
     offset += size_nombreArchivo;
 
-    memcpy(payload->tam, buffer + offset, sizeof(int));
+    memcpy(&(payload->tam), buffer + offset, sizeof(int));
     offset += sizeof(int);
+
+    int size_pcb = sizeof(t_PCB);
+    payload->pcb = malloc(size_pcb);
+    memcpy(payload->pcb, buffer + offset, size_pcb);
 
     return payload;
 }
@@ -496,7 +477,7 @@ void *serializar_fs_truncate(t_payload_fs_truncate *payload, int *size_payload){
     int size_interfaz = strlen(payload->interfaz) + 1;
     int size_nombreArchivo = strlen(payload->nombreArchivo) + 1;
 
-    *size_payload = size_interfaz + size_nombreArchivo + sizeof(int);
+    *size_payload = size_interfaz + size_nombreArchivo + sizeof(int) + sizeof(t_PCB);
 
     void* buffer = malloc(*size_payload);
     int offset = 0;
@@ -507,8 +488,10 @@ void *serializar_fs_truncate(t_payload_fs_truncate *payload, int *size_payload){
     memcpy(buffer + offset, payload->nombreArchivo, size_nombreArchivo);
     offset += size_nombreArchivo;
 
-    memcpy(buffer + offset, payload->tam, sizeof(int));
+    memcpy(buffer + offset, &(payload->tam), sizeof(int));
     offset += sizeof(int);
+
+    memcpy(buffer + offset, payload->pcb, sizeof(t_PCB));
 
     return buffer;
 }
@@ -527,13 +510,13 @@ t_payload_fs_writeORread *deserializar_fs_writeORread(void *buffer){
     memcpy(payload->nombreArchivo, buffer + offset, size_nombreArchivo);
     offset += size_nombreArchivo;
 
-    memcpy(payload->tam, buffer + offset, sizeof(int));
+    memcpy(&(payload->tam), buffer + offset, sizeof(int));
     offset += sizeof(int);
 
-    memcpy(payload->dirFisica, buffer + offset, sizeof(int));
+    memcpy(&(payload->dirFisica), buffer + offset, sizeof(int));
     offset += sizeof(int);
 
-    memcpy(payload->punteroArchivo, buffer + offset, sizeof(int));
+    memcpy(&(payload->punteroArchivo), buffer + offset, sizeof(int));
     offset += sizeof(int);
 
     int size_pcb = sizeof(t_PCB);
@@ -558,13 +541,13 @@ void *serializar_fs_writeORread(t_payload_fs_writeORread *payload, int *size_pay
     memcpy(buffer + offset, payload->nombreArchivo, size_nombreArchivo);
     offset += size_nombreArchivo;
 
-    memcpy(buffer + offset, payload->tam, sizeof(int));
+    memcpy(buffer + offset, &(payload->tam), sizeof(int));
     offset += sizeof(int);
 
-    memcpy(buffer + offset, payload->dirFisica, sizeof(int));
+    memcpy(buffer + offset, &(payload->dirFisica), sizeof(int));
     offset += sizeof(int);
 
-    memcpy(buffer + offset, payload->punteroArchivo, sizeof(int));
+    memcpy(buffer + offset, &(payload->punteroArchivo), sizeof(int));
     offset += sizeof(int);
 
     memcpy(buffer + offset, payload->pcb, size_pcb);

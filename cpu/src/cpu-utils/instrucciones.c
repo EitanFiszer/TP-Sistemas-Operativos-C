@@ -242,8 +242,7 @@ el FS montado en dicha interfaz, actualizando al valor que se encuentra en el re
 void instruccionIoFSTruncate(char* interfaz, char* nombreArchivo, char* regTam, registros_t* registros, t_PCB* pcb) {
     pcb->program_counter = pcb->program_counter + 1; 
 
-    int dirFisica=calcularDireccionFisica(pcb->PID,valorDelRegistro(regTam, registros));
-    int tamtruncate=solicitar_dato_memoria(pcb->PID, dirFisica,sizeof(int));
+    int tamtruncate=valorDelRegistro(regTam, registros);
 
     solicitar_fs_truncate(interfaz, nombreArchivo, tamtruncate, pcb);
 }
