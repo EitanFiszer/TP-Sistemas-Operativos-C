@@ -171,8 +171,9 @@ void instruccionCopyString(int tam, registros_t registros, t_PCB* pcb) {
 
     void* dato = solicitar_dato_memoria(pcb->PID, dirFisicaSI, tam);
 
-    char* datoString = calloc(1, tam);
+    char* datoString = calloc(1, tam+1);
     strncpy(datoString, dato, tam);
+    datoString[tam] = '\0';
 
     log_info(logger, "PID %d - Acción: LEER - Dirección Física: %d - Valor: %s", pcb->PID, dirFisicaSI, datoString);
 

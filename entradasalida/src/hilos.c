@@ -195,8 +195,9 @@ void hilo_stdout(void* argumentos) {
                 t_paquete_entre* respuesta = recibir_paquete_entre(socketMemoria);
                 void* dato = respuesta->payload;
 
-                char* texto = calloc(1,respuesta->size_payload);
+                char* texto = calloc(1,respuesta->size_payload+1);
                 strncpy(texto, dato, payloadMandar->tam);
+                texto[respuesta->size_payload] = '\0';
 
                 printf("\n");
                 printf("%s\n", texto);
