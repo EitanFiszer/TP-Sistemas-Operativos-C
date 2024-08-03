@@ -293,8 +293,9 @@ void interrumpir(t_motivo_interrupcion motivo, t_PCB* PCB)
     t_paquete *paquete_fin_de_q = crear_paquete();
     t_paquete_entre *fin_q = malloc(sizeof(t_paquete_entre));
     fin_q->operacion = INTERRUMPIR_PROCESO;
-    fin_q->size_payload = sizeof(t_PCB);
-    fin_q->payload = PCB;
+    fin_q->size_payload = sizeof(int);
+    int instruccion_valida = 1;
+    fin_q->payload = &instruccion_valida;
     agregar_paquete_entre_a_paquete(paquete_fin_de_q, fin_q);
     enviar_paquete(paquete_fin_de_q, resultHandshakeInterrupt);
     eliminar_paquete(paquete_fin_de_q);

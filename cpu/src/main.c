@@ -69,11 +69,11 @@ void conexion_interrupt(void* argumentos) {
         }
         switch (paquete->operacion) {
             case INTERRUMPIR_PROCESO:
-                t_PCB* pcb = (t_PCB*)paquete->payload;
+                // t_PCB* pcb = (t_PCB*)paquete->payload;
                 pthread_mutex_lock(&mutex_interrupcion);
                 interrupcion = true;
                 pthread_mutex_unlock(&mutex_interrupcion);
-                log_info(logger, "Interrupcion recibida para PID, %d", pcb->PID);
+                // log_info(logger, "Interrupcion recibida para PID, %d", pcb->PID);
                 break;
             default:
                 log_error(logger, "Operacion desconocida interrupt %d", paquete->operacion);
