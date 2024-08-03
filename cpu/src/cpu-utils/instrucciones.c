@@ -136,7 +136,7 @@ void instruccionMovOut(char* regDire, char* regDato, registros_t* registros, t_P
     int dato = valorDelRegistro(regDato, registros);
     int dirLogica = valorDelRegistro(regDire, registros);
 
-    log_info(logger, "PID %d - Acción: ESCRIBIR - Dirección Lógica: %d - Valor: %c", pcb->PID, dirLogica, dato);
+    log_info(logger, "PID %d - Acción: ESCRIBIR - Dirección Lógica: %d - Valor: %d", pcb->PID, dirLogica, dato);
 
     int dirFisica = calcularDireccionFisica(pcb->PID, dirLogica);
     // printf("Escribiendo dato %d en Direccion fisica: %d\n", dato, dirFisica);

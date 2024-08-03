@@ -58,14 +58,14 @@ int calcularDireccionFisica(int PID, int direccionLogica) {
 
     int marco = buscarEnTLB(PID, numeroPagina);
     if (marco == -1) {
-        log_info(logger, "PID: %d - TLB miss - Pagina %d", PID, numeroPagina);
+        log_info(logger, "PID: %d - TLB MISS - Pagina %d", PID, numeroPagina);
         marco = buscarEnTablaDePaginas(PID, numeroPagina);
 
         if(TLB_MAX_SIZE > 0) {
           agregarEntradaTLB(PID, numeroPagina, marco);
         }
     } else {
-        log_info(logger, "PID %d - TLB hit - Pagina %d", PID, numeroPagina);
+        log_info(logger, "PID %d - TLB HIT - Pagina %d", PID, numeroPagina);
     }
 
     if (marco == -1) {

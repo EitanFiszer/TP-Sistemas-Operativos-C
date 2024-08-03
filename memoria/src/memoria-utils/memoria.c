@@ -42,7 +42,7 @@ int buscarDireccionFisicaEnTablaDePaginas(int pid, int pagina) {
     int marco = dictionary_get(proceso->tabla_de_paginas, key);
     free(key);
 
-    // printf("Dirección física encontrada: %d\n", marco);
+    log_info(logger, "PID: %d - Pagina: %d - Marco: %d", pid, pagina, marco);
 
     return marco;
 }
@@ -88,7 +88,8 @@ void escribirMemoria(int pid, int direccionFisica, void* dato, int tamDato) {
         if (bytesAEscribir > offsetRestanteDelMarco) {
             bytesAEscribir = offsetRestanteDelMarco;
         }
-        log_info(logger, "Escribiendo %d bytes en la dirección física %d", bytesAEscribir, marco * TAM_PAGINA + offset);
+        log_info(logger, "PID: %d - Accion: ESCRIBIR - Direccion fisica: %d - Tamaño %d", pid, direccionFisica, tamDato);
+
         pthread_mutex_lock(&mutexMemoria);
         memcpy(memoria.memoria + marco * TAM_PAGINA + offset, dato + bytesEscritos, bytesAEscribir);
         pthread_mutex_unlock(&mutexMemoria);
@@ -163,7 +164,7 @@ void* obtenerDatoMemoria(int pid, int direccionFisica, int tamDato) {
         if (bytesALeer > offsetRestanteDelMarco) {
             bytesALeer = offsetRestanteDelMarco;
         }
-        log_info(logger, "Leyendo %d bytes en la dirección física %d", bytesALeer, marco * TAM_PAGINA + offset);
+        log_info(logger, "PID: %d - Accion: LEER - Direccion fisica: %d - Tamaño %d", pid, direccionFisica, tamDato);
         pthread_mutex_lock(&mutexMemoria);
         memcpy(dato + bytesLeidos, memoria.memoria + marco * TAM_PAGINA + offset, bytesALeer);
         pthread_mutex_unlock(&mutexMemoria);

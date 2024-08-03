@@ -94,13 +94,15 @@ void crearProceso(char* nombre_archivo, int pid) {
     proceso->instrucciones = leer_archivo(path_archivo, &proceso->cant_instrucciones);
     proceso->tabla_de_paginas = dictionary_create();
 
+    log_info(logger, "PID: %d - Tamaño %d", pid, proceso->cant_instrucciones);
+
+
     // log_info(logger, "Cantidad instrucciones: %d", proceso->cant_instrucciones);
 
     // for(int i = 0; i < proceso->cant_instrucciones; i++) {
     //     log_info(logger, "Instruccion %d: %s", i, proceso->instrucciones[i]);
     // }
 
-    log_info(logger, "Se creó el proceso con ID: %d", pid);
 
     enviar_paquete_entre(socketKernel, INSTRUCCIONES_CARGADAS, &pid, sizeof(int));
 }

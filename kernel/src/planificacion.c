@@ -140,7 +140,7 @@ void eliminar_colas()
 
 void iniciar_proceso(char *path)
 {
-    log_info(logger, "Se crea el proceso con el path %s <%d> en NEW", path, PID);
+    log_info(logger, "Se crea el proceso <%d> en NEW", path, PID);
     enviar_instrucciones_memoria(path, PID);
     t_PCB *new_PCB = crear_PCB(PID);
 
@@ -700,7 +700,7 @@ void finalizar_proceso(int pid)
     bool encontrado = buscar_pcb(pid);
     if (encontrado)
     {
-        printf("Finaliza el proceso <%d> - Motivo: INTERRUPTED_BY_USER\n", pid);
+        log_info(logger, "Finaliza el proceso <%d> - Motivo: INTERRUPTED_BY_USER\n", pid);
     }
     else
     {

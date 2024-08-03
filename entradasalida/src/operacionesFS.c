@@ -215,7 +215,7 @@ void* leer_archivo(char* nombre, int puntero, int tam){
 
 
 void liberarFS(){
-    leerDiccionario();
+    // leerDiccionario();
 
     t_list* lista= dictionary_elements(diccionarioFS);
     munmap(map_bloque,block_count*block_size);

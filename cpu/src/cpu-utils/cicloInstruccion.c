@@ -44,7 +44,7 @@ int fetchInstruccion(t_PCB* pcb, int socketMemoria, char** instruccionRecibida, 
         return -1;
     }
 
-    log_info(logger, "PID: %d, Program Counter: %d - FETCH - Instruccion: %s", pid, pc, *instruccionRecibida);
+    log_info(logger, "PID: %d - FETCH - Program Counter: %d", pid, pc);
 
     return 0;
 }
