@@ -198,12 +198,34 @@ void cargar_ready_por_pid(int num_pid)
     }
 }
 
-void cargar_ready(t_PCB *pcb, t_proceso_estado estado_anterior)
+
+void cargar_ready(t_PCB pcb, t_proceso_estado estado_anterior)
 {
     pcb->estado = READY;
 
     pthread_mutex_lock(&sem_q_ready);
     queue_push(cola_ready, pcb);
+
+    int lista_size = queue_size(cola_ready);
+
+    charlista = string_new();
+
+    t_PCB *pcb_ret = malloc(sizeof(t_PCB));
+
+    for (int i = 0; i < lista_size; i++)
+    {
+        pcb_ret = queue_pop(cola_ready);
+        string_append(&lista, string_itoa(pcb_ret->PID));
+        if (i != lista_size-1)
+        {
+            string_append(&lista, ",");
+        }
+
+        queue_push(cola_ready, pcb_ret);
+    }
+
+    log_info(logger, "Cola Ready: [%s]", lista);
+
     pthread_mutex_unlock(&sem_q_ready);
 
     sem_post(&sem_cont_ready);
@@ -222,13 +244,36 @@ void cargar_ready(t_PCB *pcb, t_proceso_estado estado_anterior)
     default:
         break;
     }
+    free(lista);
 }
-void cargar_ready_priori(t_PCB *pcb, t_proceso_estado estado_anterior)
+
+
+void cargar_ready_priori(t_PCB pcb, t_proceso_estado estado_anterior)
 {
     pcb->estado = READY;
 
     pthread_mutex_lock(&sem_q_ready_priori);
     queue_push(cola_ready_priori, pcb);
+
+    int lista_size = queue_size(cola_ready_priori);
+
+    charlista = string_new();
+
+    t_PCB *pcb_ret = malloc(sizeof(t_PCB));
+
+    for (int i = 0; i < lista_size; i++)
+    {
+        pcb_ret = queue_pop(cola_ready_priori);
+        string_append(&lista, string_itoa(pcb_ret->PID));
+        if (i != lista_size-1)
+        {
+            string_append(&lista, ",");
+        }
+        queue_push(cola_ready_priori, pcb_ret);
+    }
+
+    log_info(logger, "Cola Ready Prioridad: [%s]", lista);
+
     pthread_mutex_unlock(&sem_q_ready_priori);
 
     sem_post(&sem_cont_ready);
@@ -247,7 +292,10 @@ void cargar_ready_priori(t_PCB *pcb, t_proceso_estado estado_anterior)
     default:
         break;
     }
+    free(lista);
 }
+
+
 void stl_FIFO()
 {
     while (1)
