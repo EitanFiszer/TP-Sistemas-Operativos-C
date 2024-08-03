@@ -4,6 +4,7 @@
 #include "global.h"
 #include <commons/collections/list.h>
 #include <commons/collections/queue.h>
+#include <commons/string.h>
 #include <utils/constants.h>
 #include <pthread.h>
 #include "espera.h"

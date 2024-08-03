@@ -10,6 +10,7 @@
 #include <readline/readline.h>
 #include "operacionesFS.h"
 #include "bitmap.h"
+#include "diccionario.h"
 #include "utils.h"
 
 
@@ -228,6 +229,8 @@ void hilo_dialfs(void* argumentos){
     int socketMemoria = conexionMemoria(puerto_memoria, tipo_interfaz, nombre);
     
     inicializar_FS();
+    // leerbitmap();
+    // leerDiccionario();
 
     while (1) {
         t_paquete_entre* paquete_dispatch = recibir_paquete_entre(socketKernell);
@@ -251,10 +254,9 @@ void hilo_dialfs(void* argumentos){
                 usleep(tiempo_unidad_trabajo*1000);
                 t_payload_fs_create* payloaddelete=deserializar_fs_create(paquete_dispatch->payload);
                 int pid_delete = payloaddelete->pcb->PID;
-                log_info(logger, "PID: %d - Eliminar Archivo: %s",pid_delete,payloadcreate->nombreArchivo);
+                log_info(logger, "PID: %d - Eliminar Archivo: %s",pid_delete,payloaddelete->nombreArchivo);
                 delete_archivo(payloaddelete->nombreArchivo);
                 enviar_paquete_entre(socketKernell, TERMINE_OPERACION, NULL, 0);
-
             break;
 
             case IO_FS_TRUNCATE:
@@ -263,6 +265,10 @@ void hilo_dialfs(void* argumentos){
                 int pid_truncate=payloadtruncate->pcb->PID;
                 log_info(logger, "PID: %d - Truncar Archivo: %s - Tamaño: %d",pid_truncate,payloadtruncate->nombreArchivo, payloadtruncate->tam);
                 truncate_archivo(payloadtruncate->nombreArchivo, payloadtruncate->tam, retraso_compactacion,pid_truncate);
+              
+                // leerbitmap();
+                // leerDiccionario();
+              
                 enviar_paquete_entre(socketKernell, TERMINE_OPERACION, NULL, 0);
             break;
 
@@ -281,6 +287,8 @@ void hilo_dialfs(void* argumentos){
 
                 escribir_archivo(payloadwrite->nombreArchivo,payloadwrite->punteroArchivo,payloadwrite->tam,respuesta->payload);
                 log_info(logger, "PID: %d - Escribir Archivo: %s - Tamaño a Escribir: %d - Puntero Archivo: %d",pid_write,payloadwrite->nombreArchivo,payloadwrite->tam,payloadwrite->punteroArchivo);
+                
+                enviar_paquete_entre(socketKernell, TERMINE_OPERACION, NULL, 0);
             break;
 
             case IO_FS_READ:
@@ -300,6 +308,7 @@ void hilo_dialfs(void* argumentos){
                 enviar_paquete_entre(socketMemoria, ESCRIBIR_MEMORIA, payloadSerializado, payloadread->tam);
 
                 log_info(logger,"PID: %d - Leer Archivo: %s - Tamaño a Leer: %d - Puntero Archivo: %d",pid_read,payloadread->nombreArchivo,payloadread->tam,payloadread->punteroArchivo);
+                enviar_paquete_entre(socketKernell, TERMINE_OPERACION, NULL, 0);
             break;
 
             default:

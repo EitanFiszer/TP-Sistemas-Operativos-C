@@ -18,7 +18,7 @@ extern int block_count;
 //CREA EL BITARRAY
 t_bitarray* crear_bitarray(){
 
-   char data[(int)ceil(block_count/8)];
+   char data[(int)ceil((double)block_count/8)];
    t_bitarray* bitarray = bitarray_create_with_mode(data, sizeof(data),LSB_FIRST);
     for(int i=0;i<block_count;i++){
         bitarray_clean_bit(bitarray,i);
@@ -50,7 +50,7 @@ t_bitarray* cargar_bitmap() {
 
     int fd = open(crear_ruta("bitmap.dat"), O_CREAT | O_RDWR, 0664);
 
-    ftruncate(fd,(int)ceil(block_count/8));
+    ftruncate(fd,(int)ceil((double)block_count/8));
 
     void* bitmap = mmap(NULL, (int)ceil(block_count/8), PROT_READ|PROT_WRITE, MAP_SHARED, fd ,0);
 

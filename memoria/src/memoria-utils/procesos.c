@@ -196,7 +196,7 @@ int redimensionarProceso(int pid, int nuevoTam) {
         }
     }
 
-    printTabladePaginas(proceso);
+    // printTabladePaginas(proceso);
 
     return RESIZE_SUCCESS;
 }
